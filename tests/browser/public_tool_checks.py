@@ -18,11 +18,13 @@ async def main():
   body = await page.locator('body').inner_text()
   assert 'Aktueller Stand Beispiel' not in body and '316,13' not in body and 'Screenshot-Kontext' not in body
   assert 'Erholungszeit für Strength ist nicht eingerechnet.' in body
-  assert 'v1.1.0' in body and 'Law-Daten: Okt. 2026' in body
-  assert await page.get_by_role('link', name='GitHub', exact=True).get_attribute('href') == 'https://github.com/Dev0MostZaraki/Immortality-Incremental-Planner'
-  issues = page.get_by_role('link', name='Fehler melden')
+  assert 'v1.2.0' in body and 'Law-Daten: Okt. 2026' in body
+  await page.get_by_role('button', name='Mehr Aktionen', exact=True).click()
+  assert await page.get_by_role('menuitem', name='GitHub', exact=True).get_attribute('href') == 'https://github.com/Dev0MostZaraki/Immortality-Incremental-Planner'
+  issues = page.get_by_role('menuitem', name='Fehler melden')
   assert await issues.get_attribute('href') == 'https://github.com/Dev0MostZaraki/Immortality-Incremental-Planner/issues'
   assert await issues.get_attribute('target') == '_blank' and await issues.get_attribute('rel') == 'noopener noreferrer'
+  await page.keyboard.press('Escape')
   await page.screenshot(path=str(OUT/'fresh-de.png'))
   await page.locator('#gain').fill('454'); await page.locator('#cur').fill('475'); await page.locator('#tgt').fill('500')
   assert await page.get_by_test_id('main-eta').inner_text() == '55,07 Sekunden'
@@ -80,19 +82,23 @@ async def main():
   await page.get_by_role('button', name='Cancel', exact=True).click()
   assert await page.locator('#ls-core').input_value() == '1000'
   # Portable JSON export/import restores both tools and the Law subtab.
-  await page.get_by_text('Data', exact=True).click()
+  await page.get_by_role('button', name='More actions', exact=True).click()
+  await page.get_by_role('menuitem', name='Data', exact=True).click()
   async with page.expect_download() as download_info:
    await page.get_by_role('button', name='Export JSON', exact=True).click()
   download = await download_info.value
   backup_path = OUT/'backup.json'; await download.save_as(backup_path)
   backup = json.loads(backup_path.read_text())
-  assert backup['version'] == '1.1.0' and backup['law']['inv']['Lucent'] == '111'
+  assert backup['version'] == '1.2.0' and backup['law']['inv']['Lucent'] == '111'
+  await page.keyboard.press('Escape')
   await page.get_by_role('button', name='Reset all law data', exact=True).click()
   await page.get_by_role('button', name='Confirm', exact=True).click()
   assert await page.locator('#ls-core').input_value() == ''
   saved = json.loads(await page.evaluate("localStorage.getItem('ii-lawsynth-v1')"))
   assert saved['levels']['perception'] == {'cur': 0, 'tgt': 0} and saved['inv']['Lucent'] == '' and saved['check'] == {}
   bad_path = OUT/'bad.json'; bad_path.write_text('{"version":"99","endurance":"unsafe"}')
+  await page.get_by_role('button', name='More actions', exact=True).click()
+  await page.get_by_role('menuitem', name='Data', exact=True).click()
   await page.set_input_files('input[type=file]', str(bad_path))
   await page.get_by_role('status').filter(has_text='Invalid backup').wait_for()
   assert await page.locator('#ls-core').input_value() == ''
@@ -113,7 +119,7 @@ async def main():
     modes = (['Simple', 'Progression', 'Advanced'] if language == 'en' else ['Einfach', 'Progression', 'Erweitert']) if tool == 'Endurance Planner' else (['Plan', 'Settings'] if language == 'en' else ['Plan', 'Einstellungen'])
     for mode in modes:
      await page.get_by_role('button' if tool == 'Endurance Planner' else 'tab', name=mode, exact=True).click()
-     for width in [1280, 390]:
+     for width in [390, 768, 1366, 1920, 2560, 3440]:
       await page.set_viewport_size({'width': width, 'height': 1800})
       await page.screenshot(path=str(OUT/f'{language}-{tool.split()[0]}-{mode}-{width}.png'))
       assert await page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), (language, tool, mode, width)
@@ -121,7 +127,8 @@ async def main():
       assert not re.search(r'\bNaN\b|\bInfinity\b', text)
       if language == 'en': assert not re.search(r'benötigt|fehlt|Nächster|Empfehlung|Quell|Zurück|Stufen|Zeitraum|Keine|Sekunden|Für dein|löschen|eingerechnet|Daten:', text), text
   # Destructive local deletion requires confirmation and returns to clean German defaults.
-  await page.get_by_text('Daten', exact=True).click()
+  await page.get_by_role('button', name='Mehr Aktionen', exact=True).click()
+  await page.get_by_role('menuitem', name='Daten', exact=True).click()
   await page.get_by_role('button', name='Alle lokalen Daten löschen', exact=True).click()
   await page.get_by_role('button', name='Abbrechen', exact=True).click()
   assert json.loads(await page.evaluate("localStorage.getItem('ii-endurance-calc-v1')"))['gain']['v'] == '454'

@@ -15,7 +15,7 @@ export function UnitField({ id, label, value, onChange, suffix, invalid, describ
   return (
     <div className={`field flex min-w-0 flex-1 items-stretch overflow-hidden ${invalid ? "border-destructive" : ""}`}>
       {!hideLabel && <label htmlFor={id} className="sr-only">{label}</label>}
-      <input id={id} inputMode="decimal" autoComplete="off" value={value.v} placeholder="0" aria-invalid={invalid} aria-describedby={describedBy}
+      <input id={id} inputMode="decimal" autoComplete="off" value={value.v} aria-invalid={invalid} aria-describedby={describedBy}
         onChange={(e) => onChange({ ...value, v: e.target.value })}
         className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono text-base outline-none" />
       <select aria-label={tr("{p0} Einheit", { p0: label })} value={value.u} onChange={(e) => onChange({ ...value, u: e.target.value })}

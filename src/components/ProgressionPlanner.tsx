@@ -183,7 +183,7 @@ function PathEditor({ p, set }: { p: Prog; set: <K extends keyof Prog>(k: K, v: 
   const upd = (id: number, patch: Partial<PathItem>) => set("path", p.path.map((r) => r.id === id ? { ...r, ...patch } : r));
   const move = (i: number, d: number) => { const a = [...p.path]; const [r] = a.splice(i, 1); if (!r) return; a.splice(i + d, 0, r); set("path", a); };
   return <div className="space-y-3">{p.path.map((r, i) => (
-    <div key={r.id} className="grid min-w-0 gap-2 border-l-2 border-border pl-3 md:grid-cols-[8rem_4rem_minmax(0,1fr)_minmax(0,1fr)_auto]">
+    <div key={r.id} className="grid min-w-0 gap-2 border-l-2 border-border pl-3 min-[1100px]:grid-cols-[8rem_4rem_minmax(0,1fr)_minmax(0,1fr)_auto]">
       <input aria-label={tr("Upgrade {p0} Name", { p0: i + 1 })} value={r.name} onChange={(e) => upd(r.id, { name: e.target.value })} className="field min-w-0 px-2 py-2 text-sm outline-none" />
       <input aria-label={tr("Upgrade {p0} Level", { p0: i + 1 })} placeholder="Lv." value={r.level} onChange={(e) => upd(r.id, { level: e.target.value })} className="field min-w-0 px-2 py-2 font-mono text-sm outline-none" />
       <UnitField id={`pc-${r.id}`} label={tr("Upgrade {p0} Kosten", { p0: i + 1 })} value={r.cost} onChange={(v) => upd(r.id, { cost: v })} suffix={tr("Kosten")} />
@@ -243,7 +243,7 @@ function Rows({ rows }: { rows: [string, string][] }) {
 }
 
 function Card({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
-  return <section className="panel min-w-0 p-4 sm:p-5"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="text-base font-semibold">{title}</h2>{right}</div>{children}</section>;
+  return <section className="panel min-w-0 p-4 sm:p-5"><div className="mb-3 grid min-w-0 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between"><h2 className="min-w-0 text-base font-semibold">{title}</h2>{right}</div>{children}</section>;
 }
 
 function Field({ id, label, value, onChange, suffix, help }: { id: string; label: string; value: NU; onChange: (v: NU) => void; suffix?: string | undefined; help?: string | undefined }) {

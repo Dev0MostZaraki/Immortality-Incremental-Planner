@@ -13,7 +13,7 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     // src/server.ts wraps the TanStack Start server entry with generic SSR error handling.
     tanstackStart({ server: { entry: "server" } }),
-    ...(command === "build" ? [nitro()] : []),
+    ...(command === "build" ? [nitro({ output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" } })] : []),
     viteReact(),
   ],
 }));

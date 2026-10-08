@@ -52,6 +52,14 @@ describe("public planner data rules", () => {
     expect(JSON.parse(localStorage.getItem(LAW_KEY) ?? "{}")).toEqual(law);
     expect(localStorage.getItem(LANGUAGE_KEY)).toBe("en");
   });
+  it("exports v1.2.0 and still imports v1.1.0 backups", () => {
+    const data = JSON.parse(exportBackup(localStorage));
+    expect(data.version).toBe("1.2.0");
+    data.version = "1.1.0";
+    data.endurance.gain = { v: "123", u: "Qi" };
+    importBackup(JSON.stringify(data), localStorage);
+    expect(JSON.parse(localStorage.getItem(ENDURANCE_KEY) ?? "{}").gain).toEqual({ v: "123", u: "Qi" });
+  });
   it.each(["not json", "{}", '{"__proto__":{}}', '{"version":"9.0.0"}'])("rejects malformed or unsupported backups without writing data: %s", (raw) => {
     localStorage.setItem(LANGUAGE_KEY, "de");
     expect(() => importBackup(raw, localStorage)).toThrow();

@@ -1,16 +1,16 @@
 import { useI18n, LanguageSwitcher } from "@/components/LanguageProvider";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, Check, Copy, RotateCcw, Save, X, Zap } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Save, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { EnduranceResult } from "@/components/EnduranceResult";
 import { SUFFIXES, toValue, eta, DURATION_UNITS, parseNum, type Parsed } from "@/lib/endurance";
 import { UnitField, Hint, val, type NU } from "@/components/planner-fields";
 import { LawSynthesis } from "@/components/LawSynthesis";
 import { ProgressionPlanner } from "@/components/ProgressionPlanner";
-import { PublicFooter } from "@/components/PublicFooter";
+import { PublicFooter, PlannerUtilities } from "@/components/PublicFooter";
 import { DEFAULTS, ENDURANCE_KEY, restoreState, type State, type Target } from "@/lib/planner-state";
-import { calculatePlan, decide, upgradeROI, compareGain, contextTargets, YEAR_SECONDS } from "@/lib/planner";
+import { calculatePlan, decide, upgradeROI, compareGain, contextTargets } from "@/lib/planner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
 
 
 function Index() {
-  const { t: tr, locale, fmtPlain, fmtSuffix, fmtDuration, fmtFinish, naturalDuration, neighboringConversion } = useI18n();
+  const { t: tr, locale, fmtPlain, fmtSuffix, fmtDuration, fmtFinishExact: fmtFinish, naturalDuration } = useI18n();
 
   const [s, setS] = useState<State>(DEFAULTS);
   const [loaded, setLoaded] = useState(false);
@@ -59,7 +59,6 @@ function Index() {
   const n = nextP.ok === true ? nextP.value : null;
   const r = g !== null && c !== null && t !== null ? calculatePlan(c, t, g) : null;
   const cmp = g !== null && c !== null && t !== null && n !== null ? compareGain(c, t, g, n) : null;
-  const conversion = neighboringConversion(s.target);
   const customP = toValue(s.custom.v, s.custom.u);
   const clock = now === null ? "–" : new Date(now).toLocaleString(locale, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const copy = async () => {
@@ -98,97 +97,60 @@ function Index() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
-      <nav className="mb-6 flex flex-wrap items-center justify-between gap-3" aria-label={tr("Werkzeug")}>
-        <span className="text-sm font-medium text-primary">Immortality Incremental Planner</span>
-        <div className="inline-flex flex-wrap rounded-md border bg-secondary p-1" role="group">
+    <div className="planner-shell">
+      <header className="planner-header" data-testid="main-header">
+        <h1 className="min-w-0 text-base font-semibold leading-snug sm:text-lg">Immortality Incremental <span className="text-primary">Planner</span></h1>
+        <nav className="tool-navigation inline-flex min-w-0 rounded-md border bg-secondary p-1" aria-label={tr("Werkzeug")}>
           <Button variant={s.tool === "endurance" ? "default" : "ghost"} size="sm" aria-pressed={s.tool === "endurance"} onClick={() => set("tool", "endurance")}>Endurance Planner</Button>
           <Button variant={s.tool === "law" ? "default" : "ghost"} size="sm" aria-pressed={s.tool === "law"} onClick={() => set("tool", "law")}>Law Synthesis</Button>
-        </div>
-        <LanguageSwitcher />
-      </nav>
-      {s.tool === "law" ? <main><LawSynthesis /></main> : <>
-      <header className="mb-7 flex flex-wrap items-start justify-between gap-5">
-        <div>
-          <h1 className="mt-1 text-3xl font-semibold sm:text-4xl">Endurance <span className="text-primary">Planner</span></h1>
-          <p className="mt-2 text-sm text-muted-foreground">{tr("Dein Ziel. Deine Restzeit. Dein nächstes Increase.")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-1">
-          <Button variant="ghost" size="icon" title={tr("Zurücksetzen")} aria-label={tr("Zurücksetzen")} onClick={() => setS((p) => ({ ...DEFAULTS, tool: p.tool }))}><RotateCcw /></Button>
-        </div>
+        </nav>
+        <div className="header-utilities flex shrink-0 items-center gap-2"><LanguageSwitcher /><PlannerUtilities onReset={() => setS((p) => ({ ...DEFAULTS, tool: p.tool }))} /></div>
       </header>
-      <div className="mb-5 flex items-center justify-between gap-3 border-b pb-4">
-        <div className="inline-flex rounded-md border bg-secondary p-1" role="group" aria-label={tr("Ansicht")}>
+      {s.tool === "law" ? <main><LawSynthesis /></main> : <>
+      <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b pb-4">
+        <div className="inline-flex justify-self-start rounded-md border bg-secondary p-1" role="group" aria-label={tr("Ansicht")}>
           <Button variant={s.mode === "simple" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "simple"} onClick={() => set("mode", "simple")}>{tr("Einfach")}</Button>
           <Button variant={s.mode === "progression" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "progression"} onClick={() => set("mode", "progression")}>Progression</Button>
           <Button variant={s.mode === "advanced" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "advanced"} onClick={() => set("mode", "advanced")}>{tr("Erweitert")}</Button>
         </div>
-        <span className="text-right text-xs text-muted-foreground">{s.mode === "progression" ? tr("Empfohlen fürs aktive Spielen") : tr("Endurance · ×1000 je Einheit")}</span>
+        <span className="hidden text-right text-xs text-muted-foreground sm:block">{s.mode === "progression" ? tr("Empfohlen fürs aktive Spielen") : tr("Endurance · ×1000 je Einheit")}</span>
       </div>
       <main>
         {s.mode === "progression" ? <>
           <ProgressionPlanner core={{ gain: s.gain, cur: s.cur, target: s.target, next: s.next }} setCore={(k, v) => set(k, v)} g={g} c={c} t={t} n={n} p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} now={now} onCopy={copyProg} copied={copiedProg} />
         </> : <>
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10">
+        <div className="calculator-layout" data-testid="calculator-layout">
           <section className="min-w-0 space-y-5 py-2" aria-labelledby="inputs-h">
             <h2 id="inputs-h" className="section-label">{tr("Deine Werte")}</h2>
             <NumUnit id="gain" label={tr("Aktueller Gain")} suffix="/ s" value={s.gain} onChange={(v) => set("gain", v)} parsed={gainP} help={tr("Endurance pro Sekunde.")} required />
             <NumUnit id="cur" label={tr("Aktuelle Endurance")} value={s.cur} onChange={(v) => set("cur", v)} parsed={curP} help={tr("Leer = 0.")} />
             <div>
               <NumUnit id="tgt" label={tr("Ziel-Endurance")} value={s.target} onChange={(v) => set("target", v)} parsed={tgtP} help="" required />
-              <UnitContext unit={s.target.u} />
+               <div className="mt-3 flex flex-wrap gap-2" aria-label={tr("Schnellziele")} data-testid="quick-targets">{contextTargets(s.target.u).map((v) => chip(v, `context-${v.v}-${v.u}`))}{s.savedCustom && chip(s.savedCustom, "custom-saved")}</div>
+               <details className="mt-3 text-xs text-muted-foreground">
+                 <summary className="cursor-pointer py-1">{tr("Eigenes Schnellziel")}</summary>
+                 <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                   <UnitField id="custom" label={tr("Eigenes Schnellziel")} value={s.custom} onChange={(v) => set("custom", v)} invalid={customP.ok === false} />
+                   <Button variant="outline" size="icon" title={tr("Schnellziel speichern")} aria-label={tr("Schnellziel speichern")} disabled={customP.ok !== true} onClick={() => set("savedCustom", { ...s.custom })}><Save /></Button>
+                 </div>
+                 {customP.ok === false && <p className="mt-1 text-destructive">{tr(customP.error)}</p>}
+               </details>
+               <UnitContext unit={s.target.u} />
               {c !== null && c > 0 && t !== null && t / c >= 1000 && (
                 <p className="mt-3 border-l-2 border-primary pl-3 text-xs leading-relaxed text-muted-foreground">{tr("Dein Ziel liegt")} <strong className="font-mono text-foreground">{fmtPlain(t / c, 0)}×</strong> {tr("über deinem aktuellen Stand.")}</p>
               )}
             </div>
             <NumUnit id="next" label={tr("Nächster Gain (optional)")} suffix="/ s" value={s.next} onChange={(v) => set("next", v)} parsed={nextP} help={tr("Endurance-Gain nach Increase.")} />
           </section>
-          <section className="result-panel min-w-0 p-5 sm:p-7" aria-labelledby="res-h">
-            <div className="flex items-center justify-between gap-3">
-              <h2 id="res-h" className="section-label">{tr("Dein Ziel ·")} {s.target.v || "–"} {s.target.u}</h2>
-              <Button variant="ghost" size="icon" onClick={copy} disabled={!r} title={copied ? tr("Kopiert") : tr("Ergebnis kopieren")} aria-label={copied ? tr("Kopiert") : tr("Ergebnis kopieren")}>{copied ? <Check /> : <Copy />}</Button>
-            </div>
-            {!r || g === null || c === null || t === null ? <p className="my-10 text-muted-foreground">{tr("Bitte gültige Werte für Gain und Ziel eingeben.")}</p> : (
-              <>
-                <div className="my-6" aria-live="polite">
-                  <p className="mb-2 text-xs text-muted-foreground">{r.reached ? tr("Alles geschafft") : tr("Verbleibende Zeit")}</p>
-                  <p className={`eta-value font-mono text-3xl font-semibold leading-tight sm:text-4xl ${r.reached ? "text-success" : "text-primary"}`} data-testid="main-eta">{r.reached ? tr("Ziel erreicht") : naturalDuration(r.secs)}</p>
-                  {!r.reached && Number.isFinite(r.secs) && <p className="mt-2 font-mono text-xs text-muted-foreground">{fmtPlain(r.secs, 3)} {tr("Sekunden")}</p>}
-                  {!r.reached && g === 0 && <p className="mt-2 text-sm text-muted-foreground">{tr("Mit 0 Gain wächst deine Endurance nicht.")}</p>}
-                </div>
-                {Number.isFinite(r.secs) && r.secs > 7 * 86400 && (
-                  <div className="mb-5 border-l-2 border-primary bg-accent/30 px-3 py-2.5">
-                    <p className="text-xs font-medium text-primary">{tr("Langfristiges Ziel")}</p>
-                    {r.secs > YEAR_SECONDS && <p className="mt-1 font-mono text-sm">≈ {fmtPlain(r.secs / YEAR_SECONDS, 2)} {tr("Jahre · ≈")} {fmtPlain(r.secs / 86400, 0)} {tr("Tage")}</p>}
-                    <p className="mt-1 text-xs text-muted-foreground">{tr("Die Restzeit ergibt sich aus Zielabstand und deinem Gain.")}</p>
-                  </div>
-                )}
-                <div className="border-y py-4">
-                  <div className="mb-2 flex items-baseline justify-between gap-2 text-xs text-muted-foreground"><span>{tr("Fortschritt")}</span><span className="font-mono text-foreground">{fmtPlain(r.pct, 2)} %</span></div>
-                  <Progress value={r.pct} aria-label={tr("Fortschritt zum Ziel")} />
-                  <p className="mt-3 break-words font-mono text-xs text-muted-foreground">{conversion}</p>
-                </div>
-                <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-5 sm:grid-cols-3">
-                  <Stat label={tr("Noch benötigt")} value={fmtSuffix(r.remaining)} />
-                  <Stat label={tr("Aktueller Gain / s")} value={fmtSuffix(g)} />
-                  <Stat label={tr("Pro Minute")} value={fmtSuffix(g * 60)} />
-                  <Stat label={tr("Pro Stunde")} value={fmtSuffix(g * 3600)} />
-                  <Stat label={tr("Pro Tag")} value={fmtSuffix(g * 86400)} />
-                  <Stat label={tr("Fertig am")} value={now === null ? "–" : fmtFinish(r.secs, now)} wide />
-                </dl>
-              </>
-            )}
-            <p className="mt-5 border-t pt-3 text-xs text-muted-foreground">{tr("Jetzt:")} <span className="font-mono">{clock}</span></p>
-            {copyError && <p role="status" className="mt-2 text-xs text-destructive">{tr("Kopieren nicht möglich. Bitte Browser-Berechtigung prüfen.")}</p>}
-          </section>
+           <EnduranceResult result={r} gain={g} current={c} target={t} now={now} copied={copied} copyError={copyError} onCopy={copy} />
         </div>
 
-        <section className="mt-8 border-y py-6 sm:py-7" aria-labelledby="increase-h">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <h2 id="increase-h" className="flex items-center gap-2 text-xl font-semibold"><Zap className="size-5 text-primary" />Increase Planner</h2>
+        <section className={`mt-6 border-y ${n === null ? "py-4" : "py-6 sm:py-7"}`} aria-labelledby="increase-h" data-testid="increase-planner" data-expanded={n !== null}>
+          <div className={`${n === null ? "mb-2" : "mb-5"} grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between`}>
+            <h2 id="increase-h" className={`flex min-w-0 items-center gap-2 ${n === null ? "text-base" : "text-xl"} font-semibold`}><Zap className="size-5 text-primary" />Increase Planner</h2>
             {cmp && !r?.reached && <span className={`border-l-2 pl-3 text-sm font-semibold ${cmp.recommendation === "Increase jetzt sinnvoll" ? "border-success text-success" : cmp.recommendation === "Nicht drücken" ? "border-destructive text-destructive" : "border-border text-muted-foreground"}`} data-testid="recommendation">{tr(cmp.recommendation)}</span>}
           </div>
-          {!cmp || g === null || n === null ? <p className="text-sm text-muted-foreground">{tr("Mit einem nächsten Gain kannst du beide Increase-Optionen vergleichen.")}</p> : r?.reached ? <p className="text-sm text-success">{tr("Ziel bereits erreicht – für dieses Ziel ist kein Increase nötig.")}</p> : (
+          {!cmp || g === null || n === null ? <p className="text-sm text-muted-foreground">{tr("Gib oben deinen nächsten Gain ein, um vor und nach Increase zu vergleichen.")}</p> : r?.reached ? <p className="text-sm text-success">{tr("Ziel bereits erreicht – für dieses Ziel ist kein Increase nötig.")}</p> : (
             <>
               <div className="grid gap-5 md:grid-cols-3">
                 <ScenarioResult label={tr("Ohne Increase")} gain={g} secs={cmp.a} now={now} />
@@ -204,34 +166,22 @@ function Index() {
               </p>
             </>
           )}
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-5">
+          <div className={`${n === null ? "mt-2" : "mt-5"} flex flex-wrap items-center justify-between gap-3`}>
             <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">{tr("Increase setzt Strength zurück. Die Endurance-ETA berücksichtigt nur die eingegebenen Endurance-Gains; die Erholungszeit für Strength ist nicht eingerechnet.")}</p>
-            <Button disabled={n === null} onClick={() => setS((p) => ({ ...p, gain: p.next, next: { v: "", u: p.next.u } }))} className="action-glow">{tr("Next Gain übernehmen")}<ArrowRight /></Button>
+            {n !== null && <Button onClick={() => setS((p) => ({ ...p, gain: p.next, next: { v: "", u: p.next.u } }))} className="action-glow">{tr("Next Gain übernehmen")}<ArrowRight /></Button>}
           </div>
           {cmp && <p className="mt-4 text-xs text-muted-foreground">{tr("Jetzt:")} <span className="font-mono">{clock}</span></p>}
         </section>
 
-        <section className="py-6" aria-labelledby="quick-h">
-          <h2 id="quick-h" className="mb-4 text-base font-semibold">{tr("Schnellziele")}</h2>
-          <p className="mb-2 text-xs text-muted-foreground">{tr("Passend zu")} {s.target.u || tr("Einheiten")}</p>
-          <div className="flex flex-wrap gap-2">{contextTargets(s.target.u).map((v) => chip(v, `context-${v.v}-${v.u}`))}</div>
-          <div className="mt-5 flex max-w-lg flex-wrap items-end gap-2">
-            <div className="min-w-0 flex-1"><label htmlFor="custom" className="mb-1.5 block text-xs text-muted-foreground">{tr("Eigenes Schnellziel")}</label><UnitField id="custom" label={tr("Eigenes Schnellziel")} value={s.custom} onChange={(v) => set("custom", v)} invalid={customP.ok === false} hideLabel /></div>
-            <Button variant="outline" size="icon" title={tr("Schnellziel speichern")} aria-label={tr("Schnellziel speichern")} disabled={customP.ok !== true} onClick={() => set("savedCustom", { ...s.custom })}><Save /></Button>
-            {s.savedCustom && chip(s.savedCustom, "custom-saved")}
-          </div>
-          {customP.ok === false && <p className="mt-1 text-xs text-destructive">{tr(customP.error)}</p>}
-        </section>
-
         {s.mode === "advanced" && (
           <div className="border-t" data-testid="advanced-tools">
-            <Section title={tr("Gain-Szenarien")} right={<Button variant="ghost" size="sm" onClick={() => setS((p) => ({ ...p, scenarioA: null, scenarioB: null, scenarioC: { v: "", u: p.gain.u } }))}>{tr("Aktuelle Gains einsetzen")}</Button>}>
+            <Section title={tr("Szenarien vergleichen")} right={<Button variant="ghost" size="sm" onClick={() => setS((p) => ({ ...p, scenarioA: null, scenarioB: null, scenarioC: { v: "", u: p.gain.u } }))}>{tr("Aktuelle Gains einsetzen")}</Button>}>
               <ScenarioComparator values={[s.scenarioA ?? s.gain, s.scenarioB ?? s.next, s.scenarioC]} onChange={(i, v) => set(i === 0 ? "scenarioA" : i === 1 ? "scenarioB" : "scenarioC", v)} c={c} t={t} now={now} />
               <p className="mt-4 text-xs text-muted-foreground">{tr("Gleicher Endurance-Stand und gleiches Ziel · Jetzt:")} <span className="font-mono">{clock}</span></p>
             </Section>
             <div className="grid gap-5 md:grid-cols-2">
-              <Section title={tr("Benötigter Gain für Wunschzeit")}><Duration id="dur" label={tr("Ziel erreichen in")} value={s.dur} onChange={(v) => set("dur", v)} /><ReverseResult c={c} t={t} dur={s.dur} /></Section>
-              <Section title={tr("Wie viel habe ich nach …")}><Duration id="proj" label={tr("Zeitraum")} value={s.proj} onChange={(v) => set("proj", v)} /><ProjResult c={c} g={g} t={t} dur={s.proj} /></Section>
+              <Section title={tr("Benötigter Gain")}><Duration id="dur" label={tr("Ziel erreichen in")} value={s.dur} onChange={(v) => set("dur", v)} /><ReverseResult c={c} t={t} dur={s.dur} /></Section>
+              <Section title={tr("Hochrechnung")}><Duration id="proj" label={tr("Zeitraum")} value={s.proj} onChange={(v) => set("proj", v)} /><ProjResult c={c} g={g} t={t} dur={s.proj} /></Section>
             </div>
             <Section title={tr("Mehrere Ziele")} right={<Button variant="outline" size="sm" disabled={s.targets.length >= 10} onClick={() => set("targets", [...s.targets, { id: Date.now(), v: "", u: s.target.u }])}>{tr("+ Ziel (")}{s.targets.length}/10)</Button>}>
               {s.targets.length === 0 ? <p className="text-sm text-muted-foreground">{tr("Noch keine weiteren Ziele.")}</p> : <>
@@ -260,7 +210,7 @@ function UnitContext({ unit }: { unit: string }) {
 
   const i = SUFFIXES.findIndex((u) => u === unit);
   const previous = SUFFIXES[i - 1], next = SUFFIXES[i + 1];
-  return <div className="mt-2 text-xs text-muted-foreground"><p className="font-mono">{previous !== undefined && `${previous || tr("Einheiten")} ← `}<span className="font-semibold text-primary">{unit || tr("Einheiten")}</span>{next !== undefined && ` → ${next}`}</p><p className="mt-1 break-words font-mono">{neighboringConversion({ v: "1", u: unit })}</p></div>;
+  return <div className="mt-3 border-t pt-3 text-xs text-muted-foreground"><p className="flex items-center gap-3 font-mono">{previous !== undefined && <span>{previous || tr("Einheiten")} ←</span>}<span className="rounded border px-2 py-1 font-semibold text-primary">{unit || tr("Einheiten")}</span>{next !== undefined && <span>→ {next}</span>}</p><p className="mt-2 break-words font-mono">{neighboringConversion({ v: "1", u: unit })}</p></div>;
 }
 function ScenarioResult({ label, gain, secs, now }: { label: string; gain: number; secs: number; now: number | null }) {
   const { fmtSuffix, fmtFinish, naturalDuration } = useI18n();
@@ -388,23 +338,12 @@ function Duration({ id, label, value, onChange }: { id: string; label: string; v
 }
 
 function Section({ title, children, right }: { title: string; children: ReactNode; right?: ReactNode }) {
-  return (
-    <section className="mt-5 min-w-0 border-t py-5 sm:py-6">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold">{title}</h2>{right}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Stat({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
-  return (
-    <div className={`min-w-0 ${wide ? "col-span-2" : ""}`}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 break-words font-mono text-sm font-medium">{value}</dd>
-    </div>
-  );
+  return <section className="min-w-0 border-t" aria-label={title}>
+    <details className="group">
+      <summary className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-5 text-base font-semibold"><h2 className="min-w-0">{title}</h2><ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" /></summary>
+      <div className="pb-5">{right && <div className="mb-4 flex justify-end">{right}</div>}{children}</div>
+    </details>
+  </section>;
 }
 
 function Big({ label, value, sub }: { label: string; value: string; sub: string }) {

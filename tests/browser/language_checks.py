@@ -65,7 +65,7 @@ async def main():
     else:modes=[None]
     for mode in modes:
      if mode:await page.get_by_role('button',name=mode,exact=True).click()
-     for width in [1280,390]:
+     for width in [390,768,1366,1920,2560,3440]:
       await page.set_viewport_size({'width':width,'height':1800})
       await page.screenshot(path=str(OUT/f'{lang}-{tool.split()[0]}-{mode}-{width}.png'))
       assert await page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'),(lang,tool,mode,width)

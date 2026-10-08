@@ -1,5 +1,13 @@
 // Central source-key dictionary. Game names and user-entered notes are never translated.
 export const messages = {
+  "Ziel:": "Target:",
+  "Mehr Aktionen": "More actions",
+  "Endurance-Eingaben zurücksetzen": "Reset Endurance inputs",
+  "Gib oben deinen nächsten Gain ein, um vor und nach Increase zu vergleichen.": "Enter your Next Gain above to compare before vs. after Increase.",
+  "Szenarien vergleichen": "Compare Scenarios",
+  "Benötigter Gain": "Required Gain",
+  "Hochrechnung": "Projection",
+  "Ungültiges Backup. Bitte eine gültige Planner-JSON-Datei auswählen.": "Invalid backup. Please select a valid Planner JSON file.",
   "Increase setzt Strength zurück. Die Endurance-ETA berücksichtigt nur die eingegebenen Endurance-Gains; die Erholungszeit für Strength ist nicht eingerechnet.": "Increase resets Strength. The Endurance ETA uses only the entered Endurance gains; Strength recovery time is not included.",
   "Weitere Werte eingeben, um Increase oder Upgrades zu vergleichen": "Enter more values to compare Increase or upgrades",
   "Materialien fertig ca.": "Materials done around",

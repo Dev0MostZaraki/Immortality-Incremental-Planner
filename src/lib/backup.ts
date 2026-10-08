@@ -5,7 +5,7 @@ import { LAW_KEY, LAW_DEFAULTS, restoreLaw } from "./law-state";
 import { LANGUAGE_KEY, restoreLanguage } from "./i18n";
 import { LAWS, MATERIALS } from "./lawsynth";
 
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.2.0";
 export const DATA_KEYS = [ENDURANCE_KEY, LAW_KEY, LANGUAGE_KEY] as const;
 const text = z.string().max(200);
 const numeric = z.number().finite();
@@ -34,7 +34,7 @@ const law = z.object({
   scope: z.enum(["all", "selected"]), check: z.record(z.boolean()).refine((v) => Object.keys(v).every((k) => MATERIALS.some((m) => k === `m-${m}`) || LAWS.some((l) => k === `l-${l.id}`))),
   tab: z.enum(["plan", "settings"]),
 });
-const schema = z.object({ app: z.literal("immortality-incremental-planner"), version: z.literal(APP_VERSION), dataVersion: z.literal(1), endurance, law, language: z.enum(["de", "en"]) });
+const schema = z.object({ app: z.literal("immortality-incremental-planner"), version: z.enum(["1.1.0", APP_VERSION]), dataVersion: z.literal(1), endurance, law, language: z.enum(["de", "en"]) });
 export type Backup = z.infer<typeof schema>;
 
 export function parseBackup(raw: string): Backup {

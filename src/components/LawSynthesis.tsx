@@ -84,7 +84,7 @@ export function LawSynthesis() {
         <TabsList aria-label={tr("Law Synthesis Ansicht")}><TabsTrigger value="plan">{tr("Plan")}</TabsTrigger><TabsTrigger value="settings">{tr("Einstellungen")}</TabsTrigger></TabsList>
         <TabsContent value="plan" className="space-y-6">
       {/* Sticky mini summary */}
-      {!empty && <div className="sticky top-0 z-10 -mx-4 flex flex-wrap gap-x-5 gap-y-1 border-b bg-background/95 px-4 py-2 text-xs backdrop-blur sm:-mx-6 sm:px-6" data-testid="sticky">
+      {!empty && <div className="sticky top-0 z-10 flex min-w-0 flex-wrap gap-x-5 gap-y-1 border-b bg-background/95 py-2 text-xs backdrop-blur" data-testid="sticky">
         <span>Cores <b className="font-mono">{cores(total.cores)}</b></span>
         <span>{tr("Material-ETA")} <b className="font-mono">{naturalDuration(plan.total)}</b></span>
         {plan.bottleneck && <span>{tr("Engpass")} <b>{plan.bottleneck.mat}</b> · {plan.bottleneck.mark}</span>}
@@ -92,7 +92,7 @@ export function LawSynthesis() {
 
       {/* B) Dashboard */}
       <section className="result-panel p-5 sm:p-6" aria-labelledby="ls-h">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="grid min-w-0 gap-3 sm:flex sm:items-center sm:justify-between">
           <h2 id="ls-h" className="text-xl font-semibold">Law Synthesis</h2>
           <div className="flex flex-wrap gap-1">
             <Button variant="outline" size="sm" onClick={() => set("levels", Object.fromEntries(LAWS.map((l) => [l.id, { cur: s.levels[l.id]?.cur ?? 0, tgt: MAX_LEVEL }])))}>{tr("Alle Ziele auf 10")}</Button>
@@ -136,12 +136,12 @@ export function LawSynthesis() {
           </div>
         </div>
         {visible.length === 0 ? <p className="text-sm text-muted-foreground">{tr("Keine Laws in diesem Filter.")}</p> :
-          <div className="grid gap-4 md:grid-cols-2">{visible.map((l) => {
+           <div className="grid gap-4 min-[1100px]:grid-cols-2">{visible.map((l) => {
             const lv = s.levels[l.id] ?? { cur: 0, tgt: 0 };
             const t = lawTime(l, lv.cur, lv.tgt, fs, rate);
             const soft = t.levels === 0;
             return <article key={l.id} data-testid={`law-${l.id}`} className={`panel min-w-0 border-l-4 p-4 ${ACCENT[l.step]} ${soft ? "opacity-70" : ""}`}>
-              <div className="flex items-center justify-between gap-2"><h3 className="font-semibold">{`Law of ${l.name}`}</h3><span className="font-mono text-xs text-muted-foreground">Lv {lv.cur} → {lv.tgt}</span></div>
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"><h3 className="min-w-0 font-semibold">{`Law of ${l.name}`}</h3><span className="shrink-0 font-mono text-xs text-muted-foreground">Lv {lv.cur} → {lv.tgt}</span></div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <LevelSelect id={`${l.id}-cur`} label={tr("Aktuelles Level")} value={lv.cur} onChange={(v) => setLevel(l.id, v, lv.tgt)} />
                 <LevelSelect id={`${l.id}-tgt`} label={tr("Ziel-Level")} value={lv.tgt} min={lv.cur} onChange={(v) => setLevel(l.id, lv.cur, v)} />
@@ -168,7 +168,7 @@ export function LawSynthesis() {
         <Button size="sm" variant="outline" aria-pressed={s.showAll} onClick={() => set("showAll", !s.showAll)}>{s.showAll ? tr("Nur benötigte") : tr("Alle 11")}</Button></div>}>
         {routeRows.length === 0 ? <p className="text-sm text-muted-foreground">{tr("Keine Materialien benötigt.")}</p> :
           <div className="space-y-2" data-testid="route">{routeRows.map((r, i) => (
-            <div key={r.mat} className={`grid min-w-0 grid-cols-2 gap-x-3 gap-y-1 border-l-2 py-2 pl-3 text-sm sm:grid-cols-[2rem_minmax(0,1.6fr)_repeat(6,minmax(0,1fr))_auto] sm:items-center ${r.missing > 0 ? "border-primary" : "border-border opacity-70"}`}>
+            <div key={r.mat} className={`grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 border-l-2 py-3 pl-3 text-sm min-[1100px]:grid-cols-[2rem_minmax(0,1.6fr)_repeat(6,minmax(0,1fr))_auto] min-[1100px]:items-center ${r.missing > 0 ? "border-primary" : "border-border opacity-70"}`}>
               <span className="font-mono text-xs text-muted-foreground">#{i + 1}</span>
               <span className="min-w-0"><b>{r.mat}</b><span className="block text-xs font-medium text-primary">{r.mark}</span></span>
               <Cell l={tr("Benötigt")} v={amt(r.need)} />
@@ -177,7 +177,7 @@ export function LawSynthesis() {
               <Cell l={tr("Ø s/Drop")} v={fmtPlain(r.base, 2)} />
               <Cell l={r.measured ? tr("Eff. s (gemessen)") : tr("Eff. s")} v={fmtPlain(r.eff, 2)} />
               <Cell l="ETA" v={naturalDuration(r.eta)} />
-              <div className="col-span-2 flex flex-wrap gap-1 sm:col-span-1">{[1, 10, 100].map((amount) => <Button key={amount} size="sm" variant="outline" className="min-h-9 px-2" aria-label={tr("{p0} {p1} hinzufügen", { p0: amount, p1: r.mat })} onClick={() => farmed(r.mat, amount)}>+{amount}</Button>)}</div>
+              <div className="col-span-2 flex flex-wrap gap-1 min-[1100px]:col-span-1">{[1, 10, 100].map((amount) => <Button key={amount} size="sm" variant="outline" className="min-h-10 px-3" aria-label={tr("{p0} {p1} hinzufügen", { p0: amount, p1: r.mat })} onClick={() => farmed(r.mat, amount)}>+{amount}</Button>)}</div>
             </div>))}</div>}
         <p className="mt-3 text-sm">{tr("Summe nacheinander:")} <b className="font-mono">{naturalDuration(plan.total)}</b> <span className="text-xs text-muted-foreground">{tr("(Parallel-Modus nicht verfügbar)")}</span></p>
       </Card>
@@ -217,7 +217,7 @@ export function LawSynthesis() {
         </TabsContent>
         <TabsContent value="settings" className="space-y-6">
       {/* D + E) Settings */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6 min-[1100px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Card title={tr("Farm-Einstellungen")} right={<Button variant="ghost" size="sm" onClick={() => setS((p) => ({ ...p, toggles: LAW_DEFAULTS.toggles, custom: "1", perDrop: "1", mode: "source", mats: srcMats() }))}><RotateCcw />{tr("Quellwerte")}</Button>}>
           <div className="grid gap-2 sm:grid-cols-2">{MULTIPLIERS.map((name, i) => (
             <label key={name} className="flex items-center gap-2 text-sm"><Checkbox checked={s.toggles[i] === true} onCheckedChange={(v) => set("toggles", s.toggles.map((t, j) => j === i ? v === true : t))} aria-label={`${name} ×2`} />{name} <span className="font-mono text-xs text-muted-foreground">×2</span></label>))}</div>
@@ -274,7 +274,7 @@ export function LawSynthesis() {
 }
 
 function Card({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
-  return <section className="panel min-w-0 p-4 sm:p-5"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="text-base font-semibold">{title}</h2>{right}</div>{children}</section>;
+  return <section className="min-w-0 border-t py-5"><div className="mb-4 grid min-w-0 gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between"><h2 className="min-w-0 text-base font-semibold">{title}</h2>{right}</div>{children}</section>;
 }
 function Stat({ label, value, testid }: { label: string; value: string; testid?: string }) {
   return <div className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="break-words font-mono text-sm font-medium" data-testid={testid}>{value}</dd></div>;
