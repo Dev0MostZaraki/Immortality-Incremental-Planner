@@ -21,10 +21,10 @@ bun install
 bun run dev
 bun run test
 bun run build
-node dist/server/index.mjs
+node .output/server/index.mjs
 ```
 
-The independent Nitro production build writes client assets to `dist/client` and the server to `dist/server`. npm equivalents work as well (`npm install`, `npm run dev`, `npm test`, `npm run build`).
+The independent Nitro production build writes to Nitro's default `.output` directory. npm equivalents work as well (`npm install`, `npm run dev`, `npm test`, `npm run build`).
 
 Version 1.2.0 retains imports of validated v1.1.0 backups. Data controls and repository links are in the header's action menu.
 
