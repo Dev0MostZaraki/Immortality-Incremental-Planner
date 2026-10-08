@@ -1,3 +1,4 @@
+import { effectiveCurrentCost, effectiveUpGain } from "@/lib/muscle-training";
 import { useI18n, LanguageSwitcher } from "@/components/LanguageProvider";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
@@ -77,7 +78,7 @@ function Index() {
   const [copiedProg, setCopiedProg] = useState(false);
   const copyProg = async () => {
     if (g === null || c === null || t === null) return;
-    const pr = s.prog, uc = val(pr.upCost), ug = val(pr.upGain);
+    const pr = s.prog, uc = effectiveCurrentCost(pr), ug = effectiveUpGain(pr, g);
     const d = decide(c, g, t, { next: n, upCost: uc, upGain: ug, comboGain: val(pr.comboGain) });
     const text = [
       "Immortality Incremental – Progression",

@@ -32,7 +32,7 @@ async def main():
   assert await page.locator('#next').input_value()=='371.73'
   await page.get_by_role('button',name='Progression',exact=True).click()
   assert await page.get_by_test_id('prog-increase').inner_text()=='Do not Increase'
-  await page.locator('#p-upCost').fill('1');await page.locator('#p-upGain').fill('10000')
+  await page.locator('#p-upCost').fill('1');await page.locator('[data-testid=mt-model] > summary').click(); await page.locator('[data-testid=mt-model] [role=switch]').click(); await page.locator('#p-upGain').fill('10000')
   assert await page.get_by_test_id('upgrade-rec').inner_text()=='Buy as soon as affordable'
   await page.get_by_role('button',name='Copy progression summary',exact=True).click()
   assert 'Best next step:' in await page.evaluate('navigator.clipboard.readText()')

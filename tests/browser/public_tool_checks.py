@@ -18,7 +18,7 @@ async def main():
   body = await page.locator('body').inner_text()
   assert 'Aktueller Stand Beispiel' not in body and '316,13' not in body and 'Screenshot-Kontext' not in body
   assert 'Erholungszeit für Strength ist nicht eingerechnet.' in body
-  assert 'v1.2.0' in body and 'Law-Daten: Okt. 2026' in body
+  assert 'v1.3.0' in body and 'Law-Daten: Okt. 2026' in body
   await page.get_by_role('button', name='Mehr Aktionen', exact=True).click()
   assert await page.get_by_role('menuitem', name='GitHub', exact=True).get_attribute('href') == 'https://github.com/Dev0MostZaraki/Immortality-Incremental-Planner'
   issues = page.get_by_role('menuitem', name='Fehler melden')
@@ -37,7 +37,7 @@ async def main():
   assert await page.get_by_test_id('decision').inner_text() == 'Enter more values to compare Increase or upgrades'
   await page.locator('#p-next').fill('371.73')
   assert await page.get_by_test_id('prog-increase').inner_text() == 'Do not Increase'
-  await page.locator('#p-upCost').fill('1'); await page.locator('#p-upGain').fill('10000')
+  await page.locator('#p-upCost').fill('1'); await page.locator('[data-testid=mt-model] > summary').click(); await page.locator('[data-testid=mt-model] [role=switch]').click(); await page.locator('#p-upGain').fill('10000')
   assert await page.get_by_test_id('upgrade-rec').inner_text() == 'Buy as soon as affordable'
   await page.screenshot(path=str(OUT/'progression-en.png'))
   await page.get_by_role('button', name='Law Synthesis', exact=True).click()
@@ -89,7 +89,7 @@ async def main():
   download = await download_info.value
   backup_path = OUT/'backup.json'; await download.save_as(backup_path)
   backup = json.loads(backup_path.read_text())
-  assert backup['version'] == '1.2.0' and backup['law']['inv']['Lucent'] == '111'
+  assert backup['version'] == '1.3.0' and backup['law']['inv']['Lucent'] == '111'
   await page.keyboard.press('Escape')
   await page.get_by_role('button', name='Reset all law data', exact=True).click()
   await page.get_by_role('button', name='Confirm', exact=True).click()

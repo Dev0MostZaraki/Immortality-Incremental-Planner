@@ -4,6 +4,8 @@ import { ArrowDown, ArrowUp, Check, Copy, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SUFFIXES, eta, parseNum } from "@/lib/endurance";
 import { bestPrefix, compareGain, decide, pathAdvice, resetCompare, simulatePath, upgradeROI, whatIf, type Verdict } from "@/lib/planner";
+import { MuscleTrainingModel } from "./MuscleTrainingModel";
+import { effectiveCurrentCost, effectiveUpGain, parseMultiplier } from "@/lib/muscle-training";
 import { Hint, UnitField, val, type NU } from "./planner-fields";
 
 import { PROG_DEFAULTS, type Prog, type PathItem, type Milestone } from "@/lib/progression-state";
@@ -25,7 +27,7 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
   const diff = (saved: number) => !Number.isFinite(saved) ? tr(saved > 0 ? "Ziel wird erst so erreichbar" : "Ziel wird unerreichbar") : `${saved < 0 ? "−" : "+"}${fmtDuration(Math.abs(saved))}`;
   const set = <K extends keyof Prog>(k: K, v: Prog[K]) => setP((x) => ({ ...x, [k]: v }));
   const ready = g !== null && c !== null && t !== null;
-  const upCost = val(p.upCost), upGain = val(p.upGain), nextCost = val(p.nextCost), nextGain = val(p.nextGain), comboGain = val(p.comboGain);
+  const upCost = effectiveCurrentCost(p), upGain = effectiveUpGain(p, g), gm = parseMultiplier(p.mtGainMultiplier), nextCost = val(p.nextCost), nextGain = val(p.nextGain), comboGain = val(p.comboGain);
   const steps = p.path.flatMap((r) => { const cost = val(r.cost), gain = val(r.gain); return cost !== null && gain !== null ? [{ cost, gain }] : []; });
   const pathValid = steps.length === p.path.length;
   const f = (k: keyof Prog & string, label: string, suffix?: string, help?: string) => {
@@ -58,11 +60,16 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
           <TextField id="p-level" label={tr("{p0} Level", { p0: p.upName || "Upgrade" })} value={p.mtLevel} onChange={(v) => set("mtLevel", v)} />
           <TextField id="p-name" label={tr("Upgrade-Name")} value={p.upName} onChange={(v) => set("upName", v)} />
           {f("upCost", tr("Upgrade-Kosten"))}
-          {f("upGain", tr("Gain nach Upgrade (Annahme)"), "/ s")}
+          {p.mtAutoGain ? <div className="min-w-0"><span className="mb-1 block text-xs font-medium">{tr("Gain nach Upgrade (automatisch)")}</span>
+            <div className="field px-3 py-2.5 font-mono" data-testid="auto-up-gain">{upGain !== null ? `${fmtSuffix(upGain)}/s` : "–"}</div>
+            <p className="mt-1 text-xs text-muted-foreground">{g !== null && gm !== null ? tr("{p0}/s × {p1} (Annahme)", { p0: fmtSuffix(g), p1: fmtPlain(gm, 4) }) : tr("Benötigt aktuellen Gain und Multiplikator.")}</p></div>
+            : f("upGain", tr("Gain nach Upgrade (Annahme)"), "/ s")}
           {f("nextCost", tr("Nächste Upgrade-Kosten (optional)"))}
           {f("nextGain", tr("Gain nach nächstem Upgrade (optional)"), "/ s")}
         </div>
       </Card>
+
+      <MuscleTrainingModel p={p} setP={setP} g={g} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Increase">
@@ -83,6 +90,9 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
               <Rows rows={[
                 [tr("Bezahlbar in"), r.wait === 0 ? tr("Jetzt bezahlbar") : naturalDuration(r.wait)],
                 [tr("Fehlende Endurance"), fmtSuffix(r.remaining)],
+                [tr("Aktueller Gain"), `${fmtSuffix(g)}/s`],
+                [tr("Gain nach Kauf"), `${fmtSuffix(upGain)}/s (×${fmtPlain(g > 0 ? upGain / g : 0, 4)})`],
+                [tr("Kosten"), fmtSuffix(upCost)],
                 [tr("Gain-Zuwachs"), `${r.gainDelta < 0 ? "−" : "+"}${fmtSuffix(Math.abs(r.gainDelta))}/s (${fmtPlain(r.gainPct, 2)} %)`],
                 [tr("A · Nicht kaufen"), naturalDuration(r.a)],
                 [tr("B · Warten, kaufen, weiter"), naturalDuration(r.b)],
@@ -91,7 +101,7 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
               ]} />
               <Explain v={r.verdict} rec={tr(r.recommendation)} testid="upgrade-rec"
                 facts={tr("Kosten {p0} werden abgezogen; danach läuft der neue Gain bis {p1}.", { p0: fmtSuffix(upCost), p1: fmtSuffix(t) })}
-                assumption={tr("Gain nach Kauf {p0}/s (deine Eingabe).{p1}", { p0: fmtSuffix(upGain), p1: r.noSpeedGain ? tr(" Nicht höher als jetzt – keine Empfehlung.") : "" })} />
+                assumption={(p.mtAutoGain ? tr("Gain nach Kauf {p0}/s = aktueller Gain × {p1} (Community-/Messwert-Annahme).", { p0: fmtSuffix(upGain), p1: fmtPlain(gm ?? 0, 4) }) : tr("Gain nach Kauf {p0}/s (deine Eingabe).", { p0: fmtSuffix(upGain) })) + (r.noSpeedGain ? tr(" Nicht höher als jetzt – keine Empfehlung.") : "")} />
             </>;
           })()}
         </Card>
