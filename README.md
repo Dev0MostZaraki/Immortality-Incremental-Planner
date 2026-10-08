@@ -1,26 +1,26 @@
 # Immortality Incremental Planner
 
-A polished, unofficial fan-made planning toolkit for **Immortality Incremental**.
+An independent, unofficial fan-made planning toolkit for Immortality Incremental. Not affiliated with the game's creators.
 
-## Features
+## Tools
+- **Endurance Planner:** live time-to-target, Increase comparisons, unit conversions, quick targets, reverse calculations and projections.
+- **Progression Planner:** upgrade ROI, sequential upgrade paths, milestones, reset comparisons and what-if planning based only on entered gains and costs.
+- **Law Synthesis:** nine laws, material inventory, Mark-based farming routes, source/measured rates, optional Beast Core farming and a goal checklist.
+- Complete **German / English** interface with localized numbers, dates, durations and clipboard summaries.
 
-- Endurance time-to-target calculator
-- Progression planner with Increase and upgrade comparisons
-- Upgrade ROI and multi-upgrade path simulation
-- Milestones, reset/perseverance comparisons, and what-if planning
-- Law Synthesis planner with material, Beast Core, inventory, route, and ETA support
-- German / English interface
-- Local browser persistence
-- Responsive desktop and mobile UI
+## Privacy and data
+Calculations run locally in the browser. No app server APIs, accounts, ads or analytics. Calculator work and the language preference use versioned localStorage records; clearing browser storage removes saved work. Clipboard access requires browser permission.
 
-## Status
+Law costs and base drop estimates are an embedded Astral3nt Immortality Incremental Hub snapshot from October 2026. Fan-maintained data may change with game updates. Farm times are expected averages, not RNG guarantees. Core time is included only when a rate is supplied.
 
-This repository is the independent source repository for the planner. The project is being migrated from the current development workspace and will be kept free of user-visible builder branding.
+## Development
+React 19, TypeScript, TanStack Start and Tailwind CSS. A lightweight local dictionary provides translations; no translation service is used.
 
-## Data & accuracy
+```sh
+bun install
+bun run dev
+bun run test
+bun run build
+```
 
-Game-specific values can change with updates. Where source data is embedded, the UI distinguishes source values from user-entered overrides. Calculations are deterministic, but RNG-based farming times are estimates rather than guarantees.
-
-## Disclaimer
-
-This is an **unofficial fan-made tool** and is not affiliated with or endorsed by the developers of Immortality Incremental or Roblox.
+Math and language tests live beside their modules; browser checks cover both tools, language persistence and mobile layouts. Required build/editor configuration is retained, separate from the app's independent public identity.

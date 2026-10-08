@@ -1,0 +1,116 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-glow: var(--primary-glow);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.13 0.003 255);
+  --foreground: oklch(0.96 0.01 240);
+  --card: oklch(0.175 0.006 255);
+  --card-foreground: oklch(0.96 0.01 240);
+  --popover: oklch(0.19 0.02 255);
+  --popover-foreground: oklch(0.96 0.01 240);
+  --primary: oklch(0.7 0.18 240);
+  --primary-glow: oklch(0.8 0.15 220);
+  --primary-foreground: oklch(0.13 0.02 255);
+  --secondary: oklch(0.23 0.009 255);
+  --secondary-foreground: oklch(0.92 0.01 240);
+  --muted: oklch(0.21 0.006 255);
+  --muted-foreground: oklch(0.68 0.03 250);
+  --accent: oklch(0.27 0.06 245);
+  --accent-foreground: oklch(0.92 0.05 230);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --success: oklch(0.78 0.16 160);
+  --success-foreground: oklch(0.15 0.03 160);
+  --border: oklch(0.28 0.008 255);
+  --input: oklch(0.33 0.012 255);
+  --ring: oklch(0.7 0.18 240);
+  --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--primary) 24%, transparent),
+    0 12px 40px -24px color-mix(in oklab, var(--primary) 32%, transparent);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { color-scheme: dark; }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    letter-spacing: 0;
+  }
+  :focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+}
+
+.result-panel {
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--border));
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-glow);
+}
+.action-glow { box-shadow: var(--shadow-glow); }
+.section-label { font-size: 0.75rem; font-weight: 500; color: var(--muted-foreground); }
+.eta-value { overflow-wrap: anywhere; }
+.target-chip[aria-pressed="true"] { border-color: var(--primary); background: var(--accent); color: var(--accent-foreground); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+@utility panel {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--card) 96%, var(--primary)), var(--card));
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) + 4px);
+}
+@utility panel-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+@utility field {
+  background: var(--color-background);
+  border: 1px solid var(--color-input);
+  border-radius: var(--radius);
+  color: var(--color-foreground);
+  &:focus-within { border-color: var(--color-ring); }
+}
