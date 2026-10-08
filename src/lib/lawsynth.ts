@@ -43,6 +43,12 @@ export function lawCost(l: Law, current: number, target: number) {
 }
 
 export type Levels = Record<string, { cur: number; tgt: number }>;
+export function clearLawTargets(levels: Levels): Levels {
+  return Object.fromEntries(LAWS.map((law) => {
+    const cur = clampLevel(levels[law.id]?.cur ?? 0);
+    return [law.id, { cur, tgt: cur }];
+  }));
+}
 export function totalCost(levels: Levels, ids?: string[]) {
   const mats: MatAmounts = {};
   let cores = 0, levelsLeft = 0;
@@ -68,7 +74,7 @@ export function effSec(m: Mat, s: FarmSettings) {
   const x = s.mats[m];
   const per = x.perDrop && x.perDrop > 0 ? x.perDrop : s.perDrop > 0 ? s.perDrop : 1;
   const measured = s.mode === "measured" && x.observed !== null && x.observed > 0;
-  const perDrop = measured ? x.observed! : x.base / (s.mult > 0 ? s.mult : 1);
+  const perDrop = measured && x.observed !== null ? x.observed : x.base / (s.mult > 0 ? s.mult : 1);
   return { sec: perDrop / per, perDrop, measured };
 }
 

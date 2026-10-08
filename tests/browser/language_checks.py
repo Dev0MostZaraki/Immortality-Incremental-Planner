@@ -11,6 +11,8 @@ async def main():
   page=await ctx.new_page(); errors=[]; page.on('pageerror',lambda e:errors.append(str(e)))
   await page.goto('http://localhost:8080',wait_until='networkidle')
   assert await page.locator('html').get_attribute('lang')=='de'
+  for field in ['gain','cur','tgt','next']: assert await page.locator('#'+field).input_value()==''
+  await page.locator('#gain').fill('454'); await page.locator('#cur').fill('475'); await page.locator('#tgt').fill('500')
   assert await page.get_by_test_id('main-eta').inner_text()=='55,07 Sekunden'
   await page.locator('#next').fill('371.73')
   await page.get_by_role('button',name='English',exact=True).click()
@@ -42,11 +44,11 @@ async def main():
   await page.get_by_role('button',name='Law Synthesis',exact=True).click()
   await page.get_by_role('button',name='Set all targets to 10',exact=True).click()
   assert await page.get_by_test_id('ls-cores').inner_text()=='28.88 M'
-  assert await page.get_by_test_id('ls-total').inner_text()=='Core time not included'
+  assert await page.get_by_test_id('ls-total').inner_text()=='Total ETA unavailable — Core rate missing.'
   await page.locator('#inv-Morrow').fill('1000')
   await page.get_by_role('button',name='Copy summary',exact=True).click()
   copy=await page.evaluate('navigator.clipboard.readText()')
-  assert 'Miasma Mark' in copy and 'Expected material farming time' in copy and 'Core time not included' in copy
+  assert 'Miasma Mark' in copy and 'Expected material farming time' in copy and 'Total ETA unavailable' in copy
   before=await page.evaluate("localStorage.getItem('ii-lawsynth-v1')")
   await page.get_by_role('button',name='Deutsch',exact=True).click()
   assert before==await page.evaluate("localStorage.getItem('ii-lawsynth-v1')")

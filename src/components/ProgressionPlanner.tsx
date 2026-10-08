@@ -6,33 +6,7 @@ import { SUFFIXES, eta, parseNum } from "@/lib/endurance";
 import { bestPrefix, compareGain, decide, pathAdvice, resetCompare, simulatePath, upgradeROI, whatIf, type Verdict } from "@/lib/planner";
 import { Hint, UnitField, val, type NU } from "./planner-fields";
 
-export type PathItem = { id: number; name: string; level: string; cost: NU; gain: NU };
-export type Milestone = { id: number; name: string; v: string; u: string };
-export type Prog = {
-  strength: NU; persev: NU; upName: string; mtLevel: string; upCost: NU; upGain: NU; nextCost: NU; nextGain: NU; comboGain: NU;
-  path: PathItem[]; milestones: Milestone[]; resetBefore: NU; resetAfter: NU; resetLoss: NU;
-  wiMult: string; wiFlat: NU; wiTarget: string;
-};
-export const PROG_DEFAULTS: Prog = {
-  strength: { v: "", u: "Qa" }, persev: { v: "", u: "" }, upName: "Muscle Training", mtLevel: "45",
-  upCost: { v: "", u: "Qa" }, upGain: { v: "", u: "T" }, nextCost: { v: "", u: "Qa" }, nextGain: { v: "", u: "T" }, comboGain: { v: "", u: "T" },
-  path: [], milestones: [], resetBefore: { v: "", u: "T" }, resetAfter: { v: "", u: "T" }, resetLoss: { v: "0", u: "" },
-  wiMult: "1,25", wiFlat: { v: "0", u: "T" }, wiTarget: "1",
-};
-const NU_KEYS = ["strength", "persev", "upCost", "upGain", "nextCost", "nextGain", "comboGain", "resetBefore", "resetAfter", "resetLoss", "wiFlat"] as const;
-const isNU = (v: unknown): v is NU => !!v && typeof v === "object" && typeof (v as NU).v === "string" && SUFFIXES.some((u) => u === (v as NU).u);
-const isStr = (v: unknown): v is string => typeof v === "string";
-
-export function restoreProg(raw: unknown): Prog {
-  const p = { ...PROG_DEFAULTS };
-  if (!raw || typeof raw !== "object") return p;
-  const x = raw as Record<string, unknown>;
-  for (const k of NU_KEYS) { const v = x[k]; if (isNU(v)) p[k] = v; }
-  for (const k of ["upName", "mtLevel", "wiMult", "wiTarget"] as const) { const v = x[k]; if (isStr(v)) p[k] = v; }
-  if (Array.isArray(x['path'])) p.path = x['path'].filter((r): r is PathItem => !!r && typeof r.id === "number" && isStr(r.name) && isStr(r.level) && isNU(r.cost) && isNU(r.gain)).slice(0, 6);
-  if (Array.isArray(x['milestones'])) p.milestones = x['milestones'].filter((r): r is Milestone => isNU(r) && typeof (r as Milestone).id === "number" && isStr((r as Milestone).name)).slice(0, 8);
-  return p;
-}
+import { PROG_DEFAULTS, type Prog, type PathItem, type Milestone } from "@/lib/progression-state";
 
 const TONE: Record<Verdict, string> = { better: "border-success text-success", same: "border-border text-muted-foreground", worse: "border-destructive text-destructive" };
 const STATUS: Record<Verdict, string> = { better: "Vorteil", same: "Neutral", worse: "Nachteil" };
@@ -64,7 +38,7 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
       {/* 5) Decision engine */}
       <section className="result-panel p-5 sm:p-6" aria-labelledby="decide-h">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="decide-h" className="text-lg font-semibold">{tr("Nächster sinnvoller Schritt")}</h2>
+          <h2 id="decide-h" className="text-xl font-semibold sm:text-2xl">{tr("Nächster sinnvoller Schritt")}</h2>
           <div className="flex flex-wrap gap-1">
             <Button variant="ghost" size="sm" className="h-auto whitespace-normal text-left" onClick={onCopy} disabled={!ready}>{copied ? <Check /> : <Copy />}{tr("Progression-Zusammenfassung kopieren")}</Button>
             <Button variant="ghost" size="sm" onClick={() => setP(PROG_DEFAULTS)}><RotateCcw />{tr("Progression zurücksetzen")}</Button>
@@ -81,8 +55,6 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
           <Field id="p-cur" label={tr("Aktuelle Endurance *")} value={core.cur} onChange={(v) => setCore("cur", v)} />
           <Field id="p-target" label={tr("Ziel *")} value={core.target} onChange={(v) => setCore("target", v)} />
           <Field id="p-next" label={tr("Nächster Gain (Increase)")} value={core.next} onChange={(v) => setCore("next", v)} suffix="/ s" />
-          {f("strength", tr("Strength (nur Notiz)"))}
-          {f("persev", tr("Perseverance (nur Notiz)"))}
           <TextField id="p-level" label={tr("{p0} Level", { p0: p.upName || "Upgrade" })} value={p.mtLevel} onChange={(v) => set("mtLevel", v)} />
           <TextField id="p-name" label={tr("Upgrade-Name")} value={p.upName} onChange={(v) => set("upName", v)} />
           {f("upCost", tr("Upgrade-Kosten"))}
@@ -90,7 +62,6 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
           {f("nextCost", tr("Nächste Upgrade-Kosten (optional)"))}
           {f("nextGain", tr("Gain nach nächstem Upgrade (optional)"), "/ s")}
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">{tr("* Pflicht. Strength und Perseverance werden gespeichert, fließen aber in keine Rechnung ein.")}</p>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -98,7 +69,7 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
           {!ready ? <Hint>{tr("Basiswerte fehlen.")}</Hint> : n === null ? <Hint>{tr("Nächsten Gain eintragen, um Increase zu bewerten.")}</Hint> : (() => {
             const r = compareGain(c, t, g, n);
             const v: Verdict = r.recommendation === "Increase jetzt sinnvoll" ? "better" : r.recommendation === "Nicht drücken" ? "worse" : "same";
-            return <><Rows rows={[[tr("Ohne Increase"), naturalDuration(r.a)], [tr("Increase jetzt"), naturalDuration(r.b)], [tr("Differenz"), diff(r.saved)]]} />
+            return <><p className="mt-3 text-xs text-muted-foreground">{tr("Increase setzt Strength zurück. Die Endurance-ETA berücksichtigt nur die eingegebenen Endurance-Gains; die Erholungszeit für Strength ist nicht eingerechnet.")}</p><Rows rows={[[tr("Ohne Increase"), naturalDuration(r.a)], [tr("Increase jetzt"), naturalDuration(r.b)], [tr("Differenz"), diff(r.saved)]]} />
               <Explain v={v} rec={tr(r.recommendation)} facts={tr("ETA {p0} vs. {p1}.", { p0: naturalDuration(r.a), p1: naturalDuration(r.b) })} assumption={tr("Nächster Gain {p0}/s (deine Eingabe).", { p0: fmtSuffix(n) })} testid="prog-increase" /></>;
           })()}
         </Card>
@@ -134,7 +105,6 @@ export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, on
 
       {/* 6) Milestones */}
       <Card title="Milestones" right={<div className="flex flex-wrap gap-1">
-        <Button variant="ghost" size="sm" disabled={p.milestones.length > 0} onClick={() => set("milestones", [["Muscle Training", upCost !== null ? p.upCost.v : "316,13", upCost !== null ? p.upCost.u : "Qa"], ["500 Qa", "500", "Qa"], ["1 Qi", "1", "Qi"], ["10 Qi", "10", "Qi"]].map(([name, v, u], i) => ({ id: Date.now() + i, name: name ?? "", v: v ?? "", u: u ?? "" })))}>{tr("Beispiele")}</Button>
         <Button variant="outline" size="sm" disabled={p.milestones.length >= 8} onClick={() => set("milestones", [...p.milestones, { id: Date.now(), name: "", v: "", u: core.target.u }])}>+ ({p.milestones.length}/8)</Button></div>}>
         {p.milestones.length === 0 ? <Hint>{tr("Bis zu 8 Ziele oder Kosten mit Namen.")}</Hint> : <>
           <div className="mb-4 grid gap-2 md:grid-cols-2">{p.milestones.map((m, i) => (
@@ -190,14 +160,14 @@ function Decision({ c, g, t, x, now }: { c: number; g: number; t: number; x: Par
   const d = decide(c, g, t, x);
   const gap = d.second ? d.second.secs - d.winner.secs : 0;
   return <div className="mt-4" aria-live="polite">
-    <p className="text-xs text-muted-foreground">{tr("Empfehlung")}</p>
-    <p className="mt-1 text-2xl font-semibold text-primary" data-testid="decision">{tr(d.winner.label)}</p>
+    {d.scenarios.length > 1 && <p className="text-xs text-muted-foreground">{tr("Empfehlung")}</p>}
+    <p className={d.scenarios.length === 1 ? "text-base text-muted-foreground" : "mt-1 text-2xl font-semibold text-primary"} data-testid="decision">{tr(d.scenarios.length === 1 ? "Weitere Werte eingeben, um Increase oder Upgrades zu vergleichen" : d.winner.label)}</p>
     <p className="mt-1 text-sm text-muted-foreground">
       {d.winner.id === "A" ? (d.scenarios.length > 1 ? tr("Keine Aktion ist mehr als 2 % schneller als weiter farmen.") : tr("Ohne weitere Eingaben ist nur Farmen bewertbar.")) : tr("Schnellstes Szenario: {p0}.", { p0: naturalDuration(d.winner.secs) })}
       {d.second && tr(" Abstand zum Zweitbesten ({p0}): {p1}{p2}.", { p0: tr(d.second.label), p1: Number.isFinite(gap) ? fmtDuration(Math.abs(gap)) : tr("nicht erreichbar"), p2: gap < 0 ? tr(" (dieses ist minimal schneller, aber unter 2 %)") : "" })}
     </p>
     <ol className="mt-4 grid gap-2 sm:grid-cols-2">{d.scenarios.map((s, i) => (
-      <li key={s.id} className={`min-w-0 border-l-2 pl-3 ${s === d.winner ? "border-success" : "border-border"}`}>
+      <li key={s.id} className={`min-w-0 border-l-2 pl-3 ${s === d.winner && d.scenarios.length > 1 ? "border-success" : "border-border"}`}>
         <p className="text-xs text-muted-foreground">#{i + 1} · {s.id} · {tr(s.label)}</p>
         <p className="font-mono text-sm font-semibold">{naturalDuration(s.secs)}</p>
         <p className="font-mono text-xs text-muted-foreground">{now === null ? "–" : fmtFinish(s.secs, now)}</p>

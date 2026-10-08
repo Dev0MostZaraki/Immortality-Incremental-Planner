@@ -3,12 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, Check, Copy, RotateCcw, Save, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { SUFFIXES, toValue, eta, DURATION_UNITS, parseNum, type Parsed } from "@/lib/endurance";
 import { UnitField, Hint, val, type NU } from "@/components/planner-fields";
 import { LawSynthesis } from "@/components/LawSynthesis";
-import { ProgressionPlanner, PROG_DEFAULTS, restoreProg, type Prog } from "@/components/ProgressionPlanner";
+import { ProgressionPlanner } from "@/components/ProgressionPlanner";
+import { PublicFooter } from "@/components/PublicFooter";
+import { DEFAULTS, ENDURANCE_KEY, restoreState, type State, type Target } from "@/lib/planner-state";
 import { calculatePlan, decide, upgradeROI, compareGain, contextTargets, YEAR_SECONDS } from "@/lib/planner";
 
 export const Route = createFileRoute("/")({
@@ -25,57 +26,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Target = NU & { id: number };
-type State = {
-  gain: NU; cur: NU; target: NU; next: NU;
-  dur: NU; proj: NU; targets: Target[];
-  mode: "simple" | "progression" | "advanced"; strengthReset: boolean;
-  scenarioA: NU | null; scenarioB: NU | null; scenarioC: NU;
-  custom: NU; savedCustom: NU | null; prog: Prog; tool: "endurance" | "law";
-};
-const DEFAULTS: State = {
-  gain: { v: "454", u: "T" }, cur: { v: "475", u: "Qa" }, target: { v: "500", u: "Qa" },
-  next: { v: "", u: "T" }, dur: { v: "2", u: "h" }, proj: { v: "1", u: "d" }, targets: [],
-  mode: "simple", strengthReset: true, scenarioA: null, scenarioB: null, scenarioC: { v: "", u: "T" },
-  custom: { v: "", u: "Qa" }, savedCustom: null, prog: PROG_DEFAULTS, tool: "endurance",
-};
-const KEY = "ii-endurance-calc-v1";
-const CHIPS: [string, string][] = [
-  ["316,13", "Qa"], ["500", "Qa"], ["1", "Qi"], ["10", "Qi"], ["100", "Qi"],
-  ["1", "Sx"], ["10", "Sx"], ["100", "Sx"], ["1", "Sp"],
-];
-
-function isNU(v: unknown, duration = false): v is NU {
-  if (!v || typeof v !== "object") return false;
-  const x = v as Record<string, unknown>;
-  return typeof x['v'] === "string" && typeof x['u'] === "string" &&
-    (duration ? DURATION_UNITS.some((d) => d.id === x['u']) : SUFFIXES.some((u) => u === x['u']));
-}
-function restoreState(raw: string): State {
-  const data: unknown = JSON.parse(raw);
-  if (!data || typeof data !== "object") return DEFAULTS;
-  const x = data as Record<string, unknown>;
-  const restored = { ...DEFAULTS };
-  for (const key of ["gain", "cur", "target", "next", "custom", "scenarioC"] as const) {
-    const value = x[key];
-    if (isNU(value)) restored[key] = value;
-  }
-  for (const key of ["dur", "proj"] as const) {
-    const value = x[key];
-    if (isNU(value, true)) restored[key] = value;
-  }
-  for (const key of ["scenarioA", "scenarioB", "savedCustom"] as const) {
-    const value = x[key];
-    if (isNU(value)) restored[key] = value;
-  }
-  if (x['mode'] === "advanced" || x['mode'] === "progression") restored.mode = x['mode'];
-  restored.prog = restoreProg(x['prog']);
-  if (x['tool'] === "law") restored.tool = "law";
-  if (typeof x['strengthReset'] === "boolean") restored.strengthReset = x['strengthReset'];
-  if (Array.isArray(x['targets'])) restored.targets = x['targets'].filter((v): v is Target =>
-    isNU(v) && "id" in v && typeof v.id === "number").slice(0, 10);
-  return restored;
-}
 
 function Index() {
   const { t: tr, locale, fmtPlain, fmtSuffix, fmtDuration, fmtFinish, naturalDuration, neighboringConversion } = useI18n();
@@ -87,7 +37,7 @@ function Index() {
   const [copyError, setCopyError] = useState(false);
   const [storageError, setStorageError] = useState(false);
   useEffect(() => {
-    try { const raw = localStorage.getItem(KEY); if (raw) setS(restoreState(raw)); }
+    try { const raw = localStorage.getItem(ENDURANCE_KEY); if (raw) setS(restoreState(raw)); }
     catch { setStorageError(true); }
     setLoaded(true);
     setNow(Date.now());
@@ -96,7 +46,7 @@ function Index() {
   }, []);
   useEffect(() => {
     if (loaded) {
-      try { localStorage.setItem(KEY, JSON.stringify(s)); }
+      try { localStorage.setItem(ENDURANCE_KEY, JSON.stringify(s)); }
       catch { setStorageError(true); }
     }
   }, [s, loaded]);
@@ -164,7 +114,6 @@ function Index() {
           <p className="mt-2 text-sm text-muted-foreground">{tr("Dein Ziel. Deine Restzeit. Dein nächstes Increase.")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          <Button variant="ghost" size="sm" title={tr("Beispielwerte; Upgrade-Kosten 316,13 Qa stammen aus deinem Screenshot-Kontext, Gain nach Upgrade bleibt leer")} onClick={() => setS((p) => ({ ...DEFAULTS, mode: p.mode, tool: p.tool, next: { v: "371.73", u: "T" }, prog: { ...PROG_DEFAULTS, mtLevel: "45", upCost: { v: "316,13", u: "Qa" } } }))}>{tr("Aktueller Stand Beispiel")}</Button>
           <Button variant="ghost" size="icon" title={tr("Zurücksetzen")} aria-label={tr("Zurücksetzen")} onClick={() => setS((p) => ({ ...DEFAULTS, tool: p.tool }))}><RotateCcw /></Button>
         </div>
       </header>
@@ -178,7 +127,6 @@ function Index() {
       </div>
       <main>
         {s.mode === "progression" ? <>
-          <p className="mb-4 text-xs text-muted-foreground">{tr("Upgrade-Kosten 316,13 Qa im Beispiel stammen aus deinem Screenshot-Kontext; Gains nach Upgrade/Reset sind immer deine Annahmen.")}</p>
           <ProgressionPlanner core={{ gain: s.gain, cur: s.cur, target: s.target, next: s.next }} setCore={(k, v) => set(k, v)} g={g} c={c} t={t} n={n} p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} now={now} onCopy={copyProg} copied={copiedProg} />
         </> : <>
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10">
@@ -257,10 +205,7 @@ function Index() {
             </>
           )}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-5">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2"><Checkbox id="strength-reset" checked={s.strengthReset} onCheckedChange={(checked) => set("strengthReset", checked === true)} /><label htmlFor="strength-reset" className="text-sm">{tr("Strength nach Increase zurückgesetzt")}</label></div>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{tr("Increase setzt Strength zurück.")} {s.strengthReset ? tr("Der Reset ist hier nur ein Hinweis. ") : tr("Auch ohne markierten Hinweis gilt: ")}{tr("Die Endurance-ETA nutzt ausschließlich deine eingegebenen Endurance-Gains; die Checkbox ändert keine Berechnung.")}</p>
-            </div>
+            <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">{tr("Increase setzt Strength zurück. Die Endurance-ETA berücksichtigt nur die eingegebenen Endurance-Gains; die Erholungszeit für Strength ist nicht eingerechnet.")}</p>
             <Button disabled={n === null} onClick={() => setS((p) => ({ ...p, gain: p.next, next: { v: "", u: p.next.u } }))} className="action-glow">{tr("Next Gain übernehmen")}<ArrowRight /></Button>
           </div>
           {cmp && <p className="mt-4 text-xs text-muted-foreground">{tr("Jetzt:")} <span className="font-mono">{clock}</span></p>}
@@ -270,8 +215,6 @@ function Index() {
           <h2 id="quick-h" className="mb-4 text-base font-semibold">{tr("Schnellziele")}</h2>
           <p className="mb-2 text-xs text-muted-foreground">{tr("Passend zu")} {s.target.u || tr("Einheiten")}</p>
           <div className="flex flex-wrap gap-2">{contextTargets(s.target.u).map((v) => chip(v, `context-${v.v}-${v.u}`))}</div>
-          <p className="mb-2 mt-4 text-xs text-muted-foreground">{tr("Feste Ziele")}</p>
-          <div className="flex flex-wrap gap-2">{CHIPS.map(([v, u]) => chip({ v, u }, `fixed-${v}-${u}`))}</div>
           <div className="mt-5 flex max-w-lg flex-wrap items-end gap-2">
             <div className="min-w-0 flex-1"><label htmlFor="custom" className="mb-1.5 block text-xs text-muted-foreground">{tr("Eigenes Schnellziel")}</label><UnitField id="custom" label={tr("Eigenes Schnellziel")} value={s.custom} onChange={(v) => set("custom", v)} invalid={customP.ok === false} hideLabel /></div>
             <Button variant="outline" size="icon" title={tr("Schnellziel speichern")} aria-label={tr("Schnellziel speichern")} disabled={customP.ok !== true} onClick={() => set("savedCustom", { ...s.custom })}><Save /></Button>
@@ -306,8 +249,7 @@ function Index() {
         </>}
       </main>
       </>}
-      <p className="mt-7 border-t pt-5 text-center text-xs text-muted-foreground">{tr("Kein Server, keine Anmeldung – Berechnung lokal im Browser.")}</p>
-      <p className="mt-2 text-center text-xs text-muted-foreground">{tr("Inoffizielles Fan-Tool · Immortality Incremental")}</p>
+      <PublicFooter />
       {storageError && <p role="status" className="mt-2 text-center text-xs text-destructive">{tr("Dein Browser erlaubt das lokale Speichern nicht. Eingaben bleiben nur bis zum Neuladen erhalten.")}</p>}
     </div>
   );
