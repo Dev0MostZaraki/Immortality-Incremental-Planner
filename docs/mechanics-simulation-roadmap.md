@@ -41,11 +41,14 @@ Let:
 - A = added/bonus Proficiency level
 - E = effective Proficiency = B + A
 
-Verified displayed sequence:
+Verified displayed points:
 - 42 (+7) -> E = 49 -> 1.15^49 = 942.310818... -> displayed x942.31
-- next effective level 50 -> 1.15^50 = 1083.657441... -> displayed x1083.66
-- after base level-up 43 (+7) -> E = 50 -> current x1083.66
-- next effective level 51 -> 1.15^51 = 1246.206057... -> displayed x1246.21
+- E = 50 -> 1.15^50 = 1083.657441... -> displayed x1083.66
+- E = 51 -> 1.15^51 = 1246.206057... -> displayed x1246.21
+- 56 (+7) -> E = 63 -> 1.15^63 = 6667.514092... -> displayed x6667.51
+- E = 64 -> 1.15^64 = 7667.641206... -> displayed x7667.64
+- 66 (+10) -> E = 76 -> 1.15^76 = 41023.798171... -> displayed x41023.8
+- E = 77 -> 1.15^77 = 47177.367897... -> displayed x47177.37
 
 Production-safe formula:
 - effective Proficiency = base level + bonus level
@@ -56,29 +59,39 @@ Important simulator implication:
 - The current Endurance Gain entered from the game already includes the current Proficiency multiplier.
 - Future Proficiency level-ups should therefore scale the current Gain by x1.15 per future level-up; the simulator must not multiply the current Gain by the full absolute Proficiency multiplier again.
 
+### Proficiency XP requirement recurrence
+
+Let R_n be the XP requirement shown at base Proficiency level n for reaching n+1.
+
+Verified points:
+- R_42 = 3,731
+- R_43 = 4,291
+- R_56 = 26,403
+- R_66 = 106,814
+
+The integer recurrence
+
+- R_(n+1) = round(R_n x 1.15)
+
+reproduces all four measured requirements exactly:
+- round(3,731 x 1.15) = 4,291
+- iterating the same recurrence from level 42 yields R_56 = 26,403 exactly
+- iterating it further yields R_66 = 106,814 exactly
+
+Production-safe use:
+- If the current base Proficiency level and current displayed requirement are known, every future requirement can be generated exactly by repeated x1.15 scaling with integer rounding at each level.
+- Bonus Proficiency levels affect the multiplier but do not change the base-level XP requirement index.
+
 ---
 
-## 2. Candidate Proficiency timing model — NOT production-ready
-
-Measured requirements:
-- base Proficiency 42 -> 43: 3,731 XP
-- base Proficiency 43 -> 44: 4,291 XP
-
-Numerical relation:
-- 3,731 x 1.15 = 4,290.65
-- displayed next requirement = 4,291
-
-Candidate recurrence:
-- next requirement may be the previous requirement scaled by x1.15 and converted to an integer
-
-This is not yet used in production because one transition is not enough to determine the exact integer rule (round / ceil / hidden full-precision value).
+## 2. Proficiency timing — one remaining verification
 
 Candidate XP rate:
 - +1 Proficiency XP per second while Endurance training is active
 
-This must be measured with timed runs before it affects ETA.
+This still needs a timed measurement before it affects production ETA.
 
-### Data needed to verify Proficiency timing
+### Data still needed to verify Proficiency timing
 
 Minimum:
 1. Two timed XP runs with no Proficiency level-up during the run
@@ -86,17 +99,13 @@ Minimum:
    - end XP
    - exact elapsed seconds
    - training active for the full interval
-2. At least two more consecutive XP requirements
-   - requirement 44 -> 45
-   - requirement 45 -> 46
-   - ideally one higher-level requirement as a cross-check
-3. One complete level-up capture
+2. One full level-up capture is useful as an end-to-end check
    - XP immediately before level-up
    - new level
    - new requirement
    - current Endurance Gain immediately before/after
 
-Once the rate and requirement recurrence are exact, Proficiency can be integrated into dynamic ETA independently of Strength.
+Once the +1 XP/s rate is measured exactly, Proficiency can be integrated into dynamic ETA independently of Strength.
 
 ---
 
@@ -168,22 +177,23 @@ Existing planner data may be reused only after it is checked against the current
 
 ## 5. Recommended implementation order
 
-### Phase A — documentation and measurement now
+### Phase A — complete the last Proficiency timing check
 
-Do not add more speculative inputs to the public page.
+Do not add speculative mechanics to the public page.
 
 Complete:
-- Proficiency XP timing verification
-- Proficiency requirement recurrence verification
+- timed Proficiency XP verification
 - Strength measurement run
 - Increase before/after validation
 - Perseverance data audit
 
 ### Phase B — Proficiency-aware ETA
 
-Implement Proficiency before Strength once the timing formula is exact.
+Implement Proficiency before Strength once the XP rate is exact.
 
 Reason:
+- Proficiency requirement recurrence is now verified
+- Proficiency multiplier progression is verified
 - Proficiency is an independent timed event
 - the current Gain already contains the current multiplier
 - each future verified Proficiency level-up can be represented as a discrete x1.15 Gain step
@@ -195,7 +205,7 @@ Simulator loop:
 3. if target occurs first -> finish
 4. otherwise farm until Proficiency level-up
 5. increase Gain by x1.15
-6. update XP requirement
+6. update XP requirement using round(requirement x 1.15)
 7. repeat
 
 Public UI additions should be minimal:
@@ -306,10 +316,13 @@ Internal verification status belongs only in project documentation/tests.
 ### Proficiency
 - [ ] timed XP run #1
 - [ ] timed XP run #2
-- [ ] requirement 44 -> 45
-- [ ] requirement 45 -> 46
-- [ ] one higher-level requirement cross-check
-- [ ] full level-up before/after Gain capture
+- [x] requirement 42 -> 43 = 3,731
+- [x] requirement 43 -> 44 = 4,291
+- [x] requirement 56 -> 57 = 26,403
+- [x] requirement 66 -> 67 = 106,814
+- [x] requirement recurrence round(previous x1.15) verified across low/mid/high points
+- [x] multiplier formula verified across effective levels 49, 50, 51, 63, 64, 76, 77
+- [ ] full level-up before/after Gain capture as final end-to-end check
 
 ### Strength / Increase
 - [ ] immediate state before Increase
