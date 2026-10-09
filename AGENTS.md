@@ -1,0 +1,13 @@
+# Architecture rules
+- Keep deterministic planner arithmetic separate from presentation and persisted-state modules so UX changes do not alter calculations.
+- Persist Endurance/Progression and Law Synthesis in separate versioned browser records so switching tools preserves independent work.
+- Validate portable JSON backups with a bounded schema and apply through normalized state restoration; reject unsupported versions before writing storage.
+- Use controlled design-system tabs and confirmation dialogs for Law navigation and destructive resets to preserve keyboard accessibility.
+- Keep the independent Vite/TanStack Start/Nitro build configuration; the application must run without proprietary build dependencies.
+- Write independent Nitro production output under dist/client and dist/server so standard output checks and the documented Node startup command agree.
+- Keep readable dates and alternate duration formatting in a browser-safe presentation module and the primary Endurance result in its own component so layout variants never change arithmetic or persisted state.
+- Share header utility actions and backup dialogs in one component separate from the informational footer so each action has one implementation.
+- Accept supported previous app releases with the same backup data version so visual release updates do not strand existing backups.
+- Keep Muscle Training arithmetic in a pure module tied to one labeled static community model config, anchoring displayed prices and ignoring retained legacy overrides; share sequential decisions with copied summaries so hidden saved fields cannot change normal recommendations.
+- Keep the Endurance sub-views as Plan, Muscle Training and More Tools; Muscle Training consumes shared Calculator values and never duplicates them in persisted state.
+- Route all Plan and Muscle Training recommendations through the single event-driven route engine with exhaustive prefix search, so display limits never change results and new verified mechanics plug in as events.
