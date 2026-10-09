@@ -3,187 +3,47 @@ import type { ReactNode } from "react";
 import { ArrowDown, ArrowUp, Check, Copy, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SUFFIXES, eta, parseNum } from "@/lib/endurance";
-import { bestPrefix, compareGain, decide, pathAdvice, resetCompare, simulatePath, upgradeROI, whatIf, type Verdict } from "@/lib/planner";
-import { MuscleTrainingModel } from "./MuscleTrainingModel";
-import { effectiveCurrentCost, effectiveUpGain, parseMultiplier } from "@/lib/muscle-training";
+import { bestPrefix, compareGain, pathAdvice, resetCompare, simulatePath, upgradeROI, whatIf } from "@/lib/planner";
 import { Hint, UnitField, val, type NU } from "./planner-fields";
 
 import { PROG_DEFAULTS, type Prog, type PathItem, type Milestone } from "@/lib/progression-state";
 
-const TONE: Record<Verdict, string> = { better: "border-success text-success", same: "border-border text-muted-foreground", worse: "border-destructive text-destructive" };
-const STATUS: Record<Verdict, string> = { better: "Vorteil", same: "Neutral", worse: "Nachteil" };
 const num = (s: string) => { const p = parseNum(s); return p.ok === true ? p.value : null; };
 
-
-type Core = { gain: NU; cur: NU; target: NU; next: NU };
-type Props = {
-  core: Core; setCore: (k: keyof Core, v: NU) => void; g: number | null; c: number | null; t: number | null; n: number | null;
-  p: Prog; setP: (v: Prog | ((p: Prog) => Prog)) => void; now: number | null; onCopy: () => void; copied: boolean;
-};
-
-export function ProgressionPlanner({ core, setCore, g, c, t, n, p, setP, now, onCopy, copied }: Props) {
-  const { t: tr, fmtPlain, fmtSuffix, fmtDuration, fmtFinish, naturalDuration } = useI18n();
-
-  const diff = (saved: number) => !Number.isFinite(saved) ? tr(saved > 0 ? "Ziel wird erst so erreichbar" : "Ziel wird unerreichbar") : `${saved < 0 ? "−" : "+"}${fmtDuration(Math.abs(saved))}`;
-  const set = <K extends keyof Prog>(k: K, v: Prog[K]) => setP((x) => ({ ...x, [k]: v }));
+export function ProgressionPlanner({ g, c, t, n, p, setP, now, onCopy, copied, onEditCalculator }: {
+  g: number | null; c: number | null; t: number | null; n: number | null; p: Prog;
+  setP: (v: Prog | ((p: Prog) => Prog)) => void; now: number | null; onCopy: () => void; copied: boolean; onEditCalculator: () => void;
+}) {
+  const { t: tr, fmtSuffix, fmtFinish, naturalDuration } = useI18n();
+  const set = <K extends keyof Prog>(k: K, v: Prog[K]) => setP((state) => ({ ...state, [k]: v }));
   const ready = g !== null && c !== null && t !== null;
-  const upCost = effectiveCurrentCost(p), upGain = effectiveUpGain(p, g), gm = parseMultiplier(p.mtGainMultiplier), nextCost = val(p.nextCost), nextGain = val(p.nextGain), comboGain = val(p.comboGain);
-  const steps = p.path.flatMap((r) => { const cost = val(r.cost), gain = val(r.gain); return cost !== null && gain !== null ? [{ cost, gain }] : []; });
+  const genericCost = val(p.upCost), genericGain = val(p.upGain);
+  const steps = p.path.flatMap((row) => { const cost = val(row.cost), gain = val(row.gain); return cost !== null && gain !== null ? [{ cost, gain }] : []; });
   const pathValid = steps.length === p.path.length;
-  const f = (k: keyof Prog & string, label: string, suffix?: string, help?: string) => {
-    const v = p[k] as NU;
-    return <Field id={`p-${k}`} label={label} value={v} onChange={(x) => set(k, x as never)} suffix={suffix} help={help} />;
-  };
+  const field = (key: keyof Prog & string, label: string, suffix?: string, help?: string) => <Field id={`p-${key}`} label={label} value={p[key] as NU} onChange={(value) => set(key, value as never)} suffix={suffix} help={help} />;
+  const difference = (saved: number) => !Number.isFinite(saved) ? tr(saved > 0 ? "Ziel wird erst so erreichbar" : "Ziel wird unerreichbar") : `${saved < 0 ? "−" : "+"}${naturalDuration(Math.abs(saved))}`;
 
-  return (
-    <div className="space-y-6" data-testid="progression">
-      {/* 5) Decision engine */}
-      <section className="result-panel p-5 sm:p-6" aria-labelledby="decide-h">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="decide-h" className="text-xl font-semibold sm:text-2xl">{tr("Nächster sinnvoller Schritt")}</h2>
-          <div className="flex flex-wrap gap-1">
-            <Button variant="ghost" size="sm" className="h-auto whitespace-normal text-left" onClick={onCopy} disabled={!ready}>{copied ? <Check /> : <Copy />}{tr("Progression-Zusammenfassung kopieren")}</Button>
-            <Button variant="ghost" size="sm" onClick={() => setP(PROG_DEFAULTS)}><RotateCcw />{tr("Progression zurücksetzen")}</Button>
-          </div>
-        </div>
-        {!ready ? <Hint>{tr("Bitte Gain, aktuelle Endurance und Ziel eingeben.")}</Hint> : <Decision c={c} g={g} t={t} x={{ next: n, upCost, upGain, comboGain }} now={now} />}
-        <div className="mt-4 max-w-md">{f("comboGain", tr("Gain nach Increase + Upgrade (optional, Annahme)"), "/ s", tr("Nur damit wird das Kombi-Szenario D berechnet."))}</div>
-      </section>
+  return <div className="space-y-4" data-testid="more-tools">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4"><div><h2 className="text-xl font-semibold">{tr("Weitere Tools")}</h2><p className="mt-1 text-sm text-muted-foreground">{tr("Optionale Vergleiche für Increase, Upgrades, Milestones, Resets und Was-wäre-wenn-Szenarien.")}</p></div><div className="flex max-w-full flex-wrap gap-1"><Button variant="ghost" size="sm" onClick={onEditCalculator}>{tr("Rechnerwerte bearbeiten")}</Button><Button variant="ghost" size="sm" onClick={onCopy} disabled={!ready}>{copied ? <Check /> : <Copy />}{tr("Tool-Zusammenfassung kopieren")}</Button><Button variant="ghost" size="sm" onClick={() => setP(PROG_DEFAULTS)}><RotateCcw />{tr("Tools zurücksetzen")}</Button></div></div>
+    {!ready && <Hint>{tr("Zuerst aktuellen Gain, aktuelle Endurance und Ziel im Rechner eintragen.")}</Hint>}
 
-      {/* 2) Snapshot */}
-      <Card title={tr("Aktueller Stand")}>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field id="p-gain" label={tr("Aktueller Gain *")} value={core.gain} onChange={(v) => setCore("gain", v)} suffix="/ s" />
-          <Field id="p-cur" label={tr("Aktuelle Endurance *")} value={core.cur} onChange={(v) => setCore("cur", v)} />
-          <Field id="p-target" label={tr("Ziel *")} value={core.target} onChange={(v) => setCore("target", v)} />
-          <Field id="p-next" label={tr("Nächster Gain (Increase)")} value={core.next} onChange={(v) => setCore("next", v)} suffix="/ s" />
-          <TextField id="p-level" label={tr("{p0} Level", { p0: p.upName || "Upgrade" })} value={p.mtLevel} onChange={(v) => set("mtLevel", v)} />
-          <TextField id="p-name" label={tr("Upgrade-Name")} value={p.upName} onChange={(v) => set("upName", v)} />
-          {f("upCost", tr("Upgrade-Kosten"))}
-          {p.mtAutoGain ? <div className="min-w-0"><span className="mb-1 block text-xs font-medium">{tr("Gain nach Upgrade (automatisch)")}</span>
-            <div className="field px-3 py-2.5 font-mono" data-testid="auto-up-gain">{upGain !== null ? `${fmtSuffix(upGain)}/s` : "–"}</div>
-            <p className="mt-1 text-xs text-muted-foreground">{g !== null && gm !== null ? tr("{p0}/s × {p1} (Annahme)", { p0: fmtSuffix(g), p1: fmtPlain(gm, 4) }) : tr("Benötigt aktuellen Gain und Multiplikator.")}</p></div>
-            : f("upGain", tr("Gain nach Upgrade (Annahme)"), "/ s")}
-          {f("nextCost", tr("Nächste Upgrade-Kosten (optional)"))}
-          {f("nextGain", tr("Gain nach nächstem Upgrade (optional)"), "/ s")}
-        </div>
-      </Card>
+    <Card title="Increase" collapsed testid="tool-increase">
+      {!ready ? <Hint>{tr("Basiswerte fehlen.")}</Hint> : n === null ? <Hint>{tr("Nächsten Gain eintragen, um Increase zu bewerten.")}</Hint> : (() => { const result = compareGain(c, t, g, n); return <Rows rows={[[tr("Ohne Increase"), naturalDuration(result.a)], [tr("Increase jetzt"), naturalDuration(result.b)], [tr("Differenz"), difference(result.saved)]]} />; })()}
+      <p className="mt-3 text-xs text-muted-foreground">{tr("Increase setzt Strength zurück. Die Endurance-ETA berücksichtigt nur die eingegebenen Endurance-Gains; die Erholungszeit für Strength ist nicht eingerechnet.")}</p>
+    </Card>
 
-      <MuscleTrainingModel p={p} setP={setP} g={g} />
+    <Card title={tr("Allgemeines Upgrade")} collapsed testid="generic-upgrade">
+      <div className="grid gap-3 sm:grid-cols-2"><TextField id="p-name" label={tr("Upgrade-Name")} value={p.upName} onChange={(value) => set("upName", value)} />{field("upCost", tr("Upgrade-Kosten"))}{field("upGain", tr("Gain nach Upgrade (Annahme)"), "/ s")}</div>
+      {!ready ? <Hint>{tr("Basiswerte fehlen.")}</Hint> : genericCost === null || genericGain === null ? <Hint>{tr("Upgrade-Kosten und Gain nach Upgrade eintragen – ohne diese Werte gibt es keine Empfehlung.")}</Hint> : (() => { const result = upgradeROI(c, g, t, genericCost, genericGain); return <Rows rows={[[tr("Bezahlbar in"), result.wait === 0 ? tr("Jetzt bezahlbar") : naturalDuration(result.wait)], [tr("Ohne Kauf"), naturalDuration(result.a)], [tr("Mit Upgrade"), naturalDuration(result.b)], [tr("Zeit gespart / verloren"), difference(result.saved)]]} />; })()}
+      <details className="mt-5 border-t pt-4" data-testid="generic-path"><summary className="cursor-pointer text-sm font-semibold">{tr("Erweiterter allgemeiner Pfad")}</summary><div className="mt-4"><Button variant="outline" size="sm" disabled={p.path.length >= 6} onClick={() => set("path", [...p.path, { id: Date.now(), name: `Upgrade ${p.path.length + 1}`, level: "", cost: { v: "", u: "Qa" }, gain: { v: "", u: "T" } }])}>{tr("+ Upgrade (")}{p.path.length}/6)</Button>{p.path.length === 0 ? <Hint>{tr("Füge Upgrades in Kaufreihenfolge hinzu: Kosten und Gain danach.")}</Hint> : <PathEditor p={p} set={set} />}{ready && p.path.length > 0 && (pathValid ? <PathResult c={c} g={g} t={t} steps={steps} names={p.path.map((row) => row.name)} /> : <Hint>{tr("Bitte Kosten und Gain für jedes Upgrade eintragen.")}</Hint>)}</div></details>
+    </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Increase">
-          {!ready ? <Hint>{tr("Basiswerte fehlen.")}</Hint> : n === null ? <Hint>{tr("Nächsten Gain eintragen, um Increase zu bewerten.")}</Hint> : (() => {
-            const r = compareGain(c, t, g, n);
-            const v: Verdict = r.recommendation === "Increase jetzt sinnvoll" ? "better" : r.recommendation === "Nicht drücken" ? "worse" : "same";
-            return <><p className="mt-3 text-xs text-muted-foreground">{tr("Increase setzt Strength zurück. Die Endurance-ETA berücksichtigt nur die eingegebenen Endurance-Gains; die Erholungszeit für Strength ist nicht eingerechnet.")}</p><Rows rows={[[tr("Ohne Increase"), naturalDuration(r.a)], [tr("Increase jetzt"), naturalDuration(r.b)], [tr("Differenz"), diff(r.saved)]]} />
-              <Explain v={v} rec={tr(r.recommendation)} facts={tr("ETA {p0} vs. {p1}.", { p0: naturalDuration(r.a), p1: naturalDuration(r.b) })} assumption={tr("Nächster Gain {p0}/s (deine Eingabe).", { p0: fmtSuffix(n) })} testid="prog-increase" /></>;
-          })()}
-        </Card>
-        <Card title={`Upgrade-ROI · ${p.upName || "Upgrade"}${p.mtLevel ? ` (Lv. ${p.mtLevel})` : ""}`}>
-          {!ready ? <Hint>{tr("Basiswerte fehlen.")}</Hint> : upCost === null || upGain === null ? <Hint>{tr("Upgrade-Kosten und Gain nach Upgrade eintragen – ohne diese Werte gibt es keine Empfehlung.")}</Hint> : (() => {
-            const r = upgradeROI(c, g, t, upCost, upGain);
-            const two = nextCost !== null && nextGain !== null ? simulatePath(c, g, t, [{ cost: upCost, gain: upGain }, { cost: nextCost, gain: nextGain }]) : null;
-            return <>
-              {t <= c && <Hint>{tr("Ziel bereits erreicht – Kauf spart hier keine Zeit.")}</Hint>}
-              {t <= upCost && t > c && <Hint>{tr("Ziel liegt unter den Upgrade-Kosten – nach dem Kauf musst du neu farmen.")}</Hint>}
-              <Rows rows={[
-                [tr("Bezahlbar in"), r.wait === 0 ? tr("Jetzt bezahlbar") : naturalDuration(r.wait)],
-                [tr("Fehlende Endurance"), fmtSuffix(r.remaining)],
-                [tr("Aktueller Gain"), `${fmtSuffix(g)}/s`],
-                [tr("Gain nach Kauf"), `${fmtSuffix(upGain)}/s (×${fmtPlain(g > 0 ? upGain / g : 0, 4)})`],
-                [tr("Kosten"), fmtSuffix(upCost)],
-                [tr("Gain-Zuwachs"), `${r.gainDelta < 0 ? "−" : "+"}${fmtSuffix(Math.abs(r.gainDelta))}/s (${fmtPlain(r.gainPct, 2)} %)`],
-                [tr("A · Nicht kaufen"), naturalDuration(r.a)],
-                [tr("B · Warten, kaufen, weiter"), naturalDuration(r.b)],
-                [tr("Zeit gespart / verloren"), diff(r.saved)],
-                ...(two ? [[tr("Mit nächstem Upgrade"), naturalDuration(two.total)] as [string, string]] : []),
-              ]} />
-              <Explain v={r.verdict} rec={tr(r.recommendation)} testid="upgrade-rec"
-                facts={tr("Kosten {p0} werden abgezogen; danach läuft der neue Gain bis {p1}.", { p0: fmtSuffix(upCost), p1: fmtSuffix(t) })}
-                assumption={(p.mtAutoGain ? tr("Gain nach Kauf {p0}/s = aktueller Gain × {p1} (Community-/Messwert-Annahme).", { p0: fmtSuffix(upGain), p1: fmtPlain(gm ?? 0, 4) }) : tr("Gain nach Kauf {p0}/s (deine Eingabe).", { p0: fmtSuffix(upGain) })) + (r.noSpeedGain ? tr(" Nicht höher als jetzt – keine Empfehlung.") : "")} />
-            </>;
-          })()}
-        </Card>
-      </div>
+    <Card title="Milestones" collapsed testid="tool-milestones" right={<Button variant="outline" size="sm" disabled={p.milestones.length >= 8} onClick={() => set("milestones", [...p.milestones, { id: Date.now(), name: "", v: "", u: "Qa" }])}>+ ({p.milestones.length}/8)</Button>}>
+      {p.milestones.length === 0 ? <Hint>{tr("Bis zu 8 Ziele oder Kosten mit Namen.")}</Hint> : <><div className="mb-4 grid gap-2 md:grid-cols-2">{p.milestones.map((milestone, index) => <div key={milestone.id} className="flex min-w-0 gap-2"><input aria-label={tr("Milestone {p0} Name", { p0: index + 1 })} value={milestone.name} placeholder={tr("Name")} onChange={(event) => set("milestones", p.milestones.map((item) => item.id === milestone.id ? { ...item, name: event.target.value } : item))} className="field w-28 min-w-0 px-2 text-sm outline-none" /><UnitField id={`ms-${milestone.id}`} label={`Milestone ${index + 1}`} value={milestone} onChange={(value) => set("milestones", p.milestones.map((item) => item.id === milestone.id ? { ...item, ...value } : item))} /><Button variant="ghost" size="icon" aria-label={tr("Milestone {p0} entfernen", { p0: index + 1 })} onClick={() => set("milestones", p.milestones.filter((item) => item.id !== milestone.id))}><X /></Button></div>)}</div>{ready && <MilestoneTable ms={p.milestones} c={c} g={g} steps={null} now={now} />}</>}
+    </Card>
 
-      {/* 4) Path */}
-      <Card title={tr("Upgrade-Pfad")} right={<Button variant="outline" size="sm" disabled={p.path.length >= 6} onClick={() => set("path", [...p.path, { id: Date.now(), name: `Upgrade ${p.path.length + 1}`, level: "", cost: { v: "", u: "Qa" }, gain: { v: "", u: "T" } }])}>{tr("+ Upgrade (")}{p.path.length}/6)</Button>}>
-        {p.path.length === 0 ? <Hint>{tr("Füge Upgrades in Kaufreihenfolge hinzu: Kosten und Gain danach.")}</Hint> : <PathEditor p={p} set={set} />}
-        {ready && p.path.length > 0 && (pathValid ? <PathResult c={c} g={g} t={t} steps={steps} names={p.path.map((r) => r.name)} /> : <p className="mt-4 text-sm text-muted-foreground">{tr("Bitte Kosten und Gain für jedes Upgrade eintragen.")}</p>)}
-      </Card>
-
-      {/* 6) Milestones */}
-      <Card title="Milestones" right={<div className="flex flex-wrap gap-1">
-        <Button variant="outline" size="sm" disabled={p.milestones.length >= 8} onClick={() => set("milestones", [...p.milestones, { id: Date.now(), name: "", v: "", u: core.target.u }])}>+ ({p.milestones.length}/8)</Button></div>}>
-        {p.milestones.length === 0 ? <Hint>{tr("Bis zu 8 Ziele oder Kosten mit Namen.")}</Hint> : <>
-          <div className="mb-4 grid gap-2 md:grid-cols-2">{p.milestones.map((m, i) => (
-            <div key={m.id} className="flex min-w-0 gap-2">
-              <input aria-label={tr("Milestone {p0} Name", { p0: i + 1 })} value={m.name} placeholder={tr("Name")} onChange={(e) => set("milestones", p.milestones.map((x) => x.id === m.id ? { ...x, name: e.target.value } : x))} className="field w-28 min-w-0 px-2 text-sm outline-none" />
-              <UnitField id={`ms-${m.id}`} label={`Milestone ${i + 1}`} value={m} onChange={(v) => set("milestones", p.milestones.map((x) => x.id === m.id ? { ...x, ...v } : x))} />
-              <Button variant="ghost" size="icon" aria-label={tr("Milestone {p0} entfernen", { p0: i + 1 })} onClick={() => set("milestones", p.milestones.filter((x) => x.id !== m.id))}><X /></Button>
-            </div>))}</div>
-          {ready && <MilestoneTable ms={p.milestones} c={c} g={g} steps={pathValid && steps.length ? steps : null} now={now} />}
-        </>}
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* 7) Reset */}
-        <Card title={tr("Reset / Perseverance Vergleich")}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {f("resetBefore", tr("Gain vor Reset"), "/ s", tr("Leer = aktueller Gain"))}
-            {f("resetAfter", tr("Erwarteter Gain nach Reset (Annahme)"), "/ s")}
-            <div className="sm:col-span-2">{f("resetLoss", tr("Verlorene Endurance / Kosten"), undefined, tr("Strength kann separat zurückgesetzt werden – nicht modelliert."))}</div>
-          </div>
-          {(() => {
-            const before = val(p.resetBefore) ?? g, after = val(p.resetAfter), loss = val(p.resetLoss) ?? 0;
-            if (!ready || before === null) return <Hint>{tr("Basiswerte fehlen.")}</Hint>;
-            if (after === null) return <Hint>{tr("Erwarteten Gain nach Reset eintragen.")}</Hint>;
-            const r = resetCompare(c, before, t, after, loss);
-            return <><Rows rows={[[tr("Ohne Reset"), naturalDuration(r.a)], [tr("Nach Reset"), naturalDuration(r.b)], [tr("Differenz"), diff(r.saved)]]} />
-              <Explain v={r.verdict} rec={tr(r.recommendation)} testid="reset-rec" facts={tr("{p0} Endurance abgezogen, dann {p1}/s bis zum Ziel.", { p0: fmtSuffix(loss), p1: fmtSuffix(after) })} assumption={tr("Gain nach Reset ist deine Eingabe – keine Vorhersage versteckter Spielformeln.")} /></>;
-          })()}
-        </Card>
-        {/* 8) What-if */}
-        <Card title={tr("Was wäre wenn")}>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <TextField id="wi-mult" label="Gain ×" value={p.wiMult} onChange={(v) => set("wiMult", v)} />
-            {f("wiFlat", tr("+ Gain flach"), "/ s")}
-            <TextField id="wi-target" label={tr("Ziel ×")} value={p.wiTarget} onChange={(v) => set("wiTarget", v)} />
-          </div>
-          {(() => {
-            const m = num(p.wiMult), tm = num(p.wiTarget), flat = val(p.wiFlat) ?? 0;
-            if (!ready) return <Hint>{tr("Basiswerte fehlen.")}</Hint>;
-            if (m === null || tm === null) return <Hint error>{tr("Multiplikatoren als Zahl eingeben, z. B. 1,25.")}</Hint>;
-            const r = whatIf(c, g, t, m, flat, tm);
-            return <Rows rows={[[tr("Neuer Gain"), `${fmtSuffix(r.gain)}/s`], [tr("Neues Ziel"), fmtSuffix(r.target)], ["ETA", naturalDuration(r.secs)], [tr("Fertig am"), now === null ? "–" : fmtFinish(r.secs, now)]]} />;
-          })()}
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function Decision({ c, g, t, x, now }: { c: number; g: number; t: number; x: Parameters<typeof decide>[3]; now: number | null }) {
-  const { t: tr, fmtDuration, fmtFinish, naturalDuration } = useI18n();
-
-  const d = decide(c, g, t, x);
-  const gap = d.second ? d.second.secs - d.winner.secs : 0;
-  return <div className="mt-4" aria-live="polite">
-    {d.scenarios.length > 1 && <p className="text-xs text-muted-foreground">{tr("Empfehlung")}</p>}
-    <p className={d.scenarios.length === 1 ? "text-base text-muted-foreground" : "mt-1 text-2xl font-semibold text-primary"} data-testid="decision">{tr(d.scenarios.length === 1 ? "Weitere Werte eingeben, um Increase oder Upgrades zu vergleichen" : d.winner.label)}</p>
-    <p className="mt-1 text-sm text-muted-foreground">
-      {d.winner.id === "A" ? (d.scenarios.length > 1 ? tr("Keine Aktion ist mehr als 2 % schneller als weiter farmen.") : tr("Ohne weitere Eingaben ist nur Farmen bewertbar.")) : tr("Schnellstes Szenario: {p0}.", { p0: naturalDuration(d.winner.secs) })}
-      {d.second && tr(" Abstand zum Zweitbesten ({p0}): {p1}{p2}.", { p0: tr(d.second.label), p1: Number.isFinite(gap) ? fmtDuration(Math.abs(gap)) : tr("nicht erreichbar"), p2: gap < 0 ? tr(" (dieses ist minimal schneller, aber unter 2 %)") : "" })}
-    </p>
-    <ol className="mt-4 grid gap-2 sm:grid-cols-2">{d.scenarios.map((s, i) => (
-      <li key={s.id} className={`min-w-0 border-l-2 pl-3 ${s === d.winner && d.scenarios.length > 1 ? "border-success" : "border-border"}`}>
-        <p className="text-xs text-muted-foreground">#{i + 1} · {s.id} · {tr(s.label)}</p>
-        <p className="font-mono text-sm font-semibold">{naturalDuration(s.secs)}</p>
-        <p className="font-mono text-xs text-muted-foreground">{now === null ? "–" : fmtFinish(s.secs, now)}</p>
-      </li>))}</ol>
-    {d.missing.length > 0 && <ul className="mt-3 space-y-1 text-xs text-muted-foreground" data-testid="missing">{d.missing.map((m) => <li key={m}>{tr(m)}</li>)}</ul>}
-    <p className="mt-3 text-xs text-muted-foreground">{tr("Szenarien basieren nur auf deinen eingegebenen Gains und Kosten.")}</p>
+    <div className="grid gap-4 lg:grid-cols-2"><Card title={tr("Reset / Perseverance Vergleich")} collapsed testid="tool-reset"><div className="grid gap-3 sm:grid-cols-2">{field("resetBefore", tr("Gain vor Reset"), "/ s", tr("Leer = aktueller Gain"))}{field("resetAfter", tr("Erwarteter Gain nach Reset (Annahme)"), "/ s")}{field("resetLoss", tr("Verlorene Endurance / Kosten"))}</div>{(() => { const before = val(p.resetBefore) ?? g, after = val(p.resetAfter), loss = val(p.resetLoss) ?? 0; if (!ready || before === null || after === null) return <Hint>{tr("Erwarteten Gain nach Reset eintragen.")}</Hint>; const result = resetCompare(c, before, t, after, loss); return <Rows rows={[[tr("Ohne Reset"), naturalDuration(result.a)], [tr("Nach Reset"), naturalDuration(result.b)], [tr("Differenz"), difference(result.saved)]]} />; })()}</Card>
+    <Card title={tr("Was wäre wenn")} collapsed testid="tool-what-if"><div className="grid gap-3 sm:grid-cols-3"><TextField id="wi-mult" label="Gain ×" value={p.wiMult} onChange={(value) => set("wiMult", value)} />{field("wiFlat", tr("+ Gain flach"), "/ s")}<TextField id="wi-target" label={tr("Ziel ×")} value={p.wiTarget} onChange={(value) => set("wiTarget", value)} /></div>{(() => { const multiplier = num(p.wiMult), targetMultiplier = num(p.wiTarget), flat = val(p.wiFlat) ?? 0; if (!ready || multiplier === null || targetMultiplier === null) return <Hint>{tr("Basiswerte fehlen.")}</Hint>; const result = whatIf(c, g, t, multiplier, flat, targetMultiplier); return <Rows rows={[[tr("Neuer Gain"), `${fmtSuffix(result.gain)}/s`], [tr("Neues Ziel"), fmtSuffix(result.target)], ["ETA", naturalDuration(result.secs)], [tr("Fertig am"), now === null ? "–" : fmtFinish(result.secs, now)]]} />; })()}</Card></div>
   </div>;
 }
 
@@ -238,21 +98,12 @@ function MilestoneTable({ ms, c, g, steps, now }: { ms: Milestone[]; c: number; 
   </table><p className="mt-2 text-xs text-muted-foreground">{tr("„Geplanter Pfad“ = alle Pfad-Upgrades kaufen, dann bis zum Milestone farmen.")}</p></div>;
 }
 
-function Explain({ v, rec, facts, assumption, testid }: { v: Verdict; rec: string; facts: string; assumption: string; testid: string }) {
-  const { t: tr } = useI18n();
-
-  return <dl className="mt-4 space-y-1.5 text-xs">
-    <div><dt className="inline font-semibold text-primary">{tr("Fakten:")} </dt><dd className="inline text-muted-foreground">{facts}</dd></div>
-    <div><dt className="inline font-semibold text-foreground">{tr("Annahme:")} </dt><dd className="inline text-muted-foreground">{assumption}</dd></div>
-    <div className={`border-l-2 pl-2 text-sm ${TONE[v]}`}><dt className="inline font-semibold">{tr("Empfehlung (")}{tr(STATUS[v])}): </dt><dd className="inline font-semibold" data-testid={testid}>{tr(rec)}</dd></div>
-  </dl>;
-}
-
 function Rows({ rows }: { rows: [string, string][] }) {
   return <dl className="mt-4 grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2">{rows.map(([k, v]) => <div key={k} className="min-w-0"><dt className="text-xs text-muted-foreground">{k}</dt><dd className="break-words font-mono text-sm">{v}</dd></div>)}</dl>;
 }
 
-function Card({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
+function Card({ title, right, children, collapsed = false, testid }: { title: string; right?: ReactNode; children: ReactNode; collapsed?: boolean; testid?: string }) {
+  if (collapsed) return <details className="min-w-0 border-y py-4" data-testid={testid}><summary className="cursor-pointer text-base font-semibold">{title}</summary><div className="mt-4 min-w-0">{right && <div className="mb-3 flex flex-wrap gap-2">{right}</div>}{children}</div></details>;
   return <section className="panel min-w-0 p-4 sm:p-5"><div className="mb-3 grid min-w-0 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between"><h2 className="min-w-0 text-base font-semibold">{title}</h2>{right}</div>{children}</section>;
 }
 

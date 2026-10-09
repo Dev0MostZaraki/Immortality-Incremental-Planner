@@ -1,91 +1,102 @@
+import { useState } from "react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { useI18n } from "@/components/LanguageProvider";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import { UnitField, val, type NU } from "./planner-fields";
+import { UnitField, val } from "./planner-fields";
 import type { Prog } from "@/lib/progression-state";
-import { parseNum } from "@/lib/endurance";
-import { baseCostDiffPct, derivedBaseCost, clampPreview, deriveCostMultiplier, effectiveCostMultiplier, effectiveCurrentCost, gainPreview, generatePath, parseMultiplier, projectedCosts } from "@/lib/muscle-training";
+import { calibrate, effectiveCurrentCost, evaluateMtDecision, parseLevel } from "@/lib/muscle-training";
+import { MUSCLE_TRAINING_MODEL as model } from "@/lib/muscle-training-model";
 
-type Props = { p: Prog; setP: (v: Prog | ((p: Prog) => Prog)) => void; g: number | null };
+type Props = {
+  p: Prog; setP: (v: Prog | ((p: Prog) => Prog)) => void;
+  g: number | null; c: number | null; target: number | null; next: number | null; now: number | null;
+  onEditCalculator: () => void;
+};
 
-export function MuscleTrainingModel({ p, setP, g }: Props) {
-  const { t: tr, fmtSuffix, fmtPlain } = useI18n();
-  const [confirm, setConfirm] = useState(false);
-  const set = <K extends keyof Prog>(k: K, v: Prog[K]) => setP((x) => ({ ...x, [k]: v }));
-  const gm = parseMultiplier(p.mtGainMultiplier);
-  const cm = effectiveCostMultiplier(p);
-  const derived = deriveCostMultiplier(val(p.mtObservedCostA), val(p.mtObservedCostB));
-  const cost = effectiveCurrentCost(p);
-  const lvl = parseNum(p.mtLevel);
-  const base = derivedBaseCost(val(p.upCost), cm.value, lvl.ok === true ? lvl.value : null);
-  const baseDiff = baseCostDiffPct(val(p.mtBaseCost), base);
-  const count = clampPreview(p.mtPreviewCount);
-  const gains = g !== null && gm !== null ? gainPreview(g, gm, count) : [];
-  const costs = projectedCosts(cost, cm.value, count);
-  const canGenerate = g !== null && gm !== null && costs.length > 0;
-  const apply = () => setP((x) => ({ ...x, path: generatePath(x, g).slice(0, 6) }));
-  const nu = (k: "mtBaseCost" | "mtObservedCostA" | "mtObservedCostB", label: string) => (
-    <div className="min-w-0"><label htmlFor={`mt-${k}`} className="mb-1 block text-xs font-medium">{label}</label>
-      <UnitField id={`mt-${k}`} label={label} value={p[k]} onChange={(v: NU) => set(k, v)} hideLabel invalid={p[k].v.trim() !== "" && val(p[k]) === null} /></div>
-  );
-  const text = (id: string, label: string, value: string, onChange: (v: string) => void, invalid: boolean, placeholder?: string) => (
-    <div className="min-w-0"><label htmlFor={id} className="mb-1 block text-xs font-medium">{label}</label>
-      <div className={`field flex items-stretch overflow-hidden ${invalid ? "border-destructive" : ""}`}>
-        <input id={id} inputMode="decimal" autoComplete="off" value={value} placeholder={placeholder} aria-invalid={invalid} onChange={(e) => onChange(e.target.value)} className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono outline-none" />
-        <span className="flex items-center bg-secondary px-2 text-xs text-muted-foreground">×</span>
-      </div></div>
-  );
+export function MuscleTrainingModel({ p, setP, g, c, target, next, now, onEditCalculator }: Props) {
+  const { t, fmtSuffix, naturalDuration, fmtFinish } = useI18n();
+  const [showCost, setShowCost] = useState(p.mtDisplayedCost.v.trim() !== "");
+  const level = parseLevel(p.mtLevel);
+  const displayed = val(p.mtDisplayedCost);
+  const estimated = level === null || level === model.maxLevel ? null : model.baseCost * model.costMultiplier ** level;
+  const calibration = calibrate(displayed, estimated);
+  const ready = g !== null && c !== null && target !== null && level !== null;
+  const decision = ready ? evaluateMtDecision(p, c, g, target, next) : null;
+  const sourceIsPlayer = displayed !== null && displayed > 0;
+  const invalidCost = p.mtDisplayedCost.v.trim() !== "" && !sourceIsPlayer;
+  const sourceCost = effectiveCurrentCost(p);
+  const missing = [g === null && t("Aktueller Gain"), c === null && t("Aktuelle Endurance"), target === null && t("Ziel-Endurance")].filter(Boolean).join(", ");
 
-  return (
-    <details className="rounded-xl border bg-card/60 p-4 sm:p-5" data-testid="mt-model">
-      <summary className="cursor-pointer text-lg font-semibold">{tr("Muscle Training Modell")}
-        <span className="ml-2 text-xs font-normal text-muted-foreground">{gm !== null ? `×${fmtPlain(gm, 4)} ${tr("pro Kauf")}` : ""}</span></summary>
-      <p className="mt-3 rounded-md border-l-2 border-primary bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">{tr("Beobachteter Wert: Kosten ×2,1 pro Kauf · Gain ×1,4 pro Kauf. Nicht offiziell bestätigt; bei Patches erneut prüfen.")}</p>
+  return <div className="space-y-5" data-testid="mt-model">
+    <div className="grid gap-5 min-[1100px]:grid-cols-[minmax(18rem,0.36fr)_minmax(0,0.64fr)]">
+      <section className="panel min-w-0 p-4 sm:p-5" aria-labelledby="mt-state-title">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="mt-state-title" className="text-lg font-semibold">{t("Aktueller Stand")}</h2>
+          <Button variant="ghost" size="sm" onClick={onEditCalculator}>{t("Rechnerwerte bearbeiten")}<ArrowRight /></Button>
+        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <Stat label={t("Aktuelle Endurance")} value={c === null ? "–" : fmtSuffix(c)} />
+          <Stat label={t("Aktueller Gain")} value={g === null ? "–" : `${fmtSuffix(g)}/s`} />
+          <Stat label={t("Ziel-Endurance")} value={target === null ? "–" : fmtSuffix(target)} />
+          {next !== null && <Stat label={t("Nächster Gain nach Increase")} value={`${fmtSuffix(next)}/s`} />}
+        </dl>
+        {missing && <p className="mt-4 border-l-2 border-primary pl-3 text-sm text-muted-foreground">{t("Im Rechner ergänzen: {p0}", { p0: missing })}</p>}
+        <div className="mt-5 border-t pt-4">
+          <label htmlFor="mt-level" className="mb-1.5 block text-sm font-medium">{t("Aktuelles Muscle-Training-Level")}</label>
+          <input id="mt-level" data-testid="mt-level-input" inputMode="numeric" placeholder={`0–${model.maxLevel}`} aria-invalid={p.mtLevel.trim() !== "" && level === null} value={p.mtLevel} onChange={(event) => setP((state) => ({ ...state, mtLevel: event.target.value }))} className="field min-h-11 w-full px-3 py-2.5 font-mono outline-none" />
+          {p.mtLevel.trim() !== "" && level === null && <p className="mt-1 text-xs text-destructive">{t("Ganzes Level von 0 bis 150 eingeben.")}</p>}
+        </div>
+        {!showCost ? <Button variant="outline" size="sm" className="mt-4" onClick={() => setShowCost(true)}>{t("Angezeigten Spielpreis verwenden")}</Button> : <div className="mt-4">
+          <label htmlFor="mt-mtDisplayedCost" className="mb-1.5 block text-sm font-medium">{t("Angezeigter Preis des nächsten Kaufs")}</label>
+          <UnitField id="mt-mtDisplayedCost" label={t("Angezeigter Preis des nächsten Kaufs")} value={p.mtDisplayedCost} onChange={(value) => setP((state) => ({ ...state, mtDisplayedCost: value }))} hideLabel invalid={invalidCost} />
+          {invalidCost && <p className="mt-1 text-xs text-destructive">{t("Gültigen positiven Preis eingeben oder leer lassen.")}</p>}
+        </div>}
+        {level !== null && level < model.maxLevel && <p className="mt-3 text-xs text-muted-foreground" data-testid="mt-cost-source">{t(sourceIsPlayer ? "Angezeigter Spielpreis wird verwendet" : "Geschätzter Spielpreis")}: <span className="font-mono text-foreground">{sourceCost === null ? "–" : fmtSuffix(sourceCost)}</span></p>}
+        {calibration?.status === "mismatch" && <p role="status" className="mt-2 text-xs text-muted-foreground">{t("Dein Spielwert weicht vom Modell ab; die Projektionen verwenden deinen Wert.")}</p>}
+      </section>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 min-[1100px]:grid-cols-4">
-        <div className="min-w-0"><label htmlFor="mt-level" className="mb-1 block text-xs font-medium">{tr("Aktuelles Muscle-Training-Level (optional)")}</label>
-          <input id="mt-level" inputMode="numeric" value={p.mtLevel} onChange={(e) => set("mtLevel", e.target.value)} className="field w-full px-3 py-2.5 font-mono outline-none" /></div>
-        {text("mt-gm", tr("Gain-Multiplikator pro Kauf"), p.mtGainMultiplier, (v) => set("mtGainMultiplier", v), gm === null)}
-        {text("mt-cm", tr("Kosten-Multiplikator pro Kauf (optional)"), p.mtCostMultiplier, (v) => set("mtCostMultiplier", v), p.mtCostMultiplier.trim() !== "" && parseMultiplier(p.mtCostMultiplier) === null)}
-        {nu("mtBaseCost", tr("Beobachtete Basiskosten (optional, nur Gegenprobe)"))}
-        <div className="min-w-0"><label htmlFor="mt-count" className="mb-1 block text-xs font-medium">{tr("Vorschau-Level (1–10)")}</label>
-          <input id="mt-count" type="number" min={1} max={10} value={p.mtPreviewCount} onChange={(e) => set("mtPreviewCount", clampPreview(Number(e.target.value)))} className="field w-full px-3 py-2.5 font-mono outline-none" /></div>
-        <label className="flex items-center gap-3 self-end py-2 text-sm"><Switch checked={p.mtAutoGain} onCheckedChange={(v) => set("mtAutoGain", v)} aria-label={tr("Gain automatisch berechnen")} />{tr("Gain automatisch berechnen")}</label>
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">{tr("Community-/Messwert, editierbar. Zwei beobachtete Kosten unten haben Vorrang.")} {tr("Aktuelle Upgrade-Kosten kommen aus „Aktueller Stand“.")} {tr("Beispielrechnung: 2 Sx/s × 1,4 = 2,8 Sx/s")}</p>
+      <section className="result-panel min-w-0 p-5 sm:p-6" data-testid="mt-recommendation" aria-labelledby="mt-best-title" aria-live="polite">
+        <p className="text-xs font-medium text-muted-foreground">{t("Bester Plan")}</p>
+        <h2 id="mt-best-title" className="mt-2 text-2xl font-semibold text-primary sm:text-3xl">{decision && level !== null ? recommendation(t, decision.action, decision.winner.purchases, level) : t("Gemeinsame Werte und aktuelles Level eingeben, um den besten Plan zu sehen.")}</h2>
+        {decision && level !== null && <>
+          <p className="mt-2 text-sm text-muted-foreground">{decision.winner.purchases > 0 ? t("Level {p0} → {p1}", { p0: level, p1: level + decision.winner.purchases }) : t("Kein Muscle-Training-Kauf vor diesem Ziel")}</p>
+          <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Stat label={t("Nächste Aktion in")} value={decision.action === "increase-first" || decision.action === "buy-now" ? t("Jetzt") : decision.firstPurchase ? naturalDuration(decision.firstPurchase.eta) : naturalDuration(decision.winner.total)} />
+            <Stat label={t("Gesamt-ETA")} value={naturalDuration(decision.winner.total)} />
+            <Stat label={t("Zeitersparnis gegenüber keinem Kauf")} value={naturalDuration(Math.max(0, decision.saved))} />
+            <Stat label={t("Resultierender Gain")} value={`${fmtSuffix(decision.winner.finalGain)}/s`} />
+            <Stat label={t("Ziel fertig am")} value={now === null ? "–" : fmtFinish(decision.winner.total, now)} wide />
+          </dl>
+          <div className="mt-5 border-t pt-4">
+            <h3 className="text-sm font-semibold">{t("Warum dieser Plan")}</h3>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <li><strong className="text-foreground">{t("Kosten")}:</strong> {sourceCost === null ? "–" : fmtSuffix(sourceCost)} · {t(sourceIsPlayer ? "aus deinem Spiel" : "geschätzter Spielpreis")}</li>
+              <li><strong className="text-foreground">{t("Nutzen")}:</strong> {fmtSuffix(decision.winner.finalGain)}/s · {t("spart {p0}", { p0: naturalDuration(Math.max(0, decision.saved)) })}</li>
+              <li><strong className="text-foreground">{t("Plan")}:</strong> {decision.winner.purchases > 0 ? t("{p0} sinnvolle Level kaufen, dann direkt bis zum Ziel farmen.", { p0: decision.winner.purchases }) : t("Nichts kaufen; direkt bis zum Ziel farmen.")}</li>
+            </ul>
+          </div>
+          <details className="group mt-4 border-t pt-4" data-testid="mt-alternatives"><summary className="flex cursor-pointer items-center justify-between text-sm font-medium">{t("Alternativen vergleichen")}<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary><div className="mt-3 grid gap-3 sm:grid-cols-2"><Stat label={t("Nichts kaufen")} value={naturalDuration(decision.baseline.total)} />{decision.runnerUp && <Stat label={t("Zweitbeste Option")} value={`${alternativeLabel(t, decision.runnerUp.id)} · ${naturalDuration(decision.runnerUp.total)}`} />}</div></details>
+        </>}
+      </section>
+    </div>
 
-      <div className="mt-4 rounded-lg border p-3">
-        <h3 className="text-sm font-semibold">{tr("Aus zwei Kosten ableiten")}</h3>
-        <div className="mt-2 grid gap-3 sm:grid-cols-2">{nu("mtObservedCostA", tr("Beobachtete Kosten A"))}{nu("mtObservedCostB", tr("Beobachtete Kosten B (nächster Kauf)"))}</div>
-        {derived !== null && <p className="mt-2 text-xs" data-testid="mt-derived">{tr("Abgeleiteter Kosten-Multiplikator: ×{p0} (aus deinen Beobachtungen, nicht offiziell)", { p0: fmtPlain(derived, 4) })}</p>}
-      </div>
+    <section className="panel min-w-0 p-4 sm:p-5" data-testid="mt-preview" aria-labelledby="mt-journey-title">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 id="mt-journey-title" className="text-lg font-semibold">{t("Nächste Level")}</h2><div className="inline-flex rounded-md border bg-secondary p-1" role="group" aria-label={t("Level-Horizont")}>{[3,5,10].map((count) => <Button key={count} size="sm" variant={p.mtPreviewCount === count ? "default" : "ghost"} aria-pressed={p.mtPreviewCount === count} onClick={() => setP((state) => ({ ...state, mtPreviewCount: count }))}>{count}</Button>)}</div></div>
+      {decision ? <><div className="grid gap-2 md:hidden">{decision.plan.rows.map((row) => <JourneyCard key={row.purchases} row={row} level={level ?? 0} best={row.purchases === decision.plan.prefix.best} baseline={decision.baseline.total} />)}</div><div className="hidden md:block"><table className="w-full table-fixed text-sm"><thead><tr className="text-left text-xs text-muted-foreground"><th className="w-[14%] py-2">{t("Level")}</th><th>{t("Kosten")}</th><th>{t("Gain nach Kauf")}</th><th>{t("Bezahlbar in")}</th><th>{t("ETA bei Stopp hier")}</th><th>{t("Zeitersparnis")}</th></tr></thead><tbody>{decision.plan.rows.map((row) => <JourneyRow key={row.purchases} row={row} level={level ?? 0} best={row.purchases === decision.plan.prefix.best} baseline={decision.baseline.total} />)}</tbody></table></div></> : <p className="text-sm text-muted-foreground">{t("Aktuellen Stand vervollständigen, um die Level-Reise zu sehen.")}</p>}
+    </section>
 
-      {base !== null && <p className="mt-3 text-sm" data-testid="mt-base">{tr("Abgeleitete Basiskosten")}: <span className="font-mono">{fmtSuffix(base)}</span>
-        <span className="ml-2 text-xs text-muted-foreground">= {fmtSuffix(val(p.upCost) ?? 0)} ÷ {fmtPlain(cm.value ?? 0, 4)}^{lvl.ok === true ? lvl.value : ""}</span>
-        {baseDiff !== null && <span className="ml-2 text-xs text-muted-foreground" data-testid="mt-base-diff">{tr("Abweichung zur beobachteten Basis: {p0} % (Rundung im Spiel möglich)", { p0: `${baseDiff >= 0 ? "+" : "−"}${fmtPlain(Math.abs(baseDiff), 2)}` })}</span>}</p>}
-      <details className="mt-3 text-xs text-muted-foreground"><summary className="cursor-pointer font-medium text-foreground">{tr("Formel")}</summary>
-        <p className="mt-2">{tr("Bei Level n gilt als beobachtetes Modell: Kosten des nächsten Kaufs = Basiskosten × 2,1^n. Basiskosten = aktueller angezeigter Preis ÷ 2,1^n. Gain nach k Käufen = aktueller Gain × 1,4^k.")} {tr("Angezeigte Spielwerte können gerundet sein.")}</p></details>
-
-      {cm.value === null && <p className="mt-3 text-sm text-muted-foreground" data-testid="mt-cost-unknown">{tr("Kosten-Skalierung unbekannt – nur der nächste Gain wird automatisch berechnet.")}</p>}
-
-      {gains.length > 0 ? <div className="mt-4 overflow-x-auto"><table className="w-full text-sm" data-testid="mt-preview">
-        <thead><tr className="text-left text-xs text-muted-foreground"><th className="py-1 pr-3">{tr("Käufe")}</th><th className="py-1 pr-3">{tr("Gain danach")}</th>{costs.length > 0 && <th className="py-1">{tr("Kosten dieses Kaufs")}</th>}</tr></thead>
-        <tbody className="font-mono">{gains.map((x, i) => <tr key={i} className="border-t border-border/60"><td className="py-1 pr-3">+{i + 1}</td><td className="py-1 pr-3">{fmtSuffix(x)}/s</td>{costs.length > 0 && <td className="py-1">{fmtSuffix(costs[i] ?? 0)}{i === 0 ? ` (${tr("nächster Kauf")})` : ""}</td>}</tr>)}</tbody>
-      </table></div> : <p className="mt-3 text-sm text-muted-foreground">{tr("Aktuellen Gain und gültigen Multiplikator eingeben, um die Vorschau zu sehen.")}</p>}
-
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button variant="outline" size="sm" disabled={!canGenerate} onClick={() => p.path.length > 0 ? setConfirm(true) : apply()}>{tr("Pfad erzeugen")}</Button>
-        {!canGenerate && <span className="text-xs text-muted-foreground">{tr("Benötigt Gain, aktuelle Kosten, Kosten- und Gain-Multiplikator.")}</span>}
-        {count > 6 && canGenerate && <span className="text-xs text-muted-foreground">{tr("Der Upgrade-Pfad übernimmt höchstens 6 Käufe.")}</span>}
-      </div>
-      <AlertDialog open={confirm} onOpenChange={setConfirm}>
-        <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-lg">
-          <AlertDialogHeader><AlertDialogTitle>{tr("Upgrade-Pfad ersetzen?")}</AlertDialogTitle><AlertDialogDescription>{tr("Der vorhandene Upgrade-Pfad wird durch den erzeugten Muscle-Training-Pfad ersetzt.")}</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>{tr("Abbrechen")}</AlertDialogCancel><AlertDialogAction onClick={apply}>{tr("Ersetzen")}</AlertDialogAction></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </details>
-  );
+    <section className="border-y py-4 text-sm text-muted-foreground"><p>{t("Community-beobachtetes Modell, geprüft gegen gemeldete Werte für Level 59 und 60. Spielupdates können Kosten oder Gains verändern.")}</p><details className="group mt-3"><summary className="flex cursor-pointer items-center gap-2 font-medium text-foreground">{t("Modelldetails")}<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary><dl className="mt-3 grid gap-2 sm:grid-cols-2"><Stat label={t("Modelldaten-Version")} value={model.version} /><Stat label={t("Zuletzt aktualisiert")} value={model.lastUpdated} /><Stat label={t("Beleg-Level")} value="59 · 60" /><Stat label={t("Preisquelle")} value={t(sourceIsPlayer ? "Vom Spieler eingegeben" : "Geschätzt")} /></dl></details></section>
+  </div>;
 }
+
+function recommendation(t: ReturnType<typeof useI18n>["t"], action: string, purchases: number, level: number) {
+  if (action === "increase-first") return t("Zuerst Increase verwenden");
+  if (action === "buy-now") return purchases === 1 ? t("Level {p0} jetzt kaufen", { p0: level + 1 }) : t("Jetzt {p0} Level kaufen", { p0: purchases });
+  if (action === "farm-to-buy") return t("Bis zum nächsten Kauf farmen, dann dem Plan folgen");
+  return t("Weiter bis zum Ziel farmen");
+}
+function alternativeLabel(t: ReturnType<typeof useI18n>["t"], id: string) { return t(id === "baseline" ? "Nichts kaufen" : id === "muscle" ? "Muscle-Training-Plan" : id === "increase" ? "Nur Increase" : "Increase, dann Muscle Training"); }
+type Row = NonNullable<ReturnType<typeof evaluateMtDecision>>["plan"]["rows"][number];
+function Stat({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) { return <div className={wide ? "col-span-2" : ""}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words font-mono text-sm font-medium">{value}</dd></div>; }
+function JourneyCard({ row, level, best, baseline }: { row: Row; level: number; best: boolean; baseline: number }) { const { t, fmtSuffix, naturalDuration } = useI18n(); const saved = baseline - row.total; return <article className={`border-l-2 p-3 ${best ? "border-success bg-secondary/40" : "border-border"}`} data-testid="mt-preview-row"><p className="font-semibold">{row.purchases === 0 ? t("Nichts kaufen") : `Lv. ${level + row.purchases}`}{best && <span className="ml-2 text-xs text-success">{t("Bester Plan")}</span>}</p><dl className="mt-2 grid grid-cols-2 gap-2"><Stat label={t("Kosten")} value={row.purchases ? fmtSuffix(row.cost) : "–"} /><Stat label={t("Gain nach Kauf")} value={`${fmtSuffix(row.finalGain)}/s`} /><Stat label={t("Bezahlbar in")} value={row.purchase ? row.purchase.eta === 0 ? t("Jetzt") : naturalDuration(row.purchase.eta) : "–"} /><Stat label={t("ETA bei Stopp hier")} value={naturalDuration(row.total)} /><Stat label={t("Zeitersparnis")} value={row.purchases ? `${saved < 0 ? "−" : "+"}${naturalDuration(Math.abs(saved))}` : "–"} /></dl></article>; }
+function JourneyRow({ row, level, best, baseline }: { row: Row; level: number; best: boolean; baseline: number }) { const { t, fmtSuffix, naturalDuration } = useI18n(); const saved = baseline - row.total; return <tr className={`border-t text-xs ${best ? "bg-secondary/50" : ""}`} data-testid="mt-preview-row"><td className="py-3 pr-2 font-semibold">{row.purchases === 0 ? t("Nichts kaufen") : `Lv. ${level + row.purchases}`}{best && <span className="block text-success">{t("Bester Plan")}</span>}</td><td className="break-words pr-2 font-mono">{row.purchases ? fmtSuffix(row.cost) : "–"}</td><td className="break-words pr-2 font-mono">{fmtSuffix(row.finalGain)}/s</td><td className="break-words pr-2 font-mono">{row.purchase ? row.purchase.eta === 0 ? t("Jetzt") : naturalDuration(row.purchase.eta) : "–"}</td><td className="break-words pr-2 font-mono">{naturalDuration(row.total)}</td><td className="break-words font-mono">{row.purchases ? `${saved < 0 ? "−" : "+"}${naturalDuration(Math.abs(saved))}` : "–"}</td></tr>; }

@@ -17,8 +17,7 @@ async def main():
   assert await page.locator('#strength-reset').count() == 0
   body = await page.locator('body').inner_text()
   assert 'Aktueller Stand Beispiel' not in body and '316,13' not in body and 'Screenshot-Kontext' not in body
-  assert 'Erholungszeit für Strength ist nicht eingerechnet.' in body
-  assert 'v1.3.0' in body and 'Law-Daten: Okt. 2026' in body
+  assert 'v2.0.0' in body and 'Law-Daten: Okt. 2026' in body
   await page.get_by_role('button', name='Mehr Aktionen', exact=True).click()
   assert await page.get_by_role('menuitem', name='GitHub', exact=True).get_attribute('href') == 'https://github.com/Dev0MostZaraki/Immortality-Incremental-Planner'
   issues = page.get_by_role('menuitem', name='Fehler melden')
@@ -28,17 +27,17 @@ async def main():
   await page.screenshot(path=str(OUT/'fresh-de.png'))
   await page.locator('#gain').fill('454'); await page.locator('#cur').fill('475'); await page.locator('#tgt').fill('500')
   assert await page.get_by_test_id('main-eta').inner_text() == '55,07 Sekunden'
-  await page.get_by_role('button', name='Progression', exact=True).click()
-  assert await page.locator('#p-level').input_value() == '' and await page.locator('#p-upCost').input_value() == ''
+  await page.get_by_role('button', name='Muscle Training', exact=True).click()
+  assert await page.locator('#mt-level').input_value() == '' and await page.locator('#p-upCost').count() == 0
   assert await page.locator('#p-strength').count() == 0 and await page.locator('#p-persev').count() == 0
-  assert await page.get_by_test_id('decision').inner_text() == 'Weitere Werte eingeben, um Increase oder Upgrades zu vergleichen'
   assert await page.get_by_role('button', name='Beispiele', exact=True).count() == 0
   await page.get_by_role('button', name='English', exact=True).click()
-  assert await page.get_by_test_id('decision').inner_text() == 'Enter more values to compare Increase or upgrades'
-  await page.locator('#p-next').fill('371.73')
-  assert await page.get_by_test_id('prog-increase').inner_text() == 'Do not Increase'
-  await page.locator('#p-upCost').fill('1'); await page.locator('[data-testid=mt-model] > summary').click(); await page.locator('[data-testid=mt-model] [role=switch]').click(); await page.locator('#p-upGain').fill('10000')
-  assert await page.get_by_test_id('upgrade-rec').inner_text() == 'Buy as soon as affordable'
+  await page.get_by_role('button', name='More Tools', exact=True).click()
+  await page.locator('summary').filter(has_text=re.compile(r'^Increase$')).click()
+  assert 'Next Gain' in await page.get_by_test_id('tool-increase').inner_text()
+  await page.get_by_test_id('generic-upgrade').locator('summary').first.click()
+  await page.locator('#p-upCost').fill('1'); await page.locator('#p-upGain').fill('10000')
+  assert 'Time saved / lost' in await page.get_by_test_id('generic-upgrade').inner_text()
   await page.screenshot(path=str(OUT/'progression-en.png'))
   await page.get_by_role('button', name='Law Synthesis', exact=True).click()
   assert await page.get_by_role('tab', name='Plan', exact=True).get_attribute('aria-selected') == 'true'
@@ -89,7 +88,7 @@ async def main():
   download = await download_info.value
   backup_path = OUT/'backup.json'; await download.save_as(backup_path)
   backup = json.loads(backup_path.read_text())
-  assert backup['version'] == '1.3.0' and backup['law']['inv']['Lucent'] == '111'
+  assert backup['version'] == '2.0.0' and backup['law']['inv']['Lucent'] == '111'
   await page.keyboard.press('Escape')
   await page.get_by_role('button', name='Reset all law data', exact=True).click()
   await page.get_by_role('button', name='Confirm', exact=True).click()
@@ -110,13 +109,14 @@ async def main():
   saved = json.loads(await page.evaluate("localStorage.getItem('ii-lawsynth-v1')"))
   assert saved['inv']['Lucent'] == '111' and saved['levels']['perception'] == {'cur': 5, 'tgt': 10}
   await page.get_by_role('button', name='Endurance Planner', exact=True).click()
-  assert await page.locator('#p-gain').input_value() == '454' and await page.locator('#p-upGain').input_value() == '10000'
+  await page.get_by_role('button', name='Calculator', exact=True).click()
+  assert await page.locator('#gain').input_value() == '454'
   # Check both languages, every tool/mode/subtab and desktop/mobile framing.
   for language in ['en', 'de']:
    await page.get_by_role('button', name='English' if language == 'en' else 'Deutsch', exact=True).click()
    for tool in ['Endurance Planner', 'Law Synthesis']:
     await page.get_by_role('button', name=tool, exact=True).click()
-    modes = (['Simple', 'Progression', 'Advanced'] if language == 'en' else ['Einfach', 'Progression', 'Erweitert']) if tool == 'Endurance Planner' else (['Plan', 'Settings'] if language == 'en' else ['Plan', 'Einstellungen'])
+    modes = (['Calculator', 'Muscle Training', 'More Tools'] if language == 'en' else ['Rechner', 'Muscle Training', 'Weitere Tools']) if tool == 'Endurance Planner' else (['Plan', 'Settings'] if language == 'en' else ['Plan', 'Einstellungen'])
     for mode in modes:
      await page.get_by_role('button' if tool == 'Endurance Planner' else 'tab', name=mode, exact=True).click()
      for width in [390, 768, 1366, 1920, 2560, 3440]:

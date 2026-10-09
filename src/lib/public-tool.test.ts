@@ -52,13 +52,19 @@ describe("public planner data rules", () => {
     expect(JSON.parse(localStorage.getItem(LAW_KEY) ?? "{}")).toEqual(law);
     expect(localStorage.getItem(LANGUAGE_KEY)).toBe("en");
   });
-  it("exports v1.3.0 and still imports v1.1.0/v1.2.0 backups", () => {
+  it("exports v2.0.0 and still imports v1.1.0–v1.5.0 backups", () => {
     const data = JSON.parse(exportBackup(localStorage));
-    expect(data.version).toBe("1.3.0");
-    data.version = "1.1.0";
-    data.endurance.gain = { v: "123", u: "Qi" };
+    expect(data.version).toBe("2.0.0");
+    for (const version of ["1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"]) {
+      const legacy = structuredClone(data); legacy.version = version; legacy.endurance.mode = version === "1.5.0" ? "progression" : "advanced"; legacy.endurance.gain = { v: version, u: "Qi" };
+      importBackup(JSON.stringify(legacy), localStorage);
+      expect(JSON.parse(localStorage.getItem(ENDURANCE_KEY) ?? "{}").gain).toEqual({ v: version, u: "Qi" });
+    }
+  });
+  it("normalizes a legacy v1.3 preview count without rejecting the backup", () => {
+    const data = JSON.parse(exportBackup(localStorage)); data.version = "1.3.0"; data.endurance.mode = "progression"; data.endurance.prog.mtPreviewCount = 4;
     importBackup(JSON.stringify(data), localStorage);
-    expect(JSON.parse(localStorage.getItem(ENDURANCE_KEY) ?? "{}").gain).toEqual({ v: "123", u: "Qi" });
+    expect(JSON.parse(localStorage.getItem(ENDURANCE_KEY) ?? "{}").prog.mtPreviewCount).toBe(5);
   });
   it.each(["not json", "{}", '{"__proto__":{}}', '{"version":"9.0.0"}'])("rejects malformed or unsupported backups without writing data: %s", (raw) => {
     localStorage.setItem(LANGUAGE_KEY, "de");

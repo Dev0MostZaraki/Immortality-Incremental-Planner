@@ -5,26 +5,33 @@ import { LAW_KEY, LAW_DEFAULTS, restoreLaw } from "./law-state";
 import { LANGUAGE_KEY, restoreLanguage } from "./i18n";
 import { LAWS, MATERIALS } from "./lawsynth";
 
-export const APP_VERSION = "1.3.0";
+export const APP_VERSION = "2.0.0";
 export const DATA_KEYS = [ENDURANCE_KEY, LAW_KEY, LANGUAGE_KEY] as const;
 const text = z.string().max(200);
 const numeric = z.number().finite();
 const nu = z.object({ v: text, u: z.string().refine((unit) => SUFFIXES.some((u) => u === unit)) });
 const duration = z.object({ v: text, u: z.string().refine((unit) => DURATION_UNITS.some((u) => u.id === unit)) });
-const prog = z.object({
+const legacyProg = z.object({
   upName: text, mtLevel: text, upCost: nu, upGain: nu, nextCost: nu, nextGain: nu, comboGain: nu,
   path: z.array(z.object({ id: numeric, name: text, level: text, cost: nu, gain: nu })).max(6),
   milestones: z.array(nu.extend({ id: numeric, name: text })).max(8),
   resetBefore: nu, resetAfter: nu, resetLoss: nu, wiMult: text, wiFlat: nu, wiTarget: text,
   // Added in 1.3.0; optional so 1.1/1.2 backups still validate and restore with defaults.
-  mtAutoGain: z.boolean().optional(), mtGainMultiplier: text.optional(), mtCostMultiplier: text.optional(),
-  mtBaseCost: nu.optional(), mtObservedCostA: nu.optional(), mtObservedCostB: nu.optional(), mtPreviewCount: z.number().int().min(1).max(10).optional(),
+  mtMode: z.enum(["observed", "custom"]).optional(), mtAutoGain: z.boolean().optional(), mtGainMultiplier: text.optional(), mtCostMultiplier: text.optional(),
+  mtBaseCost: nu.optional(), mtDisplayedCost: nu.optional(), mtManualGain: nu.optional(), mtObservedCostA: nu.optional(), mtObservedCostB: nu.optional(),
+  // Accept every v1.3 preview count; restoration normalizes it to the v1.4 3/5/10 selector.
+  mtPreviewCount: z.number().int().min(1).max(10).optional(), mtMaxLevel: text.optional(),
+});
+const currentProg = z.object({
+  upName: text, mtLevel: text, upCost: nu, upGain: nu, nextCost: nu, nextGain: nu, comboGain: nu,
+  path: z.array(z.object({ id: numeric, name: text, level: text, cost: nu, gain: nu })).max(6), milestones: z.array(nu.extend({ id: numeric, name: text })).max(8),
+  resetBefore: nu, resetAfter: nu, resetLoss: nu, wiMult: text, wiFlat: nu, wiTarget: text, mtDisplayedCost: nu, mtPreviewCount: z.union([z.literal(3), z.literal(5), z.literal(10)]),
 });
 const endurance = z.object({
   gain: nu, cur: nu, target: nu, next: nu, dur: duration, proj: duration,
-  targets: z.array(nu.extend({ id: numeric })).max(10), mode: z.enum(["simple", "progression", "advanced"]),
+  targets: z.array(nu.extend({ id: numeric })).max(10), mode: z.enum(["calculator", "muscle", "tools"]),
   scenarioA: nu.nullable(), scenarioB: nu.nullable(), scenarioC: nu, custom: nu, savedCustom: nu.nullable(),
-  prog, tool: z.enum(["endurance", "law"]),
+  prog: currentProg, tool: z.enum(["endurance", "law"]),
 });
 const knownMaterials = <T extends z.ZodTypeAny>(value: T) => z.object(Object.fromEntries(MATERIALS.map((m) => [m, value])) as Record<(typeof MATERIALS)[number], T>);
 const level = z.object({ cur: z.number().int().min(0).max(10), tgt: z.number().int().min(0).max(10) }).refine((v) => v.tgt >= v.cur);
@@ -37,7 +44,12 @@ const law = z.object({
   scope: z.enum(["all", "selected"]), check: z.record(z.boolean()).refine((v) => Object.keys(v).every((k) => MATERIALS.some((m) => k === `m-${m}`) || LAWS.some((l) => k === `l-${l.id}`))),
   tab: z.enum(["plan", "settings"]),
 });
-const schema = z.object({ app: z.literal("immortality-incremental-planner"), version: z.enum(["1.1.0", "1.2.0", APP_VERSION]), dataVersion: z.literal(1), endurance, law, language: z.enum(["de", "en"]) });
+const legacyEndurance = endurance.extend({ mode: z.enum(["simple", "progression", "advanced"]), prog: legacyProg });
+const base = { app: z.literal("immortality-incremental-planner"), dataVersion: z.literal(1), law, language: z.enum(["de", "en"]) };
+const schema = z.union([
+  z.object({ ...base, version: z.literal(APP_VERSION), endurance }),
+  z.object({ ...base, version: z.enum(["1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"]), endurance: legacyEndurance }),
+]);
 export type Backup = z.infer<typeof schema>;
 
 export function parseBackup(raw: string): Backup {

@@ -1,17 +1,18 @@
-import { effectiveCurrentCost, effectiveUpGain } from "@/lib/muscle-training";
+import { decideProgression, evaluateMtPlan } from "@/lib/muscle-training";
 import { useI18n, LanguageSwitcher } from "@/components/LanguageProvider";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, Check, ChevronDown, Save, X, Zap } from "lucide-react";
+import { Check, ChevronDown, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EnduranceResult } from "@/components/EnduranceResult";
 import { SUFFIXES, toValue, eta, DURATION_UNITS, parseNum, type Parsed } from "@/lib/endurance";
 import { UnitField, Hint, val, type NU } from "@/components/planner-fields";
 import { LawSynthesis } from "@/components/LawSynthesis";
 import { ProgressionPlanner } from "@/components/ProgressionPlanner";
+import { MuscleTrainingModel } from "@/components/MuscleTrainingModel";
 import { PublicFooter, PlannerUtilities } from "@/components/PublicFooter";
 import { DEFAULTS, ENDURANCE_KEY, restoreState, type State, type Target } from "@/lib/planner-state";
-import { calculatePlan, decide, upgradeROI, compareGain, contextTargets } from "@/lib/planner";
+import { calculatePlan, compareGain, contextTargets } from "@/lib/planner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -78,12 +79,12 @@ function Index() {
   const [copiedProg, setCopiedProg] = useState(false);
   const copyProg = async () => {
     if (g === null || c === null || t === null) return;
-    const pr = s.prog, uc = effectiveCurrentCost(pr), ug = effectiveUpGain(pr, g);
-    const d = decide(c, g, t, { next: n, upCost: uc, upGain: ug, comboGain: val(pr.comboGain) });
+    const pr = s.prog, plan = evaluateMtPlan(pr, c, g, t);
+    const d = decideProgression(pr, c, g, t, n);
     const text = [
       "Immortality Incremental – Progression",
       tr("Gain: {p0}/s | Aktuell: {p1} | Ziel: {p2}{p3}", { p0: fmtSuffix(g), p1: fmtSuffix(c), p2: fmtSuffix(t), p3: n !== null ? tr(" | Nächster Gain: {p0}/s", { p0: fmtSuffix(n) }) : "" }),
-      `${pr.upName || "Upgrade"}${pr.mtLevel ? ` Lv. ${pr.mtLevel}` : ""}${uc !== null && ug !== null ? `: ${tr(upgradeROI(c, g, t, uc, ug).recommendation)}` : tr(": keine Upgrade-Daten")}`,
+      plan?.best ? `${tr("Bester Muscle-Training-Plan")}: ${plan.best.purchases} · Lv. ${pr.mtLevel} → ${Number(pr.mtLevel) + plan.best.purchases} · ${naturalDuration(plan.best.total)} · ${tr("Gesamtkosten")}: ${fmtSuffix(plan.best.totalCost)} · ${tr("Finaler Gain")}: ${fmtSuffix(plan.best.finalGain)}/s` : "",
       tr("Nächster Schritt: {p0} ({p1})", { p0: tr(d.winner.label), p1: naturalDuration(d.winner.secs) }),
       ...d.scenarios.map((x) => `${x.id} ${tr(x.label)}: ${naturalDuration(x.secs)}`),
     ].join("\n");
@@ -110,15 +111,24 @@ function Index() {
       {s.tool === "law" ? <main><LawSynthesis /></main> : <>
       <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b pb-4">
         <div className="inline-flex justify-self-start rounded-md border bg-secondary p-1" role="group" aria-label={tr("Ansicht")}>
-          <Button variant={s.mode === "simple" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "simple"} onClick={() => set("mode", "simple")}>{tr("Einfach")}</Button>
-          <Button variant={s.mode === "progression" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "progression"} onClick={() => set("mode", "progression")}>Progression</Button>
-          <Button variant={s.mode === "advanced" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "advanced"} onClick={() => set("mode", "advanced")}>{tr("Erweitert")}</Button>
+          <Button variant={s.mode === "calculator" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "calculator"} onClick={() => set("mode", "calculator")}>{tr("Rechner")}</Button>
+          <Button variant={s.mode === "muscle" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "muscle"} onClick={() => set("mode", "muscle")}>Muscle Training</Button>
+          <Button variant={s.mode === "tools" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "tools"} onClick={() => set("mode", "tools")}>{tr("Weitere Tools")}</Button>
         </div>
-        <span className="hidden text-right text-xs text-muted-foreground sm:block">{s.mode === "progression" ? tr("Empfohlen fürs aktive Spielen") : tr("Endurance · ×1000 je Einheit")}</span>
+        <span className="hidden text-right text-xs text-muted-foreground sm:block">{s.mode === "muscle" ? tr("Progressionsplanung für Spieler") : tr("Endurance · ×1000 je Einheit")}</span>
       </div>
       <main>
-        {s.mode === "progression" ? <>
-          <ProgressionPlanner core={{ gain: s.gain, cur: s.cur, target: s.target, next: s.next }} setCore={(k, v) => set(k, v)} g={g} c={c} t={t} n={n} p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} now={now} onCopy={copyProg} copied={copiedProg} />
+        {s.mode === "muscle" ? <MuscleTrainingModel p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} g={g} c={c} target={t} next={n} now={now} onEditCalculator={() => set("mode", "calculator")} /> : s.mode === "tools" ? <>
+          <ProgressionPlanner g={g} c={c} t={t} n={n} p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} now={now} onCopy={copyProg} copied={copiedProg} onEditCalculator={() => set("mode", "calculator")} />
+          <div className="mt-6 border-t" data-testid="advanced-tools">
+            <Section title={tr("Szenarien vergleichen")} right={<Button variant="ghost" size="sm" onClick={() => setS((p) => ({ ...p, scenarioA: null, scenarioB: null, scenarioC: { v: "", u: p.gain.u } }))}>{tr("Aktuelle Gains einsetzen")}</Button>}>
+              <ScenarioComparator values={[s.scenarioA ?? s.gain, s.scenarioB ?? s.next, s.scenarioC]} onChange={(i, v) => set(i === 0 ? "scenarioA" : i === 1 ? "scenarioB" : "scenarioC", v)} c={c} t={t} now={now} />
+            </Section>
+            <div className="grid gap-5 md:grid-cols-2"><Section title={tr("Benötigter Gain")}><Duration id="dur" label={tr("Ziel erreichen in")} value={s.dur} onChange={(v) => set("dur", v)} /><ReverseResult c={c} t={t} dur={s.dur} /></Section><Section title={tr("Hochrechnung")}><Duration id="proj" label={tr("Zeitraum")} value={s.proj} onChange={(v) => set("proj", v)} /><ProjResult c={c} g={g} t={t} dur={s.proj} /></Section></div>
+            <Section title={tr("Mehrere Ziele")} right={<Button variant="outline" size="sm" disabled={s.targets.length >= 10} onClick={() => set("targets", [...s.targets, { id: Date.now(), v: "", u: s.target.u }])}>{tr("+ Ziel (")}{s.targets.length}/10)</Button>}>
+              {s.targets.length === 0 ? <p className="text-sm text-muted-foreground">{tr("Noch keine weiteren Ziele.")}</p> : <><div className="mb-4 grid gap-2 sm:grid-cols-2">{s.targets.map((tg, i) => <div key={tg.id} className="flex min-w-0 items-center gap-2"><UnitField id={`mt-${tg.id}`} label={tr("Ziel {p0}", { p0: i + 1 })} value={tg} onChange={(v) => set("targets", s.targets.map((x) => x.id === tg.id ? { ...x, ...v } : x))} /><Button variant="ghost" size="icon" aria-label={tr("Ziel {p0} entfernen", { p0: i + 1 })} onClick={() => set("targets", s.targets.filter((x) => x.id !== tg.id))}><X /></Button></div>)}</div><MultiTable targets={s.targets} c={c} g={g} now={now ?? 0} /></>}
+            </Section>
+          </div>
         </> : <>
         <div className="calculator-layout" data-testid="calculator-layout">
           <section className="min-w-0 space-y-5 py-2" aria-labelledby="inputs-h">
@@ -146,57 +156,6 @@ function Index() {
            <EnduranceResult result={r} gain={g} current={c} target={t} now={now} copied={copied} copyError={copyError} onCopy={copy} />
         </div>
 
-        <section className={`mt-6 border-y ${n === null ? "py-4" : "py-6 sm:py-7"}`} aria-labelledby="increase-h" data-testid="increase-planner" data-expanded={n !== null}>
-          <div className={`${n === null ? "mb-2" : "mb-5"} grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between`}>
-            <h2 id="increase-h" className={`flex min-w-0 items-center gap-2 ${n === null ? "text-base" : "text-xl"} font-semibold`}><Zap className="size-5 text-primary" />Increase Planner</h2>
-            {cmp && !r?.reached && <span className={`border-l-2 pl-3 text-sm font-semibold ${cmp.recommendation === "Increase jetzt sinnvoll" ? "border-success text-success" : cmp.recommendation === "Nicht drücken" ? "border-destructive text-destructive" : "border-border text-muted-foreground"}`} data-testid="recommendation">{tr(cmp.recommendation)}</span>}
-          </div>
-          {!cmp || g === null || n === null ? <p className="text-sm text-muted-foreground">{tr("Gib oben deinen nächsten Gain ein, um vor und nach Increase zu vergleichen.")}</p> : r?.reached ? <p className="text-sm text-success">{tr("Ziel bereits erreicht – für dieses Ziel ist kein Increase nötig.")}</p> : (
-            <>
-              <div className="grid gap-5 md:grid-cols-3">
-                <ScenarioResult label={tr("Ohne Increase")} gain={g} secs={cmp.a} now={now} />
-                <ScenarioResult label={tr("Increase jetzt")} gain={n} secs={cmp.b} now={now} />
-                <div className="border-t pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
-                  <p className="text-xs text-muted-foreground">{cmp.saved < 0 ? tr("Zeitverlust") : tr("Zeitersparnis")}</p>
-                  <p className={`mt-2 break-words font-mono text-2xl font-semibold ${cmp.saved > 0 ? "text-success" : cmp.saved < 0 ? "text-destructive" : "text-foreground"}`}>{cmp.saved === Infinity ? tr("Ziel wird erreichbar") : fmtDuration(Math.abs(cmp.saved))}</p>
-                  <p className="mt-2 font-mono text-sm text-muted-foreground">{Number.isFinite(cmp.pct) ? `${fmtPlain(Math.abs(cmp.pct), 2)} % ${cmp.pct < 0 ? tr("länger") : tr("weniger Zeit")}` : tr("Mit Increase nicht erreichbar")}</p>
-                </div>
-              </div>
-              <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-                {cmp.saved > 0 ? tr("Break-even: Ohne Endurance-Reset oder Wartezeit bringt der höhere Gain ab sofort einen Vorteil. Eine Strength-Erholung ist nicht eingerechnet.") : cmp.saved === 0 ? tr("Break-even: Kein Zeitvorteil für dieses Ziel. Beide Optionen benötigen gleich lange.") : tr("Break-even: Der nächste Gain ist niedriger. Für dieses Ziel entsteht kein Zeitvorteil durch Increase.")}
-              </p>
-            </>
-          )}
-          <div className={`${n === null ? "mt-2" : "mt-5"} flex flex-wrap items-center justify-between gap-3`}>
-            <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">{tr("Increase setzt Strength zurück. Die Endurance-ETA berücksichtigt nur die eingegebenen Endurance-Gains; die Erholungszeit für Strength ist nicht eingerechnet.")}</p>
-            {n !== null && <Button onClick={() => setS((p) => ({ ...p, gain: p.next, next: { v: "", u: p.next.u } }))} className="action-glow">{tr("Next Gain übernehmen")}<ArrowRight /></Button>}
-          </div>
-          {cmp && <p className="mt-4 text-xs text-muted-foreground">{tr("Jetzt:")} <span className="font-mono">{clock}</span></p>}
-        </section>
-
-        {s.mode === "advanced" && (
-          <div className="border-t" data-testid="advanced-tools">
-            <Section title={tr("Szenarien vergleichen")} right={<Button variant="ghost" size="sm" onClick={() => setS((p) => ({ ...p, scenarioA: null, scenarioB: null, scenarioC: { v: "", u: p.gain.u } }))}>{tr("Aktuelle Gains einsetzen")}</Button>}>
-              <ScenarioComparator values={[s.scenarioA ?? s.gain, s.scenarioB ?? s.next, s.scenarioC]} onChange={(i, v) => set(i === 0 ? "scenarioA" : i === 1 ? "scenarioB" : "scenarioC", v)} c={c} t={t} now={now} />
-              <p className="mt-4 text-xs text-muted-foreground">{tr("Gleicher Endurance-Stand und gleiches Ziel · Jetzt:")} <span className="font-mono">{clock}</span></p>
-            </Section>
-            <div className="grid gap-5 md:grid-cols-2">
-              <Section title={tr("Benötigter Gain")}><Duration id="dur" label={tr("Ziel erreichen in")} value={s.dur} onChange={(v) => set("dur", v)} /><ReverseResult c={c} t={t} dur={s.dur} /></Section>
-              <Section title={tr("Hochrechnung")}><Duration id="proj" label={tr("Zeitraum")} value={s.proj} onChange={(v) => set("proj", v)} /><ProjResult c={c} g={g} t={t} dur={s.proj} /></Section>
-            </div>
-            <Section title={tr("Mehrere Ziele")} right={<Button variant="outline" size="sm" disabled={s.targets.length >= 10} onClick={() => set("targets", [...s.targets, { id: Date.now(), v: "", u: s.target.u }])}>{tr("+ Ziel (")}{s.targets.length}/10)</Button>}>
-              {s.targets.length === 0 ? <p className="text-sm text-muted-foreground">{tr("Noch keine weiteren Ziele.")}</p> : <>
-                <div className="mb-4 grid gap-2 sm:grid-cols-2">{s.targets.map((tg, i) => <div key={tg.id} className="flex min-w-0 items-center gap-2"><UnitField id={`mt-${tg.id}`} label={tr("Ziel {p0}", { p0: i + 1 })} value={tg} onChange={(v) => set("targets", s.targets.map((x) => x.id === tg.id ? { ...x, ...v } : x))} /><Button variant="ghost" size="icon" aria-label={tr("Ziel {p0} entfernen", { p0: i + 1 })} onClick={() => set("targets", s.targets.filter((x) => x.id !== tg.id))}><X /></Button></div>)}</div>
-                <MultiTable targets={s.targets} c={c} g={g} now={now ?? 0} />
-              </>}
-              <p className="mt-3 text-xs text-muted-foreground">{tr("Jetzt:")} <span className="font-mono">{clock}</span></p>
-            </Section>
-            <footer className="mt-7 grid gap-6 border-t pt-6 text-sm text-muted-foreground md:grid-cols-2">
-              <div><h2 className="mb-2 font-semibold text-foreground">{tr("Formel")}</h2><code className="block break-words font-mono text-xs text-primary">{tr("Zeit = (Ziel − Aktuell) / Gain pro Sekunde")}</code><p className="mt-2 text-xs leading-relaxed">{tr("Benötigter Gain = (Ziel − Aktuell) / Zeit · Hochrechnung = Aktuell + Gain × Zeit. Monate = 30,44 Tage, Jahre = 365,2425 Tage.")}</p></div>
-              <div><h2 className="mb-2 font-semibold text-foreground">{tr("Einheiten · jeder Schritt ×1000")}</h2><p className="break-words font-mono text-xs leading-relaxed">{SUFFIXES.slice(1).map((u, i) => `${u}=1e${(i + 1) * 3}`).join(" · ")}</p><p className="mt-2 text-xs">{tr("1 Qa = 1000 T · 1 Qi = 1000 Qa · 1 Sx = 1000 Qi. Wissenschaftliche Notation z. B. 1e120 mit Einheit „–“.")}</p></div>
-            </footer>
-          </div>
-        )}
         </>}
       </main>
       </>}
@@ -212,11 +171,6 @@ function UnitContext({ unit }: { unit: string }) {
   const i = SUFFIXES.findIndex((u) => u === unit);
   const previous = SUFFIXES[i - 1], next = SUFFIXES[i + 1];
   return <div className="mt-3 border-t pt-3 text-xs text-muted-foreground"><p className="flex items-center gap-3 font-mono">{previous !== undefined && <span>{previous || tr("Einheiten")} ←</span>}<span className="rounded border px-2 py-1 font-semibold text-primary">{unit || tr("Einheiten")}</span>{next !== undefined && <span>→ {next}</span>}</p><p className="mt-2 break-words font-mono">{neighboringConversion({ v: "1", u: unit })}</p></div>;
-}
-function ScenarioResult({ label, gain, secs, now }: { label: string; gain: number; secs: number; now: number | null }) {
-  const { fmtSuffix, fmtFinish, naturalDuration } = useI18n();
-
-  return <div className="min-w-0"><p className="text-xs font-medium text-muted-foreground">{label} · <span className="font-mono">{fmtSuffix(gain)}/s</span></p><p className="mt-2 break-words font-mono text-xl font-semibold">{naturalDuration(secs)}</p><p className="mt-2 font-mono text-xs leading-relaxed text-muted-foreground">{now === null ? "–" : fmtFinish(secs, now)}</p></div>;
 }
 function ScenarioComparator({ values, onChange, c, t, now }: { values: NU[]; onChange: (i: number, v: NU) => void; c: number | null; t: number | null; now: number | null }) {
   const { t: tr, fmtPlain, fmtDuration, fmtFinish, naturalDuration } = useI18n();

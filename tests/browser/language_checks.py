@@ -18,28 +18,29 @@ async def main():
   await page.get_by_role('button',name='English',exact=True).click()
   await page.wait_for_function("document.documentElement.lang === 'en'")
   assert await page.get_by_test_id('main-eta').inner_text()=='55.07 seconds'
-  assert await page.get_by_test_id('recommendation').inner_text()=='Do not Increase'
   before=await page.evaluate("localStorage.getItem('ii-endurance-calc-v1')")
   await page.get_by_role('button',name='Copy result',exact=True).click()
   summary=await page.evaluate('navigator.clipboard.readText()')
   assert 'Current: 475 Qa' in summary and 'Time remaining:' in summary and 'Do not Increase' in summary
   await page.screenshot(path=str(OUT/'desktop-en.png'))
   await page.get_by_role('button',name='Deutsch',exact=True).click()
-  assert await page.get_by_test_id('recommendation').inner_text()=='Nicht drücken'
   assert before==await page.evaluate("localStorage.getItem('ii-endurance-calc-v1')")
   await page.get_by_role('button',name='English',exact=True).click();await page.reload(wait_until='networkidle')
   assert await page.locator('html').get_attribute('lang')=='en'
   assert await page.locator('#next').input_value()=='371.73'
-  await page.get_by_role('button',name='Progression',exact=True).click()
-  assert await page.get_by_test_id('prog-increase').inner_text()=='Do not Increase'
-  await page.locator('#p-upCost').fill('1');await page.locator('[data-testid=mt-model] > summary').click(); await page.locator('[data-testid=mt-model] [role=switch]').click(); await page.locator('#p-upGain').fill('10000')
-  assert await page.get_by_test_id('upgrade-rec').inner_text()=='Buy as soon as affordable'
-  await page.get_by_role('button',name='Copy progression summary',exact=True).click()
-  assert 'Best next step:' in await page.evaluate('navigator.clipboard.readText()')
+  await page.get_by_role('button',name='More Tools',exact=True).click()
+  await page.locator('summary').filter(has_text=re.compile(r'^Increase$')).click()
+  assert 'Without Increase' in await page.get_by_test_id('tool-increase').inner_text()
+  await page.get_by_test_id('generic-upgrade').locator('summary').first.click()
+  await page.locator('#p-upCost').fill('1');await page.locator('#p-upGain').fill('10000')
+  assert 'Time saved / lost' in await page.get_by_test_id('generic-upgrade').inner_text()
+  await page.get_by_role('button',name='Copy tools summary',exact=True).click()
+  assert 'Current:' in await page.evaluate('navigator.clipboard.readText()')
+  await page.get_by_test_id('generic-path').locator('summary').first.click()
   await page.get_by_role('button',name=re.compile(r'^\+ Upgrade')).click()
   await page.get_by_label('Upgrade 1 cost',exact=True).fill('1')
   await page.get_by_label('Upgrade 1 resulting Gain',exact=True).fill('10000')
-  assert 'worthwhile' in await page.get_by_test_id('path-advice').inner_text()
+  assert await page.get_by_test_id('path-advice').count()==1
   await page.screenshot(path=str(OUT/'desktop-progression.png'))
   await page.get_by_role('button',name='Law Synthesis',exact=True).click()
   await page.get_by_role('button',name='Set all targets to 10',exact=True).click()
@@ -61,7 +62,7 @@ async def main():
    for tool in ['Law Synthesis','Endurance Planner']:
     await page.get_by_role('button',name=tool,exact=True).click()
     if tool=='Endurance Planner':
-     modes=['Simple','Progression','Advanced'] if lang=='en' else ['Einfach','Progression','Erweitert']
+      modes=['Calculator','Muscle Training','More Tools'] if lang=='en' else ['Rechner','Muscle Training','Weitere Tools']
     else:modes=[None]
     for mode in modes:
      if mode:await page.get_by_role('button',name=mode,exact=True).click()

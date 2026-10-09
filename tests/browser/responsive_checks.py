@@ -52,16 +52,10 @@ async def main():
                 result = await hero.bounding_box()
                 assert (result['x'] > inputs['x']) if width >= 1100 else (result['y'] > inputs['y'])
                 if width >= 1440: assert 0.36 < inputs['width'] / (inputs['width'] + result['width']) < 0.38
-                assert await page.get_by_test_id('increase-planner').get_attribute('data-expanded') == 'false'
-                assert await page.get_by_test_id('increase-planner').evaluate('(el) => el.offsetHeight') < 230
                 await page.screenshot(path=str(OUT / f'{lang}-simple-{width}.png'))
             await page.locator('#next').fill('2')
             await page.get_by_label(('Nächster Gain (optional) Einheit' if lang == 'de' else 'Next Gain (optional) unit'), exact=True).select_option('Sx')
-            assert await page.get_by_test_id('increase-planner').get_attribute('data-expanded') == 'true'
-            await page.get_by_role('button', name='Next Gain übernehmen' if lang == 'de' else 'Apply Next Gain', exact=True).click()
-            assert await page.locator('#gain').input_value() == '2'
-            assert await page.locator('#next').input_value() == ''
-            await page.get_by_role('button', name='Erweitert' if lang == 'de' else 'Advanced', exact=True).click()
+            await page.get_by_role('button', name='Weitere Tools' if lang == 'de' else 'More Tools', exact=True).click()
             tools = page.get_by_test_id('advanced-tools')
             assert await tools.locator('details:not([open])').count() == 4
             for summary in await tools.locator('summary').all(): await summary.click()
@@ -70,7 +64,7 @@ async def main():
             for width in WIDTHS:
                 await page.set_viewport_size({'width': width, 'height': 1800})
                 await no_overflow(page, (lang, 'advanced-expanded', width))
-            await page.get_by_role('button', name='Progression', exact=True).click()
+            await page.get_by_role('button', name='Muscle Training', exact=True).click()
             for width in WIDTHS:
                 await page.set_viewport_size({'width': width, 'height': 1800})
                 await no_overflow(page, (lang, 'progression', width))
@@ -87,7 +81,8 @@ async def main():
                     await no_overflow(page, (lang, 'law', tab, width))
                     if width in [390, 1920]: await page.screenshot(path=str(OUT / f'{lang}-law-{tab}-{width}.png'))
             await page.get_by_role('button', name='Endurance Planner', exact=True).click()
-            await page.get_by_role('button', name='Einfach' if lang == 'de' else 'Simple', exact=True).click()
+            await page.get_by_role('button', name='Rechner' if lang == 'de' else 'Calculator', exact=True).click()
+            await page.locator('#next').fill('')
         await page.locator('#cur').fill('')
         assert await page.get_by_test_id('progress-amount').inner_text() == '0 / 100 Sx · 0%'
         assert not errors, errors
