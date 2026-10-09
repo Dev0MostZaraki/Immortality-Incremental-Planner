@@ -62,7 +62,7 @@ async def main():
    for tool in ['Law Synthesis','Endurance Planner']:
     await page.get_by_role('button',name=tool,exact=True).click()
     if tool=='Endurance Planner':
-      modes=['Calculator','Muscle Training','More Tools'] if lang=='en' else ['Rechner','Muscle Training','Weitere Tools']
+      modes=['Plan','Muscle Training','More Tools'] if lang=='en' else ['Plan','Muscle Training','Weitere Tools']
     else:modes=[None]
     for mode in modes:
      if mode:await page.get_by_role('button',name=mode,exact=True).click()

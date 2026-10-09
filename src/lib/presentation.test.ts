@@ -22,3 +22,12 @@ describe("readable presentation without arithmetic changes", () => {
     expect(readableFinish(Infinity, now, "en")).toBe("– (too far in the future)");
   });
 });
+import { visibleCandidateRows } from "./presentation";
+describe("candidate row selection", () => {
+  it("always shows baseline, next three and the far-away recommendation with gaps", () => {
+    expect(visibleCandidateRows(20, 13, "summary")).toEqual([0, 1, 2, 3, "gap", 12, 13, 14, 15]);
+    expect(visibleCandidateRows(3, 1, "summary")).toEqual([0, 1, 2]);
+    expect(visibleCandidateRows(20, 13, "route")).toHaveLength(16);
+    expect(visibleCandidateRows(20, 13, "all")).toHaveLength(20);
+  });
+});

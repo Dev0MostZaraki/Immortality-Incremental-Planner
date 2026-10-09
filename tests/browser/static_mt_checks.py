@@ -14,13 +14,12 @@ async def main():
   mt=page.get_by_test_id('mt-model')
   assert await mt.locator('input').count()==1
   assert await mt.get_by_role('switch').count()==0
-  assert await mt.locator('details').count()>=1
   await page.locator('#mt-level').fill('60')
   assert 'Geschätzter Spielpreis' in await page.get_by_test_id('mt-cost-source').inner_text()
   preview=page.get_by_test_id('mt-preview')
   assert await preview.locator('input,select').count()==0
-  assert await preview.get_by_role('button').count()==3
-  assert await preview.locator('tbody tr').count()==6
+  assert await preview.get_by_role('button',name=re.compile('3|5|10')).count()==0
+  assert await preview.locator('tbody tr[data-best]').count()==1
   await page.get_by_role('button',name='Angezeigten Spielpreis verwenden',exact=True).click()
   await page.locator('#mt-mtDisplayedCost').fill('21.54')
   await mt.get_by_label('Angezeigter Preis des nächsten Kaufs Einheit',exact=True).select_option('Sx')
@@ -46,6 +45,26 @@ async def main():
   await page.get_by_test_id('generic-path').locator('summary').first.click()
   await page.get_by_role('button',name=re.compile(r'^\+ Upgrade')).click()
   assert await page.get_by_label('Upgrade 1 cost',exact=True).is_visible()
+  await page.get_by_role('button',name='Plan',exact=True).click()
+  await page.locator('#gain').fill('2.19');await page.get_by_label('Current Gain unit',exact=True).select_option('Sx')
+  await page.locator('#tgt').fill('21.9');await page.get_by_label('Target Endurance unit',exact=True).select_option('Oc')
+  assert 'Lv 7' in await page.get_by_test_id('route-levels').inner_text() or '→ 7' in await page.get_by_test_id('route-levels').inner_text()
+  assert await page.get_by_test_id('route-timeline').count()==1
+  kinds=[await e.get_attribute('data-kind') for e in await page.get_by_test_id('timeline-event').all()]
+  assert kinds[0]=='now' and kinds[-1]=='target' and 'mt' in kinds,kinds
+  await page.get_by_role('button',name='Muscle Training',exact=True).click()
+  best=await page.locator('tbody tr[data-best]').inner_text()
+  assert int(re.search(r'Lv\. (\d+)',best).group(1))>70,best
+  for w in [390,768,1366,1920,2560,3440]:
+   await page.set_viewport_size({'width':w,'height':1800})
+   for mode in ['Plan','Muscle Training']:
+    await page.get_by_role('button',name=mode,exact=True).click()
+    assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth'),(w,mode)
+  await page.set_viewport_size({'width':390,'height':1800})
+  assert await page.locator('[data-testid=mt-preview-row][data-best]').first.is_visible()
+  await page.screenshot(path=str(OUT/'far-390.png'))
+  body=await page.locator('body').inner_text()
+  for bad in ['ommunity','bserv','creenshot','onfidence','Konfidenz','beobacht','×2.1','×1.4','1.15']: assert bad not in body,bad
   assert not errors,errors
   print('PASS static MT v2: guided optional input, read-only projections, anchors, estimate fallback, collapsed generic/path, DE/EN and six widths.')
   await browser.close()

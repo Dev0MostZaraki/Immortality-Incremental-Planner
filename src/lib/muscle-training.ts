@@ -1,9 +1,11 @@
 // Deterministic Muscle Training arithmetic. Defaults are an explicit community-observed model,
 // never an official formula. User-entered displayed costs always anchor future projections.
 import { SUFFIXES, parseNum, toValue } from "./endurance";
-import { bestPrefix, decide, simulatePath, verdict } from "./planner";
+import { decide, verdict } from "./planner";
 import { MUSCLE_TRAINING_MODEL } from "./muscle-training-model";
 import type { Prog } from "./progression-state";
+import type { ProfState } from "./proficiency";
+import { bestCandidate, candidates, timeline, type PlannedStep, type SimState } from "./route-engine";
 
 export type NU = { v: string; u: string };
 export type Calibration = { differencePct: number; status: "match" | "close" | "mismatch" };
@@ -29,7 +31,7 @@ export function expectedNextCost(base: number | null, multiplier: number | null,
 /** +1 is the entered/model next price unchanged; +k is anchor × multiplier^(k-1). */
 export function projectedCosts(anchor: number | null, multiplier: number | null, count: number): number[] {
   if (!positive(anchor) || !positive(multiplier)) return [];
-  return Array.from({ length: clampPreview(count) }, (_, i) => anchor * multiplier ** i);
+  return Array.from({ length: Math.max(0, Math.min(MUSCLE_TRAINING_MODEL.maxLevel, Math.floor(count))) }, (_, i) => anchor * multiplier ** i);
 }
 export function derivedBaseCost(currentCost: number | null, multiplier: number | null, level: number | null): number | null {
   return positive(currentCost) && positive(multiplier) && level !== null && Number.isInteger(level) && level >= 0 ? currentCost / multiplier ** level : null;
@@ -70,60 +72,64 @@ export function toNU(n: number): NU {
   return { v: String(Number(scaled.toPrecision(10))), u: SUFFIXES[idx] ?? "" };
 }
 
-export function modelSteps(p: Prog, gain: number | null, count = p.mtPreviewCount) {
+/** All remaining levels up to the cap; display limits never truncate the calculation horizon. */
+export function modelSteps(p: Prog, gain: number | null, count: number = MUSCLE_TRAINING_MODEL.maxLevel) {
   const a = effectiveAssumptions(p), cost = effectiveCurrentCost(p);
   const level = parseLevel(p.mtLevel);
   if (gain === null || level === null) return [];
   return projectedCosts(cost, a.costMultiplier, count).slice(0, a.maxLevel - level).map((c, i) => ({ cost: c, gain: gainAfter(gain, a.gainMultiplier, i + 1) }));
 }
 
-export function evaluateMtPlan(p: Prog, current: number, gain: number, target: number) {
-  const steps = modelSteps(p, gain);
-  if (!steps.length && parseLevel(p.mtLevel) !== MUSCLE_TRAINING_MODEL.maxLevel) return null;
-  const prefix = bestPrefix(current, gain, target, steps);
-  const simulations = prefix.totals.map((total, purchases) => {
-    const sim = simulatePath(current, gain, target, steps.slice(0, purchases));
-    return { purchases, total, cost: steps[purchases - 1]?.cost ?? 0, totalCost: steps.slice(0, purchases).reduce((sum, step) => sum + step.cost, 0), finalGain: purchases ? (steps[purchases - 1]?.gain ?? gain) : gain, purchase: purchases ? sim.rows[purchases - 1] ?? null : null };
-  });
-  return { steps, prefix, rows: simulations, best: simulations[prefix.best] ?? simulations[0] };
+function startState(p: Prog, current: number, gain: number, prof: ProfState | null): SimState {
+  return { time: 0, endurance: current, gain, prof, mtLevel: parseLevel(p.mtLevel) };
+}
+export function plannedSteps(p: Prog): PlannedStep[] {
+  return modelSteps(p, 1).map((s) => ({ cost: s.cost, mult: MUSCLE_TRAINING_MODEL.gainMultiplier }));
+}
+
+/** Global Muscle Training optimum over every valid prefix (exhaustive up to the level cap). */
+export function evaluateMtPlan(p: Prog, current: number, gain: number, target: number, prof: ProfState | null = null) {
+  const steps = plannedSteps(p);
+  const list = candidates(startState(p, current, gain, prof), target, steps);
+  const best = bestCandidate(list);
+  const rows = list.map((c) => ({ ...c, totalCost: c.cumulativeCost, finalGain: c.gain, purchase: c.purchases ? { eta: c.stopTime } : null }));
+  return { steps, prefix: { totals: list.map((c) => c.total), best }, rows, best: rows[best] ?? rows[0] };
 }
 
 export type MtAction = "buy-now" | "farm-to-buy" | "farm-target" | "increase-first";
-export type MtOption = { id: "baseline" | "muscle" | "increase" | "increase-muscle"; total: number; purchases: number; finalGain: number };
+export type MtOption = { id: "baseline" | "muscle" | "increase" | "increase-muscle"; total: number; purchases: number; finalGain: number; profLevels: number };
 
-/** Player-facing decision over the same deterministic prefixes used by the journey. */
-export function evaluateMtDecision(p: Prog, current: number, gain: number, target: number, next: number | null) {
-  const plan = evaluateMtPlan(p, current, gain, target);
-  if (!plan?.best) return null;
-  const baseline: MtOption = { id: "baseline", total: plan.rows[0]?.total ?? Infinity, purchases: 0, finalGain: gain };
+/** Global route search: direct farm, every MT prefix, temporary Increase, and Increase + every MT prefix. */
+export function evaluateMtDecision(p: Prog, current: number, gain: number, target: number, next: number | null, prof: ProfState | null = null) {
+  const plan = evaluateMtPlan(p, current, gain, target, prof);
+  if (!plan.best) return null;
+  const base = plan.rows[0];
+  const baseline: MtOption = { id: "baseline", total: base?.total ?? Infinity, purchases: 0, finalGain: gain, profLevels: base?.profLevels ?? 0 };
   const options: MtOption[] = [baseline];
-  if (plan.best.purchases > 0) options.push({ id: "muscle", total: plan.best.total, purchases: plan.best.purchases, finalGain: plan.best.finalGain });
-  if (next !== null) {
-    options.push({ id: "increase", total: plan.rows[0]?.total === 0 ? 0 : simulatePath(current, next, target, []).total, purchases: 0, finalGain: next });
-    const after = evaluateMtPlan(p, current, next, target);
-    if (after?.best && after.best.purchases > 0) options.push({ id: "increase-muscle", total: after.best.total, purchases: after.best.purchases, finalGain: after.best.finalGain });
-  }
-  const ranked = [...options].sort((a, b) => a.total - b.total || (a.id === "baseline" ? -1 : b.id === "baseline" ? 1 : 0));
+  plan.rows.slice(1).forEach((row) => options.push({ id: "muscle", total: row.total, purchases: row.purchases, finalGain: row.finalGain, profLevels: row.profLevels }));
+  const after = next !== null ? evaluateMtPlan(p, current, next, target, prof) : null;
+  after?.rows.forEach((row) => options.push({ id: row.purchases ? "increase-muscle" : "increase", total: row.total, purchases: row.purchases, finalGain: row.finalGain, profLevels: row.profLevels }));
+  const ranked = [...options].sort((a, b) => a.total - b.total || a.purchases - b.purchases || (a.id === "baseline" ? -1 : b.id === "baseline" ? 1 : 0));
   const candidate = ranked[0] ?? baseline;
   const winner = candidate.id !== "baseline" && verdict(baseline.total, candidate.total) !== "better" ? baseline : candidate;
-  const runnerUp = ranked.find((option) => option !== winner) ?? null;
-  const firstPurchase = winner.purchases > 0
-    ? simulatePath(current, winner.id === "increase-muscle" && next !== null ? next : gain, target, modelSteps(p, winner.id === "increase-muscle" ? next : gain).slice(0, 1)).rows[0] ?? null
-    : null;
+  const runnerUp = ranked.find((o) => o !== winner && !(o.id === winner.id && o.purchases === winner.purchases)) ?? null;
+  const source = winner.id === "increase-muscle" ? after : plan;
+  const firstPurchase = winner.purchases > 0 ? source?.rows[1]?.purchase ?? null : null;
   const action: MtAction = winner.id === "baseline" ? "farm-target" : winner.id.startsWith("increase") ? "increase-first" : firstPurchase?.eta === 0 ? "buy-now" : "farm-to-buy";
-  return { plan, baseline, options: ranked, winner, runnerUp, firstPurchase, action, saved: baseline.total - winner.total };
+  const events = timeline(startState(p, current, gain, prof), target, plan.steps.slice(0, winner.purchases), winner.id.startsWith("increase") ? next : null);
+  return { plan, baseline, options: ranked, winner, runnerUp, firstPurchase, action, saved: baseline.total - winner.total, events };
 }
 
 /** The page and copied summary compare the same sequential MT prefixes. */
 export function decideProgression(p: Prog, current: number, gain: number, target: number, next: number | null) {
-  const plan = evaluateMtPlan(p, current, gain, target);
+  const plan = parseLevel(p.mtLevel) !== null ? evaluateMtPlan(p, current, gain, target) : null;
   const afterIncrease = next !== null ? evaluateMtPlan(p, current, next, target) : null;
   return decide(current, gain, target, {
     next,
     upCost: plan ? effectiveCurrentCost(p) : nuValue(p.upCost),
     upGain: plan ? effectiveUpGain(p, gain) : nuValue(p.upGain),
     comboGain: plan ? null : nuValue(p.comboGain),
-    ...(plan ? { upgradeSteps: plan.steps.slice(0, plan.prefix.best), upgradeLabel: "Bester Muscle-Training-Plan" } : {}),
-    ...(afterIncrease ? { comboSteps: afterIncrease.steps.slice(0, afterIncrease.prefix.best), comboLabel: "Increase, dann Muscle Training" } : {}),
+    ...(plan ? { upgradeSteps: modelSteps(p, gain, plan.prefix.best), upgradeLabel: "Bester Muscle-Training-Plan" } : {}),
+    ...(afterIncrease ? { comboSteps: modelSteps(p, next, afterIncrease.prefix.best), comboLabel: "Increase, dann Muscle Training" } : {}),
   });
 }

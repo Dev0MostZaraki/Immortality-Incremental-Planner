@@ -1,4 +1,4 @@
-import { decideProgression, evaluateMtPlan } from "@/lib/muscle-training";
+import { decideProgression, evaluateMtDecision, evaluateMtPlan, parseLevel } from "@/lib/muscle-training";
 import { useI18n, LanguageSwitcher } from "@/components/LanguageProvider";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
@@ -10,6 +10,9 @@ import { UnitField, Hint, val, type NU } from "@/components/planner-fields";
 import { LawSynthesis } from "@/components/LawSynthesis";
 import { ProgressionPlanner } from "@/components/ProgressionPlanner";
 import { MuscleTrainingModel } from "@/components/MuscleTrainingModel";
+import { ProficiencyFields } from "@/components/ProficiencyFields";
+import { BestNextMove, RouteTimeline } from "@/components/PlanRoute";
+import { parseProf, profEta } from "@/lib/proficiency";
 import { PublicFooter, PlannerUtilities } from "@/components/PublicFooter";
 import { DEFAULTS, ENDURANCE_KEY, restoreState, type State, type Target } from "@/lib/planner-state";
 import { calculatePlan, compareGain, contextTargets } from "@/lib/planner";
@@ -60,6 +63,11 @@ function Index() {
   const t = tgtP.ok === true ? tgtP.value : null;
   const n = nextP.ok === true ? nextP.value : null;
   const r = g !== null && c !== null && t !== null ? calculatePlan(c, t, g) : null;
+  const prof = parseProf(s);
+  const dyn = r && prof && g !== null && c !== null && t !== null ? { ...profEta(c, t, g, prof), staticSecs: r.secs, nextLevel: prof.baseLevel + 1 } : null;
+  const mtLevel = parseLevel(s.prog.mtLevel);
+  const route = g !== null && c !== null && t !== null ? evaluateMtDecision(s.prog, c, g, t, n, prof) : null;
+  const secs = dyn?.secs ?? r?.secs ?? 0;
   const cmp = g !== null && c !== null && t !== null && n !== null ? compareGain(c, t, g, n) : null;
   const customP = toValue(s.custom.v, s.custom.u);
   const clock = now === null ? "–" : new Date(now).toLocaleString(locale, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -68,8 +76,8 @@ function Index() {
     const text = [
       "Immortality Incremental – Endurance Planner",
       tr("Gain: {p0}/s | Aktuell: {p1} | Ziel: {p2}", { p0: fmtSuffix(g), p1: fmtSuffix(c), p2: fmtSuffix(t) }),
-      tr("Restzeit: {p0} ({p1} Sekunden)", { p0: naturalDuration(r.secs), p1: fmtPlain(r.secs, 3) }),
-      tr("Jetzt: {p0} | Fertig: {p1}", { p0: clock, p1: fmtFinish(r.secs, now) }),
+      tr("Restzeit: {p0} ({p1} Sekunden)", { p0: naturalDuration(secs), p1: fmtPlain(secs, 3) }),
+      tr("Jetzt: {p0} | Fertig: {p1}", { p0: clock, p1: fmtFinish(secs, now) }),
       tr("Noch benötigt: {p0} | Fortschritt: {p1} %", { p0: fmtSuffix(r.remaining), p1: fmtPlain(r.pct, 2) }),
       cmp ? tr("{p0} | Mit Increase: {p1} | {p2}: {p3}", { p0: tr(cmp.recommendation), p1: naturalDuration(cmp.b), p2: tr(cmp.saved < 0 ? "Zeitverlust" : "Zeitersparnis"), p3: fmtDuration(Math.abs(cmp.saved)) }) : "",
     ].filter(Boolean).join("\n");
@@ -111,15 +119,15 @@ function Index() {
       {s.tool === "law" ? <main><LawSynthesis /></main> : <>
       <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b pb-4">
         <div className="inline-flex justify-self-start rounded-md border bg-secondary p-1" role="group" aria-label={tr("Ansicht")}>
-          <Button variant={s.mode === "calculator" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "calculator"} onClick={() => set("mode", "calculator")}>{tr("Rechner")}</Button>
+          <Button variant={s.mode === "plan" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "plan"} onClick={() => set("mode", "plan")}>Plan</Button>
           <Button variant={s.mode === "muscle" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "muscle"} onClick={() => set("mode", "muscle")}>Muscle Training</Button>
           <Button variant={s.mode === "tools" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "tools"} onClick={() => set("mode", "tools")}>{tr("Weitere Tools")}</Button>
         </div>
         <span className="hidden text-right text-xs text-muted-foreground sm:block">{s.mode === "muscle" ? tr("Progressionsplanung für Spieler") : tr("Endurance · ×1000 je Einheit")}</span>
       </div>
       <main>
-        {s.mode === "muscle" ? <MuscleTrainingModel p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} g={g} c={c} target={t} next={n} now={now} onEditCalculator={() => set("mode", "calculator")} /> : s.mode === "tools" ? <>
-          <ProgressionPlanner g={g} c={c} t={t} n={n} p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} now={now} onCopy={copyProg} copied={copiedProg} onEditCalculator={() => set("mode", "calculator")} />
+        {s.mode === "muscle" ? <MuscleTrainingModel p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} g={g} c={c} target={t} next={n} prof={prof} now={now} onEditCalculator={() => set("mode", "plan")} /> : s.mode === "tools" ? <>
+          <ProgressionPlanner g={g} c={c} t={t} n={n} p={s.prog} setP={(v) => setS((x) => ({ ...x, prog: typeof v === "function" ? v(x.prog) : v }))} now={now} onCopy={copyProg} copied={copiedProg} onEditCalculator={() => set("mode", "plan")} />
           <div className="mt-6 border-t" data-testid="advanced-tools">
             <Section title={tr("Szenarien vergleichen")} right={<Button variant="ghost" size="sm" onClick={() => setS((p) => ({ ...p, scenarioA: null, scenarioB: null, scenarioC: { v: "", u: p.gain.u } }))}>{tr("Aktuelle Gains einsetzen")}</Button>}>
               <ScenarioComparator values={[s.scenarioA ?? s.gain, s.scenarioB ?? s.next, s.scenarioC]} onChange={(i, v) => set(i === 0 ? "scenarioA" : i === 1 ? "scenarioB" : "scenarioC", v)} c={c} t={t} now={now} />
@@ -152,9 +160,16 @@ function Index() {
               )}
             </div>
             <NumUnit id="next" label={tr("Nächster Gain (optional)")} suffix="/ s" value={s.next} onChange={(v) => set("next", v)} parsed={nextP} help={tr("Endurance-Gain nach Increase.")} />
+            <div>
+              <label htmlFor="plan-mt-level" className="mb-1.5 block text-sm font-medium">{tr("Muscle-Training-Level")}</label>
+              <input id="plan-mt-level" inputMode="numeric" placeholder="0–150" value={s.prog.mtLevel} aria-invalid={s.prog.mtLevel.trim() !== "" && mtLevel === null} onChange={(e) => setS((x) => ({ ...x, prog: { ...x.prog, mtLevel: e.target.value } }))} className="field min-h-11 w-full px-3 py-2.5 font-mono outline-none" />
+              {s.prog.mtLevel.trim() !== "" && mtLevel === null && <p className="mt-1 text-xs text-destructive">{tr("Ganzes Level von 0 bis 150 eingeben.")}</p>}
+            </div>
+            <ProficiencyFields value={{ profBaseLevel: s.profBaseLevel, profBonusLevel: s.profBonusLevel, profXP: s.profXP, profRequirement: s.profRequirement }} onChange={(k, v) => set(k, v)} gain={g} />
           </section>
-           <EnduranceResult result={r} gain={g} current={c} target={t} now={now} copied={copied} copyError={copyError} onCopy={copy} />
+           <div className="min-w-0 space-y-5"><BestNextMove d={route} level={mtLevel} now={now} hasProf={prof !== null} /><EnduranceResult dyn={dyn} result={r} gain={g} current={c} target={t} now={now} copied={copied} copyError={copyError} onCopy={copy} /></div>
         </div>
+        {route && <div className="mt-6"><RouteTimeline events={route.events} /></div>}
 
         </>}
       </main>

@@ -52,9 +52,12 @@ describe("public planner data rules", () => {
     expect(JSON.parse(localStorage.getItem(LAW_KEY) ?? "{}")).toEqual(law);
     expect(localStorage.getItem(LANGUAGE_KEY)).toBe("en");
   });
-  it("exports v2.0.0 and still imports v1.1.0–v1.5.0 backups", () => {
+  it("exports v3.0.0 and still imports v1.1.0–v2.1.0 backups", () => {
     const data = JSON.parse(exportBackup(localStorage));
-    expect(data.version).toBe("2.0.0");
+    expect(data.version).toBe("3.0.0");
+    for (const [version, mode, want] of [["2.1.0", "calculator", "plan"], ["2.0.0", "muscle", "muscle"], ["2.1.0", "tools", "tools"]] as const) { const old = structuredClone(data); old.version = version; old.endurance.mode = mode; importBackup(JSON.stringify(old), localStorage); expect(JSON.parse(localStorage.getItem(ENDURANCE_KEY) ?? "{}").mode).toBe(want); }
+    { const v20 = structuredClone(data); v20.version = "2.0.0"; for (const k of ["profBaseLevel", "profBonusLevel", "profXP", "profRequirement"]) delete v20.endurance[k]; importBackup(JSON.stringify(v20), localStorage); expect(JSON.parse(localStorage.getItem(ENDURANCE_KEY) ?? "{}").profXP).toBe(""); }
+    { const p21 = structuredClone(data); p21.endurance.profBaseLevel = "42"; p21.endurance.profXP = "2352"; importBackup(JSON.stringify(p21), localStorage); expect(JSON.parse(exportBackup(localStorage)).endurance.profXP).toBe("2352"); }
     for (const version of ["1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"]) {
       const legacy = structuredClone(data); legacy.version = version; legacy.endurance.mode = version === "1.5.0" ? "progression" : "advanced"; legacy.endurance.gain = { v: version, u: "Qi" };
       importBackup(JSON.stringify(legacy), localStorage);

@@ -23,3 +23,13 @@ export function alternateDuration(sec: number, language: Language = "de"): strin
   if (sec < 3600 || sec >= 365.2425 * 86400) return exact;
   return `${fmtPlain(Math.floor(sec / 3600), 0, language)}h ${Math.floor(sec % 3600 / 60)}m · ${exact}`;
 }
+export type VisibleRow = number | "gap";
+/** Display selection for candidate stops; never affects which stop is best. */
+export function visibleCandidateRows(count: number, best: number, mode: "summary" | "route" | "all"): VisibleRow[] {
+  const idx = mode === "all" ? Array.from({ length: count }, (_, i) => i)
+    : mode === "route" ? Array.from({ length: Math.min(count, best + 3) }, (_, i) => i)
+    : [...new Set([0, 1, 2, 3, best - 1, best, best + 1, best + 2])].filter((i) => i >= 0 && i < count).sort((a, b) => a - b);
+  const out: VisibleRow[] = [];
+  idx.forEach((i, k) => { if (k > 0 && i - (idx[k - 1] ?? i) > 1) out.push("gap"); out.push(i); });
+  return out;
+}

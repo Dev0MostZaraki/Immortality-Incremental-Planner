@@ -17,7 +17,7 @@ async def main():
   assert await page.locator('#strength-reset').count() == 0
   body = await page.locator('body').inner_text()
   assert 'Aktueller Stand Beispiel' not in body and '316,13' not in body and 'Screenshot-Kontext' not in body
-  assert 'v2.0.0' in body and 'Law-Daten: Okt. 2026' in body
+  assert 'v3.0.0' in body and 'Law-Daten: Okt. 2026' in body
   await page.get_by_role('button', name='Mehr Aktionen', exact=True).click()
   assert await page.get_by_role('menuitem', name='GitHub', exact=True).get_attribute('href') == 'https://github.com/Dev0MostZaraki/Immortality-Incremental-Planner'
   issues = page.get_by_role('menuitem', name='Fehler melden')
@@ -88,7 +88,7 @@ async def main():
   download = await download_info.value
   backup_path = OUT/'backup.json'; await download.save_as(backup_path)
   backup = json.loads(backup_path.read_text())
-  assert backup['version'] == '2.0.0' and backup['law']['inv']['Lucent'] == '111'
+  assert backup['version'] == '3.0.0' and backup['law']['inv']['Lucent'] == '111'
   await page.keyboard.press('Escape')
   await page.get_by_role('button', name='Reset all law data', exact=True).click()
   await page.get_by_role('button', name='Confirm', exact=True).click()
@@ -109,14 +109,14 @@ async def main():
   saved = json.loads(await page.evaluate("localStorage.getItem('ii-lawsynth-v1')"))
   assert saved['inv']['Lucent'] == '111' and saved['levels']['perception'] == {'cur': 5, 'tgt': 10}
   await page.get_by_role('button', name='Endurance Planner', exact=True).click()
-  await page.get_by_role('button', name='Calculator', exact=True).click()
+  await page.get_by_role('button', name='Plan', exact=True).click()
   assert await page.locator('#gain').input_value() == '454'
   # Check both languages, every tool/mode/subtab and desktop/mobile framing.
   for language in ['en', 'de']:
    await page.get_by_role('button', name='English' if language == 'en' else 'Deutsch', exact=True).click()
    for tool in ['Endurance Planner', 'Law Synthesis']:
     await page.get_by_role('button', name=tool, exact=True).click()
-    modes = (['Calculator', 'Muscle Training', 'More Tools'] if language == 'en' else ['Rechner', 'Muscle Training', 'Weitere Tools']) if tool == 'Endurance Planner' else (['Plan', 'Settings'] if language == 'en' else ['Plan', 'Einstellungen'])
+    modes = (['Plan', 'Muscle Training', 'More Tools'] if language == 'en' else ['Plan', 'Muscle Training', 'Weitere Tools']) if tool == 'Endurance Planner' else (['Plan', 'Settings'] if language == 'en' else ['Plan', 'Einstellungen'])
     for mode in modes:
      await page.get_by_role('button' if tool == 'Endurance Planner' else 'tab', name=mode, exact=True).click()
      for width in [390, 768, 1366, 1920, 2560, 3440]:

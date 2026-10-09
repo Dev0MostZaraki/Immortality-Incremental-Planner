@@ -4,24 +4,25 @@ import { useI18n } from "@/components/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { UnitField, val } from "./planner-fields";
 import type { Prog } from "@/lib/progression-state";
-import { calibrate, effectiveCurrentCost, evaluateMtDecision, parseLevel } from "@/lib/muscle-training";
+import { effectiveCurrentCost, evaluateMtDecision, parseLevel } from "@/lib/muscle-training";
 import { MUSCLE_TRAINING_MODEL as model } from "@/lib/muscle-training-model";
+import { secondsToNext, type ProfState } from "@/lib/proficiency";
+import { visibleCandidateRows } from "@/lib/presentation";
 
 type Props = {
   p: Prog; setP: (v: Prog | ((p: Prog) => Prog)) => void;
-  g: number | null; c: number | null; target: number | null; next: number | null; now: number | null;
+  g: number | null; c: number | null; target: number | null; next: number | null; prof?: ProfState | null; now: number | null;
   onEditCalculator: () => void;
 };
 
-export function MuscleTrainingModel({ p, setP, g, c, target, next, now, onEditCalculator }: Props) {
+export function MuscleTrainingModel({ p, setP, g, c, target, next, prof = null, now, onEditCalculator }: Props) {
   const { t, fmtSuffix, naturalDuration, fmtFinish } = useI18n();
+  const [view, setView] = useState<"summary" | "route" | "all">("summary");
   const [showCost, setShowCost] = useState(p.mtDisplayedCost.v.trim() !== "");
   const level = parseLevel(p.mtLevel);
   const displayed = val(p.mtDisplayedCost);
-  const estimated = level === null || level === model.maxLevel ? null : model.baseCost * model.costMultiplier ** level;
-  const calibration = calibrate(displayed, estimated);
   const ready = g !== null && c !== null && target !== null && level !== null;
-  const decision = ready ? evaluateMtDecision(p, c, g, target, next) : null;
+  const decision = ready ? evaluateMtDecision(p, c, g, target, next, prof) : null;
   const sourceIsPlayer = displayed !== null && displayed > 0;
   const invalidCost = p.mtDisplayedCost.v.trim() !== "" && !sourceIsPlayer;
   const sourceCost = effectiveCurrentCost(p);
@@ -32,7 +33,7 @@ export function MuscleTrainingModel({ p, setP, g, c, target, next, now, onEditCa
       <section className="panel min-w-0 p-4 sm:p-5" aria-labelledby="mt-state-title">
         <div className="flex items-center justify-between gap-3">
           <h2 id="mt-state-title" className="text-lg font-semibold">{t("Aktueller Stand")}</h2>
-          <Button variant="ghost" size="sm" onClick={onEditCalculator}>{t("Rechnerwerte bearbeiten")}<ArrowRight /></Button>
+          <Button variant="ghost" size="sm" onClick={onEditCalculator}>{t("Planwerte bearbeiten")}<ArrowRight /></Button>
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
           <Stat label={t("Aktuelle Endurance")} value={c === null ? "–" : fmtSuffix(c)} />
@@ -40,6 +41,7 @@ export function MuscleTrainingModel({ p, setP, g, c, target, next, now, onEditCa
           <Stat label={t("Ziel-Endurance")} value={target === null ? "–" : fmtSuffix(target)} />
           {next !== null && <Stat label={t("Nächster Gain nach Increase")} value={`${fmtSuffix(next)}/s`} />}
         </dl>
+        {prof && <p className="mt-3 text-xs text-muted-foreground" data-testid="mt-prof-summary">Proficiency: <span className="font-mono text-foreground">Lv {prof.baseLevel}{prof.bonusLevel ? ` (+${prof.bonusLevel})` : ""}</span> · {t("Nächste Proficiency")} {naturalDuration(secondsToNext(prof))}</p>}
         {missing && <p className="mt-4 border-l-2 border-primary pl-3 text-sm text-muted-foreground">{t("Im Rechner ergänzen: {p0}", { p0: missing })}</p>}
         <div className="mt-5 border-t pt-4">
           <label htmlFor="mt-level" className="mb-1.5 block text-sm font-medium">{t("Aktuelles Muscle-Training-Level")}</label>
@@ -52,7 +54,6 @@ export function MuscleTrainingModel({ p, setP, g, c, target, next, now, onEditCa
           {invalidCost && <p className="mt-1 text-xs text-destructive">{t("Gültigen positiven Preis eingeben oder leer lassen.")}</p>}
         </div>}
         {level !== null && level < model.maxLevel && <p className="mt-3 text-xs text-muted-foreground" data-testid="mt-cost-source">{t(sourceIsPlayer ? "Angezeigter Spielpreis wird verwendet" : "Geschätzter Spielpreis")}: <span className="font-mono text-foreground">{sourceCost === null ? "–" : fmtSuffix(sourceCost)}</span></p>}
-        {calibration?.status === "mismatch" && <p role="status" className="mt-2 text-xs text-muted-foreground">{t("Dein Spielwert weicht vom Modell ab; die Projektionen verwenden deinen Wert.")}</p>}
       </section>
 
       <section className="result-panel min-w-0 p-5 sm:p-6" data-testid="mt-recommendation" aria-labelledby="mt-best-title" aria-live="polite">
@@ -81,11 +82,14 @@ export function MuscleTrainingModel({ p, setP, g, c, target, next, now, onEditCa
     </div>
 
     <section className="panel min-w-0 p-4 sm:p-5" data-testid="mt-preview" aria-labelledby="mt-journey-title">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 id="mt-journey-title" className="text-lg font-semibold">{t("Nächste Level")}</h2><div className="inline-flex rounded-md border bg-secondary p-1" role="group" aria-label={t("Level-Horizont")}>{[3,5,10].map((count) => <Button key={count} size="sm" variant={p.mtPreviewCount === count ? "default" : "ghost"} aria-pressed={p.mtPreviewCount === count} onClick={() => setP((state) => ({ ...state, mtPreviewCount: count }))}>{count}</Button>)}</div></div>
-      {decision ? <><div className="grid gap-2 md:hidden">{decision.plan.rows.map((row) => <JourneyCard key={row.purchases} row={row} level={level ?? 0} best={row.purchases === decision.plan.prefix.best} baseline={decision.baseline.total} />)}</div><div className="hidden md:block"><table className="w-full table-fixed text-sm"><thead><tr className="text-left text-xs text-muted-foreground"><th className="w-[14%] py-2">{t("Level")}</th><th>{t("Kosten")}</th><th>{t("Gain nach Kauf")}</th><th>{t("Bezahlbar in")}</th><th>{t("ETA bei Stopp hier")}</th><th>{t("Zeitersparnis")}</th></tr></thead><tbody>{decision.plan.rows.map((row) => <JourneyRow key={row.purchases} row={row} level={level ?? 0} best={row.purchases === decision.plan.prefix.best} baseline={decision.baseline.total} />)}</tbody></table></div></> : <p className="text-sm text-muted-foreground">{t("Aktuellen Stand vervollständigen, um die Level-Reise zu sehen.")}</p>}
+      <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"><h2 id="mt-journey-title" className="min-w-0 text-lg font-semibold">{t("Nächste Level")}</h2>
+        {decision && decision.plan.rows.length > 4 && <div className="flex flex-wrap justify-end gap-1"><Button size="sm" variant={view === "route" ? "default" : "ghost"} aria-pressed={view === "route"} onClick={() => setView(view === "route" ? "summary" : "route")}>{t("Route zum empfohlenen Level")}</Button><Button size="sm" variant={view === "all" ? "default" : "ghost"} aria-pressed={view === "all"} onClick={() => setView(view === "all" ? "summary" : "all")}>{t("Alle Kandidaten")}</Button></div>}
+      </div>
+      {decision && level !== null ? (() => { const best = decision.plan.prefix.best; const rows = visibleCandidateRows(decision.plan.rows.length, best, view); return <>
+        <div className="grid gap-2 lg:hidden">{rows.map((i, k) => i === "gap" ? <p key={`g${k}`} className="text-center text-muted-foreground" aria-hidden>…</p> : <JourneyCard key={i} row={decision.plan.rows[i]!} level={level} best={i === best} baseline={decision.baseline.total} />)}</div>
+        <div className="hidden lg:block"><table className="w-full table-fixed text-sm"><thead><tr className="text-left text-xs text-muted-foreground"><th className="w-[12%] py-2">{t("Level")}</th><th>{t("Preis")}</th><th>{t("Gesamtkosten")}</th><th>{t("Gain nach Kauf")}</th><th>{t("Erreicht nach")}</th><th>{t("ETA bei Stopp hier")}</th><th>{t("Zeitersparnis")}</th></tr></thead><tbody>{rows.map((i, k) => i === "gap" ? <tr key={`g${k}`} className="border-t"><td colSpan={7} className="py-1 text-center text-muted-foreground">…</td></tr> : <JourneyRow key={i} row={decision.plan.rows[i]!} level={level} best={i === best} baseline={decision.baseline.total} />)}</tbody></table></div>
+      </>; })() : <p className="text-sm text-muted-foreground">{t("Aktuellen Stand vervollständigen, um die Level-Reise zu sehen.")}</p>}
     </section>
-
-    <section className="border-y py-4 text-sm text-muted-foreground"><p>{t("Community-beobachtetes Modell, geprüft gegen gemeldete Werte für Level 59 und 60. Spielupdates können Kosten oder Gains verändern.")}</p><details className="group mt-3"><summary className="flex cursor-pointer items-center gap-2 font-medium text-foreground">{t("Modelldetails")}<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary><dl className="mt-3 grid gap-2 sm:grid-cols-2"><Stat label={t("Modelldaten-Version")} value={model.version} /><Stat label={t("Zuletzt aktualisiert")} value={model.lastUpdated} /><Stat label={t("Beleg-Level")} value="59 · 60" /><Stat label={t("Preisquelle")} value={t(sourceIsPlayer ? "Vom Spieler eingegeben" : "Geschätzt")} /></dl></details></section>
   </div>;
 }
 
@@ -98,5 +102,9 @@ function recommendation(t: ReturnType<typeof useI18n>["t"], action: string, purc
 function alternativeLabel(t: ReturnType<typeof useI18n>["t"], id: string) { return t(id === "baseline" ? "Nichts kaufen" : id === "muscle" ? "Muscle-Training-Plan" : id === "increase" ? "Nur Increase" : "Increase, dann Muscle Training"); }
 type Row = NonNullable<ReturnType<typeof evaluateMtDecision>>["plan"]["rows"][number];
 function Stat({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) { return <div className={wide ? "col-span-2" : ""}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words font-mono text-sm font-medium">{value}</dd></div>; }
-function JourneyCard({ row, level, best, baseline }: { row: Row; level: number; best: boolean; baseline: number }) { const { t, fmtSuffix, naturalDuration } = useI18n(); const saved = baseline - row.total; return <article className={`border-l-2 p-3 ${best ? "border-success bg-secondary/40" : "border-border"}`} data-testid="mt-preview-row"><p className="font-semibold">{row.purchases === 0 ? t("Nichts kaufen") : `Lv. ${level + row.purchases}`}{best && <span className="ml-2 text-xs text-success">{t("Bester Plan")}</span>}</p><dl className="mt-2 grid grid-cols-2 gap-2"><Stat label={t("Kosten")} value={row.purchases ? fmtSuffix(row.cost) : "–"} /><Stat label={t("Gain nach Kauf")} value={`${fmtSuffix(row.finalGain)}/s`} /><Stat label={t("Bezahlbar in")} value={row.purchase ? row.purchase.eta === 0 ? t("Jetzt") : naturalDuration(row.purchase.eta) : "–"} /><Stat label={t("ETA bei Stopp hier")} value={naturalDuration(row.total)} /><Stat label={t("Zeitersparnis")} value={row.purchases ? `${saved < 0 ? "−" : "+"}${naturalDuration(Math.abs(saved))}` : "–"} /></dl></article>; }
-function JourneyRow({ row, level, best, baseline }: { row: Row; level: number; best: boolean; baseline: number }) { const { t, fmtSuffix, naturalDuration } = useI18n(); const saved = baseline - row.total; return <tr className={`border-t text-xs ${best ? "bg-secondary/50" : ""}`} data-testid="mt-preview-row"><td className="py-3 pr-2 font-semibold">{row.purchases === 0 ? t("Nichts kaufen") : `Lv. ${level + row.purchases}`}{best && <span className="block text-success">{t("Bester Plan")}</span>}</td><td className="break-words pr-2 font-mono">{row.purchases ? fmtSuffix(row.cost) : "–"}</td><td className="break-words pr-2 font-mono">{fmtSuffix(row.finalGain)}/s</td><td className="break-words pr-2 font-mono">{row.purchase ? row.purchase.eta === 0 ? t("Jetzt") : naturalDuration(row.purchase.eta) : "–"}</td><td className="break-words pr-2 font-mono">{naturalDuration(row.total)}</td><td className="break-words font-mono">{row.purchases ? `${saved < 0 ? "−" : "+"}${naturalDuration(Math.abs(saved))}` : "–"}</td></tr>; }
+function useRowText(row: Row, baseline: number) {
+  const { t, fmtSuffix, naturalDuration } = useI18n(); const saved = baseline - row.total;
+  return { price: row.purchases ? fmtSuffix(row.cost) : "–", total: row.purchases ? fmtSuffix(row.cumulativeCost) : "–", gain: `${fmtSuffix(row.finalGain)}/s`, at: row.purchases ? row.stopTime === 0 ? t("Jetzt") : naturalDuration(row.stopTime) : "–", eta: naturalDuration(row.total), saved: row.purchases ? `${saved < 0 ? "−" : "+"}${naturalDuration(Math.abs(saved))}` : "–", name: row.purchases === 0 ? t("Nichts kaufen") : null };
+}
+function JourneyCard({ row, level, best, baseline }: { row: Row; level: number; best: boolean; baseline: number }) { const { t } = useI18n(); const x = useRowText(row, baseline); return <article className={`border-l-2 p-3 ${best ? "border-success bg-secondary/40" : "border-border"}`} data-testid="mt-preview-row" data-best={best || undefined}><p className="font-semibold">{x.name ?? `Lv. ${level + row.purchases}`}{best && <span className="ml-2 text-xs text-success">{t("Bester Plan")}</span>}</p><dl className="mt-2 grid grid-cols-2 gap-2"><Stat label={t("Preis")} value={x.price} /><Stat label={t("Gesamtkosten")} value={x.total} /><Stat label={t("Gain nach Kauf")} value={x.gain} /><Stat label={t("Erreicht nach")} value={x.at} /><Stat label={t("ETA bei Stopp hier")} value={x.eta} /><Stat label={t("Zeitersparnis")} value={x.saved} /></dl></article>; }
+function JourneyRow({ row, level, best, baseline }: { row: Row; level: number; best: boolean; baseline: number }) { const { t } = useI18n(); const x = useRowText(row, baseline); return <tr className={`border-t text-xs ${best ? "bg-secondary/50" : ""}`} data-testid="mt-preview-row" data-best={best || undefined}><td className="py-3 pr-2 font-semibold">{x.name ?? `Lv. ${level + row.purchases}`}{best && <span className="block text-success">{t("Bester Plan")}</span>}</td>{[x.price, x.total, x.gain, x.at, x.eta, x.saved].map((v, i) => <td key={i} className="break-words pr-2 font-mono">{v}</td>)}</tr>; }

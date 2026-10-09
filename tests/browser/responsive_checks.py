@@ -81,7 +81,7 @@ async def main():
                     await no_overflow(page, (lang, 'law', tab, width))
                     if width in [390, 1920]: await page.screenshot(path=str(OUT / f'{lang}-law-{tab}-{width}.png'))
             await page.get_by_role('button', name='Endurance Planner', exact=True).click()
-            await page.get_by_role('button', name='Rechner' if lang == 'de' else 'Calculator', exact=True).click()
+            await page.get_by_role('button', name='Plan', exact=True).click()
             await page.locator('#next').fill('')
         await page.locator('#cur').fill('')
         assert await page.get_by_test_id('progress-amount').inner_text() == '0 / 100 Sx · 0%'

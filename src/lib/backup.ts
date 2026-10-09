@@ -5,7 +5,7 @@ import { LAW_KEY, LAW_DEFAULTS, restoreLaw } from "./law-state";
 import { LANGUAGE_KEY, restoreLanguage } from "./i18n";
 import { LAWS, MATERIALS } from "./lawsynth";
 
-export const APP_VERSION = "2.0.0";
+export const APP_VERSION = "3.0.0";
 export const DATA_KEYS = [ENDURANCE_KEY, LAW_KEY, LANGUAGE_KEY] as const;
 const text = z.string().max(200);
 const numeric = z.number().finite();
@@ -29,9 +29,11 @@ const currentProg = z.object({
 });
 const endurance = z.object({
   gain: nu, cur: nu, target: nu, next: nu, dur: duration, proj: duration,
-  targets: z.array(nu.extend({ id: numeric })).max(10), mode: z.enum(["calculator", "muscle", "tools"]),
+  targets: z.array(nu.extend({ id: numeric })).max(10), mode: z.enum(["plan", "calculator", "muscle", "tools"]),
   scenarioA: nu.nullable(), scenarioB: nu.nullable(), scenarioC: nu, custom: nu, savedCustom: nu.nullable(),
   prog: currentProg, tool: z.enum(["endurance", "law"]),
+  // Added in 2.1.0; optional so 2.0.0 backups still validate.
+  profBaseLevel: z.string().max(40).optional(), profBonusLevel: z.string().max(40).optional(), profXP: z.string().max(40).optional(), profRequirement: z.string().max(40).optional(),
 });
 const knownMaterials = <T extends z.ZodTypeAny>(value: T) => z.object(Object.fromEntries(MATERIALS.map((m) => [m, value])) as Record<(typeof MATERIALS)[number], T>);
 const level = z.object({ cur: z.number().int().min(0).max(10), tgt: z.number().int().min(0).max(10) }).refine((v) => v.tgt >= v.cur);
@@ -47,7 +49,7 @@ const law = z.object({
 const legacyEndurance = endurance.extend({ mode: z.enum(["simple", "progression", "advanced"]), prog: legacyProg });
 const base = { app: z.literal("immortality-incremental-planner"), dataVersion: z.literal(1), law, language: z.enum(["de", "en"]) };
 const schema = z.union([
-  z.object({ ...base, version: z.literal(APP_VERSION), endurance }),
+  z.object({ ...base, version: z.enum([APP_VERSION, "2.1.0", "2.0.0"]), endurance }),
   z.object({ ...base, version: z.enum(["1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"]), endurance: legacyEndurance }),
 ]);
 export type Backup = z.infer<typeof schema>;

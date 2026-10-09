@@ -67,12 +67,12 @@ describe("Muscle Training v2 static model", () => {
     const plan = evaluateMtPlan(p, 50, 10, 10000);
     const decision = decideProgression(p, 50, 10, 10000, null);
     expect(plan?.prefix.best).toBeGreaterThan(1);
-    expect(decision.scenarios.find((s) => s.id === "C")?.secs).toBe(plan?.best?.total);
+    expect(decision.scenarios.find((s) => s.id === "C")?.secs).toBeCloseTo(plan?.best?.total ?? 0, 6);
   });
   it("sequential recommendation deducts costs and can select a profitable prefix", () => {
     const p = { ...PROG_DEFAULTS, mtLevel: "0", mtDisplayedCost: { v: "100", u: "" }, mtCostMultiplier: "2", mtGainMultiplier: "2", mtPreviewCount: 3 };
     const result = evaluateMtPlan(p, 50, 10, 10000);
-    expect(result?.rows[1]?.purchase?.balance).toBe(0);
+    expect(result?.rows[1]?.purchase?.eta).toBe(5);
     expect(result?.prefix.best).toBeGreaterThan(0);
   });
   it("can correctly prefer buying none", () => {
