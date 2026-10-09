@@ -142,7 +142,7 @@ export function whatIf(current: number, gain: number, target: number, mult: numb
   return { gain: g, target: t, secs: eta(current, t, g), base: eta(current, target, gain) };
 }
 
-export type DecisionInput = { next: number | null; upCost: number | null; upGain: number | null; comboGain: number | null };
+export type DecisionInput = { next: number | null; upCost: number | null; upGain: number | null; comboGain: number | null; upgradeSteps?: Step[]; upgradeLabel?: string; comboSteps?: Step[]; comboLabel?: string; upgradeSecs?: number | undefined; comboSecs?: number | undefined };
 export type Scenario = { id: "A" | "B" | "C" | "D"; label: string; secs: number };
 
 export function decide(current: number, gain: number, target: number, x: DecisionInput) {
@@ -150,13 +150,15 @@ export function decide(current: number, gain: number, target: number, x: Decisio
   const missing: string[] = [];
   if (x.next !== null) sc.push({ id: "B", label: "Increase jetzt", secs: eta(current, target, x.next) });
   else missing.push("Nächster Gain fehlt – Increase kann nicht bewertet werden.");
-  if (x.upCost !== null && x.upGain !== null) sc.push({ id: "C", label: "Upgrade kaufen sobald bezahlbar", secs: simulatePath(current, gain, target, [{ cost: x.upCost, gain: x.upGain }]).total });
+  if (x.upgradeSteps) sc.push({ id: "C", label: x.upgradeLabel ?? "Upgrade kaufen sobald bezahlbar", secs: x.upgradeSecs ?? simulatePath(current, gain, target, x.upgradeSteps).total });
+  else if (x.upCost !== null && x.upGain !== null) sc.push({ id: "C", label: "Upgrade kaufen sobald bezahlbar", secs: simulatePath(current, gain, target, [{ cost: x.upCost, gain: x.upGain }]).total });
   else missing.push(`${[x.upCost === null && "Upgrade-Kosten", x.upGain === null && "Gain nach Upgrade"].filter(Boolean).join(" und ")} fehlt – Upgrade kann nicht bewertet werden.`);
-  if (x.next !== null && x.upCost !== null && x.comboGain !== null) sc.push({ id: "D", label: "Increase jetzt, dann Upgrade", secs: simulatePath(current, x.next, target, [{ cost: x.upCost, gain: x.comboGain }]).total });
+  if (x.next !== null && x.comboSteps) sc.push({ id: "D", label: x.comboLabel ?? "Increase jetzt, dann Upgrade", secs: x.comboSecs ?? simulatePath(current, x.next, target, x.comboSteps).total });
+  else if (x.next !== null && x.upCost !== null && x.comboGain !== null) sc.push({ id: "D", label: "Increase jetzt, dann Upgrade", secs: simulatePath(current, x.next, target, [{ cost: x.upCost, gain: x.comboGain }]).total });
   else if (x.next !== null && x.upCost !== null) missing.push("Gain nach Increase + Upgrade fehlt – Kombi-Szenario wird nicht geschätzt.");
-  const base = sc[0]!;
+  const base: Scenario = sc[0] ?? { id: "A", label: "Weiter farmen", secs: eta(current, target, gain) };
   const ranked = [...sc].sort((p, q) => p.secs - q.secs || (p.id === "A" ? -1 : q.id === "A" ? 1 : 0));
-  let winner = ranked[0]!;
+  let winner = ranked[0] ?? base;
   if (winner.id !== "A" && verdict(base.secs, winner.secs) !== "better") winner = base;
   const second = ranked.find((r) => r !== winner) ?? null;
   return { scenarios: ranked, winner, second, missing };

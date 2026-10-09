@@ -69,6 +69,15 @@ describe("Muscle Training v2 static model", () => {
     expect(plan?.prefix.best).toBeGreaterThan(1);
     expect(decision.scenarios.find((s) => s.id === "C")?.secs).toBeCloseTo(plan?.best?.total ?? 0, 6);
   });
+  it("keeps copied scenarios equal to the Proficiency-aware route engine", () => {
+    const p = { ...PROG_DEFAULTS, mtLevel: "0", mtDisplayedCost: { v: "100", u: "" } };
+    const prof = { baseLevel: 10, bonusLevel: 0, xp: 0, requirement: 20 };
+    const plan = evaluateMtPlan(p, 50, 10, 10000, prof);
+    const decision = decideProgression(p, 50, 10, 10000, 20, prof);
+    expect(decision.scenarios.find((s) => s.id === "C")?.secs).toBe(plan.best?.total);
+    expect(decision.scenarios.find((s) => s.id === "D")?.secs).toBe(evaluateMtPlan(p, 50, 20, 10000, prof).best?.total);
+    expect(plan.best?.total).toBeLessThan(evaluateMtPlan(p, 50, 10, 10000).best?.total ?? 0);
+  });
   it("sequential recommendation deducts costs and can select a profitable prefix", () => {
     const p = { ...PROG_DEFAULTS, mtLevel: "0", mtDisplayedCost: { v: "100", u: "" }, mtCostMultiplier: "2", mtGainMultiplier: "2", mtPreviewCount: 3 };
     const result = evaluateMtPlan(p, 50, 10, 10000);

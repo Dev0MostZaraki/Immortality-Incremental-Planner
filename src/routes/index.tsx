@@ -87,8 +87,8 @@ function Index() {
   const [copiedProg, setCopiedProg] = useState(false);
   const copyProg = async () => {
     if (g === null || c === null || t === null) return;
-    const pr = s.prog, plan = evaluateMtPlan(pr, c, g, t);
-    const d = decideProgression(pr, c, g, t, n);
+    const pr = s.prog, plan = evaluateMtPlan(pr, c, g, t, prof);
+    const d = decideProgression(pr, c, g, t, n, prof);
     const text = [
       "Immortality Incremental – Progression",
       tr("Gain: {p0}/s | Aktuell: {p1} | Ziel: {p2}{p3}", { p0: fmtSuffix(g), p1: fmtSuffix(c), p2: fmtSuffix(t), p3: n !== null ? tr(" | Nächster Gain: {p0}/s", { p0: fmtSuffix(n) }) : "" }),

@@ -121,15 +121,16 @@ export function evaluateMtDecision(p: Prog, current: number, gain: number, targe
 }
 
 /** The page and copied summary compare the same sequential MT prefixes. */
-export function decideProgression(p: Prog, current: number, gain: number, target: number, next: number | null) {
-  const plan = parseLevel(p.mtLevel) !== null ? evaluateMtPlan(p, current, gain, target) : null;
-  const afterIncrease = next !== null ? evaluateMtPlan(p, current, next, target) : null;
+/** Scenario times come from the shared route engine so copied summaries match the public route. */
+export function decideProgression(p: Prog, current: number, gain: number, target: number, next: number | null, prof: ProfState | null = null) {
+  const plan = parseLevel(p.mtLevel) !== null ? evaluateMtPlan(p, current, gain, target, prof) : null;
+  const afterIncrease = plan && next !== null ? evaluateMtPlan(p, current, next, target, prof) : null;
   return decide(current, gain, target, {
     next,
     upCost: plan ? effectiveCurrentCost(p) : nuValue(p.upCost),
     upGain: plan ? effectiveUpGain(p, gain) : nuValue(p.upGain),
     comboGain: plan ? null : nuValue(p.comboGain),
-    ...(plan ? { upgradeSteps: modelSteps(p, gain, plan.prefix.best), upgradeLabel: "Bester Muscle-Training-Plan" } : {}),
-    ...(afterIncrease ? { comboSteps: modelSteps(p, next, afterIncrease.prefix.best), comboLabel: "Increase, dann Muscle Training" } : {}),
+    ...(plan ? { upgradeSteps: modelSteps(p, gain, plan.prefix.best), upgradeLabel: "Bester Muscle-Training-Plan", upgradeSecs: plan.best?.total } : {}),
+    ...(afterIncrease ? { comboSteps: modelSteps(p, next, afterIncrease.prefix.best), comboLabel: "Increase, dann Muscle Training", comboSecs: afterIncrease.best?.total } : {}),
   });
 }
