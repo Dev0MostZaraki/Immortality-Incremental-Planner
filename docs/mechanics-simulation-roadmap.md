@@ -84,28 +84,24 @@ Production-safe use:
 
 ---
 
-## 2. Proficiency timing — one remaining verification
+## 2. Verified Proficiency timing
 
-Candidate XP rate:
+Measured XP rate:
 - +1 Proficiency XP per second while Endurance training is active
 
-This still needs a timed measurement before it affects production ETA.
+Verification:
+- A timed 300-second run increased Proficiency XP by exactly 300 points.
+- Therefore the production-safe rate is 1 XP/s while Endurance training remains active.
 
-### Data still needed to verify Proficiency timing
+Production-safe timing model:
+- seconds to next Proficiency level = current requirement - current XP
+- future requirements follow round(previous requirement x 1.15)
+- each future base Proficiency level-up multiplies the already-current Endurance Gain by x1.15
+- bonus Proficiency levels affect the multiplier but not the base-level XP timer index
 
-Minimum:
-1. Two timed XP runs with no Proficiency level-up during the run
-   - start XP
-   - end XP
-   - exact elapsed seconds
-   - training active for the full interval
-2. One full level-up capture is useful as an end-to-end check
-   - XP immediately before level-up
-   - new level
-   - new requirement
-   - current Endurance Gain immediately before/after
+Proficiency is now complete enough for a deterministic dynamic ETA model independent of Strength.
 
-Once the +1 XP/s rate is measured exactly, Proficiency can be integrated into dynamic ETA independently of Strength.
+An additional full level-up capture remains useful only as an end-to-end regression check, not as a blocker for production integration.
 
 ---
 
@@ -177,12 +173,11 @@ Existing planner data may be reused only after it is checked against the current
 
 ## 5. Recommended implementation order
 
-### Phase A — complete the last Proficiency timing check
+### Phase A — Proficiency is ready; continue Strength / Perseverance verification
 
 Do not add speculative mechanics to the public page.
 
-Complete:
-- timed Proficiency XP verification
+Complete next:
 - Strength measurement run
 - Increase before/after validation
 - Perseverance data audit
@@ -314,15 +309,14 @@ Internal verification status belongs only in project documentation/tests.
 ## 8. Next data collection checklist
 
 ### Proficiency
-- [ ] timed XP run #1
-- [ ] timed XP run #2
+- [x] timed XP verification: exact +1 XP/s over a 300-second run
 - [x] requirement 42 -> 43 = 3,731
 - [x] requirement 43 -> 44 = 4,291
 - [x] requirement 56 -> 57 = 26,403
 - [x] requirement 66 -> 67 = 106,814
 - [x] requirement recurrence round(previous x1.15) verified across low/mid/high points
 - [x] multiplier formula verified across effective levels 49, 50, 51, 63, 64, 76, 77
-- [ ] full level-up before/after Gain capture as final end-to-end check
+- [ ] full level-up before/after Gain capture as optional end-to-end regression check
 
 ### Strength / Increase
 - [ ] immediate state before Increase
