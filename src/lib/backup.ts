@@ -4,9 +4,10 @@ import { ENDURANCE_KEY, DEFAULTS, restoreState } from "./planner-state";
 import { LAW_KEY, LAW_DEFAULTS, restoreLaw } from "./law-state";
 import { LANGUAGE_KEY, restoreLanguage } from "./i18n";
 import { LAWS, MATERIALS } from "./lawsynth";
+import { SAMSARA_DEFAULTS, SAMSARA_KEY, restoreSamsara } from "./samsara-state";
 
 export const APP_VERSION = "3.0.0";
-export const DATA_KEYS = [ENDURANCE_KEY, LAW_KEY, LANGUAGE_KEY] as const;
+export const DATA_KEYS = [ENDURANCE_KEY, LAW_KEY, SAMSARA_KEY, LANGUAGE_KEY] as const;
 const text = z.string().max(200);
 const numeric = z.number().finite();
 const nu = z.object({ v: text, u: z.string().refine((unit) => SUFFIXES.some((u) => u === unit)) });
@@ -31,7 +32,7 @@ const endurance = z.object({
   gain: nu, cur: nu, target: nu, next: nu, dur: duration, proj: duration,
   targets: z.array(nu.extend({ id: numeric })).max(10), mode: z.enum(["plan", "calculator", "muscle", "tools"]),
   scenarioA: nu.nullable(), scenarioB: nu.nullable(), scenarioC: nu, custom: nu, savedCustom: nu.nullable(),
-  prog: currentProg, tool: z.enum(["endurance", "law"]),
+  prog: currentProg, tool: z.enum(["endurance", "law", "samsara"]),
   // Added in 2.1.0; optional so 2.0.0 backups still validate.
   profBaseLevel: z.string().max(40).optional(), profBonusLevel: z.string().max(40).optional(), profXP: z.string().max(40).optional(), profRequirement: z.string().max(40).optional(),
 });
@@ -46,8 +47,14 @@ const law = z.object({
   scope: z.enum(["all", "selected"]), check: z.record(z.boolean()).refine((v) => Object.keys(v).every((k) => MATERIALS.some((m) => k === `m-${m}`) || LAWS.some((l) => k === `l-${l.id}`))),
   tab: z.enum(["plan", "settings"]),
 });
+const samsara = z.object({
+  selected: z.enum(["ashesBoost", "moreAshes", "punchSpeed"]),
+  levels: z.object({ ashesBoost: z.number().int().min(0).max(50), moreAshes: z.number().int().min(0).max(30), punchSpeed: z.number().int().min(0).max(25) }),
+  currentAshes: nu, ashesGain: nu, targetAshes: nu,
+  previewCount: z.number().int().min(1).max(10), maxRoutePurchases: z.number().int().min(0).max(8),
+});
 const legacyEndurance = endurance.extend({ mode: z.enum(["simple", "progression", "advanced"]), prog: legacyProg });
-const base = { app: z.literal("immortality-incremental-planner"), dataVersion: z.literal(1), law, language: z.enum(["de", "en"]) };
+const base = { app: z.literal("immortality-incremental-planner"), dataVersion: z.literal(1), law, samsara: samsara.optional(), language: z.enum(["de", "en"]) };
 const schema = z.union([
   z.object({ ...base, version: z.enum([APP_VERSION, "2.1.0", "2.0.0"]), endurance }),
   z.object({ ...base, version: z.enum(["1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"]), endurance: legacyEndurance }),
@@ -62,9 +69,9 @@ export function parseBackup(raw: string): Backup {
   return schema.parse(parsed);
 }
 export function exportBackup(storage: Pick<Storage, "getItem">): string {
-  const e = storage.getItem(ENDURANCE_KEY), l = storage.getItem(LAW_KEY);
+  const e = storage.getItem(ENDURANCE_KEY), l = storage.getItem(LAW_KEY), s = storage.getItem(SAMSARA_KEY);
   const data = { app: "immortality-incremental-planner", version: APP_VERSION, dataVersion: 1,
-    endurance: e ? restoreState(e) : DEFAULTS, law: l ? restoreLaw(l) : LAW_DEFAULTS, language: restoreLanguage(storage.getItem(LANGUAGE_KEY)) };
+    endurance: e ? restoreState(e) : DEFAULTS, law: l ? restoreLaw(l) : LAW_DEFAULTS, samsara: s ? restoreSamsara(s) : SAMSARA_DEFAULTS, language: restoreLanguage(storage.getItem(LANGUAGE_KEY)) };
   return JSON.stringify(schema.parse(data), null, 2);
 }
 export function importBackup(raw: string, storage: Pick<Storage, "getItem" | "setItem" | "removeItem">): void {
@@ -73,6 +80,7 @@ export function importBackup(raw: string, storage: Pick<Storage, "getItem" | "se
   try {
     storage.setItem(ENDURANCE_KEY, JSON.stringify(restoreState(JSON.stringify(data.endurance))));
     storage.setItem(LAW_KEY, JSON.stringify(restoreLaw(JSON.stringify(data.law))));
+    storage.setItem(SAMSARA_KEY, JSON.stringify(restoreSamsara(data.samsara ?? SAMSARA_DEFAULTS)));
     storage.setItem(LANGUAGE_KEY, data.language);
   } catch (error) {
     DATA_KEYS.forEach((key, i) => { try { const value = previous[i]; if (value === null || value === undefined) storage.removeItem(key); else storage.setItem(key, value); } catch { /* Storage unavailable: report failure to caller. */ } });

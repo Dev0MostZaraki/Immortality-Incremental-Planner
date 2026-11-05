@@ -7,12 +7,13 @@ An independent, unofficial fan-made planning toolkit for Immortality Incremental
 - **Muscle Training:** player-first Current State → Best Plan → Why → Next Levels guidance using shared Endurance values and a hidden, versioned community-observed model.
 - **More Tools:** optional Increase, generic upgrade, milestone, reset and what-if comparisons kept outside the primary planning flow.
 - **Law Synthesis:** nine laws, material inventory, Mark-based farming routes, source/measured rates, optional Beast Core farming and a goal checklist.
+- **Samsara / World 10:** verified Karmic Ashes upgrade models, sequential cost calculator, purchase-route comparison, known milestones, Karmic Paths and Soul Threads reference data.
 - Complete **German / English** interface with localized numbers, dates, durations and clipboard summaries.
 
 ## Privacy and data
 Calculations run locally in the browser. No app server APIs, accounts, ads or analytics. Calculator work and the language preference use versioned localStorage records; clearing browser storage removes saved work. Clipboard access requires browser permission.
 
-Law costs and base drop estimates are an embedded Astral3nt Immortality Incremental Hub snapshot from October 2026. Fan-maintained data may change with game updates. Farm times are expected averages, not RNG guarantees. Core time is included only when a rate is supplied.
+Law costs and base drop estimates are an embedded Astral3nt Immortality Incremental Hub snapshot from October 2026. World 10 formulas are screenshot-reconstructed planning models and are labeled separately from observed or unknown mechanics. Fan-maintained data may change with game updates.
 
 ## Development
 React 19, TypeScript, TanStack Start and Tailwind CSS. A lightweight local dictionary provides translations; no translation service is used.

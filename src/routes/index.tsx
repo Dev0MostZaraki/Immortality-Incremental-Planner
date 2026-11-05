@@ -8,6 +8,7 @@ import { EnduranceResult } from "@/components/EnduranceResult";
 import { SUFFIXES, toValue, eta, DURATION_UNITS, parseNum, type Parsed } from "@/lib/endurance";
 import { UnitField, Hint, val, type NU } from "@/components/planner-fields";
 import { LawSynthesis } from "@/components/LawSynthesis";
+import { SamsaraWorld10 } from "@/components/SamsaraWorld10";
 import { ProgressionPlanner } from "@/components/ProgressionPlanner";
 import { MuscleTrainingModel } from "@/components/MuscleTrainingModel";
 import { ProficiencyFields } from "@/components/ProficiencyFields";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Immortality Incremental Planner" },
-      { name: "description", content: "Independent fan-made Endurance, Progression and Law Synthesis toolkit. Deutsch / English. Local calculations, inventory and farming plans; no account required." },
+      { name: "description", content: "Independent fan-made Endurance, Samsara World 10, Progression and Law Synthesis toolkit. Deutsch / English. Local calculations; no account required." },
       { property: "og:title", content: "Immortality Incremental Planner" },
       { property: "og:description", content: "Independent Immortality Incremental planning toolkit: Endurance, upgrades, Law Synthesis, materials and farming times. Deutsch / English." },
       { property: "og:type", content: "website" },
@@ -112,11 +113,12 @@ function Index() {
         <h1 className="min-w-0 text-base font-semibold leading-snug sm:text-lg">Immortality Incremental <span className="text-primary">Planner</span></h1>
         <nav className="tool-navigation inline-flex min-w-0 rounded-md border bg-secondary p-1" aria-label={tr("Werkzeug")}>
           <Button variant={s.tool === "endurance" ? "default" : "ghost"} size="sm" aria-pressed={s.tool === "endurance"} onClick={() => set("tool", "endurance")}>Endurance Planner</Button>
+          <Button variant={s.tool === "samsara" ? "default" : "ghost"} size="sm" aria-pressed={s.tool === "samsara"} onClick={() => set("tool", "samsara")}>Samsara</Button>
           <Button variant={s.tool === "law" ? "default" : "ghost"} size="sm" aria-pressed={s.tool === "law"} onClick={() => set("tool", "law")}>Law Synthesis</Button>
         </nav>
         <div className="header-utilities flex shrink-0 items-center gap-2"><LanguageSwitcher /><PlannerUtilities onReset={() => setS((p) => ({ ...DEFAULTS, tool: p.tool }))} /></div>
       </header>
-      {s.tool === "law" ? <main><LawSynthesis /></main> : <>
+      {s.tool === "law" ? <main><LawSynthesis /></main> : s.tool === "samsara" ? <SamsaraWorld10 /> : <>
       <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b pb-4">
         <div className="inline-flex justify-self-start rounded-md border bg-secondary p-1" role="group" aria-label={tr("Ansicht")}>
           <Button variant={s.mode === "plan" ? "default" : "ghost"} size="sm" aria-pressed={s.mode === "plan"} onClick={() => set("mode", "plan")}>Plan</Button>

@@ -8,7 +8,7 @@ export type State = {
   dur: NU; proj: NU; targets: Target[];
   mode: "plan" | "muscle" | "tools";
   scenarioA: NU | null; scenarioB: NU | null; scenarioC: NU;
-  custom: NU; savedCustom: NU | null; prog: Prog; tool: "endurance" | "law";
+  custom: NU; savedCustom: NU | null; prog: Prog; tool: "endurance" | "law" | "samsara";
   profBaseLevel: string; profBonusLevel: string; profXP: string; profRequirement: string;
 };
 export const DEFAULTS: State = {
@@ -52,7 +52,7 @@ export function restoreState(raw: string): State {
     if (typeof value === "string" && value.length <= 40) restored[key] = value;
   }
   restored.prog = restoreProg(x['prog']);
-  if (x['tool'] === "law") restored.tool = "law";
+  if (x['tool'] === "law" || x['tool'] === "samsara") restored.tool = x['tool'];
   if (Array.isArray(x['targets'])) restored.targets = x['targets'].filter((v): v is Target =>
     isNU(v) && "id" in v && typeof v.id === "number").slice(0, 10);
   return restored;
