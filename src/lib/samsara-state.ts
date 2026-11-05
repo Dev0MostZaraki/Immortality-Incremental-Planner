@@ -1,6 +1,11 @@
 import { SUFFIXES } from "./endurance";
 import type { NU } from "@/components/planner-fields";
-import { SOUL_THREAD_UPGRADES, type KarmicUpgradeId, type SoulThreadUpgradeId } from "./samsara";
+import {
+  SOUL_THREAD_UPGRADES,
+  type KarmicUpgradeId,
+  type MarkBoardId,
+  type SoulThreadUpgradeId,
+} from "./samsara";
 export const SAMSARA_KEY = "ii-samsara-world10-v1";
 export type SamsaraState = {
   selected: KarmicUpgradeId;
@@ -12,6 +17,13 @@ export type SamsaraState = {
   targetAshes: NU;
   previewCount: number;
   maxRoutePurchases: number;
+  markBoard: MarkBoardId;
+  markIndex: number;
+  markLuck: NU;
+  markMps: NU;
+  markCopy: string;
+  markCurrentCopies: NU;
+  markTargetCopies: NU;
 };
 export const SAMSARA_DEFAULTS: SamsaraState = {
   selected: "ashesBoost",
@@ -31,6 +43,13 @@ export const SAMSARA_DEFAULTS: SamsaraState = {
   targetAshes: { v: "", u: "M" },
   previewCount: 3,
   maxRoutePurchases: 5,
+  markBoard: "karmic",
+  markIndex: 3,
+  markLuck: { v: "", u: "M" },
+  markMps: { v: "", u: "Qa" },
+  markCopy: "1",
+  markCurrentCopies: { v: "", u: "" },
+  markTargetCopies: { v: "", u: "" },
 };
 const isNU = (value: unknown): value is NU => {
   if (!value || typeof value !== "object") return false;
@@ -63,7 +82,15 @@ export function restoreSamsara(raw: unknown): SamsaraState {
     row["selected"] === "punchSpeed"
   )
     restored.selected = row["selected"];
-  for (const key of ["currentAshes", "ashesPerAttack", "targetAshes"] as const)
+  for (const key of [
+    "currentAshes",
+    "ashesPerAttack",
+    "targetAshes",
+    "markLuck",
+    "markMps",
+    "markCurrentCopies",
+    "markTargetCopies",
+  ] as const)
     if (isNU(row[key])) restored[key] = row[key];
   if (typeof row["attackCooldown"] === "string" && row["attackCooldown"].length <= 40)
     restored.attackCooldown = row["attackCooldown"];
@@ -102,5 +129,16 @@ export function restoreSamsara(raw: unknown): SamsaraState {
     row["maxRoutePurchases"] <= 8
   )
     restored.maxRoutePurchases = row["maxRoutePurchases"];
+  if (row["markBoard"] === "karmic" || row["markBoard"] === "threads")
+    restored.markBoard = row["markBoard"];
+  if (
+    typeof row["markIndex"] === "number" &&
+    Number.isInteger(row["markIndex"]) &&
+    row["markIndex"] >= 0 &&
+    row["markIndex"] < 8
+  )
+    restored.markIndex = row["markIndex"];
+  if (typeof row["markCopy"] === "string" && row["markCopy"].length <= 20)
+    restored.markCopy = row["markCopy"];
   return restored;
 }

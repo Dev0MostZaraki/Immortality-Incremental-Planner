@@ -7,17 +7,19 @@ import { SUFFIXES } from "@/lib/endurance";
 import {
   ashesPerSecondFromCooldown,
   bestKarmicRoute,
+  calculateMarkOutcome,
   compareSamsaraPurchase,
+  exactMarkProbability,
   KARMIC_PATHS,
   KARMIC_PATH_ROLL_COST,
   KARMIC_UPGRADES,
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
-  observedSoulThreadNextCost,
   SAMSARA_MILESTONES,
   SOUL_THREAD_RESET,
   SOUL_THREAD_UPGRADES,
+  soulThreadUpgradeCost,
   soulThreadUpgradeEffect,
   THREAD_MARKS,
   THREADS_PATH,
@@ -126,6 +128,38 @@ export function SamsaraWorld10() {
         : firstPurchase
           ? "buy"
           : "save";
+  const markList = state.markBoard === "karmic" ? KARMIC_PATHS : THREAD_MARKS,
+    selectedMark = markList[state.markIndex] ?? markList[0]!,
+    markRarities = markList.map((mark) => mark.baseRarity),
+    markLuck = val(state.markLuck),
+    markMps = val(state.markMps),
+    markCopy = Number(state.markCopy.trim().replace(",", ".")),
+    markProbability =
+      markLuck === null ? null : exactMarkProbability(markRarities, state.markIndex, markLuck),
+    markOutcome =
+      markLuck === null || markMps === null
+        ? null
+        : calculateMarkOutcome({
+            rarities: markRarities,
+            markIndex: state.markIndex,
+            luck: markLuck,
+            marksPerSecond: markMps,
+            copy: markCopy,
+          }),
+    markCurrentCopies = val(state.markCurrentCopies),
+    markTargetCopies = val(state.markTargetCopies),
+    markTargetSeconds =
+      markOutcome && markTargetCopies !== null
+        ? Math.max(0, markTargetCopies - (markCurrentCopies ?? 0)) / markOutcome.copiesPerSecond
+        : null,
+    markDuration = (seconds: number) =>
+      seconds <= 0
+        ? "0 s"
+        : seconds < 0.001
+          ? "< 1 ms"
+          : seconds < 1
+            ? `${fmtSuffix(seconds * 1000, 2)} ms`
+            : naturalDuration(seconds);
 
   return (
     <main className="samsara-theme space-y-6" data-testid="samsara-world10">
@@ -580,6 +614,155 @@ export function SamsaraWorld10() {
         </div>
       </section>
 
+      <section className="samsara-panel p-4 sm:p-6" aria-labelledby="mark-calculator-title">
+        <div>
+          <p className="samsara-eyebrow">WORLD 10 · MARKS</p>
+          <h3 id="mark-calculator-title" className="text-xl font-semibold">
+            {tr("Mark Calculator")}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {tr(
+              "Verwendet direkt die im Board angezeigten Werte für Luck, MPS und Copy. Niedrigere Marks können durch höhere garantierte Stufen IMPOSSIBLE werden.",
+            )}
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div>
+            <label htmlFor="mark-board" className="mb-1 block text-xs font-medium">
+              {tr("Board")}
+            </label>
+            <select
+              id="mark-board"
+              value={state.markBoard}
+              onChange={(event) =>
+                set("markBoard", event.target.value === "threads" ? "threads" : "karmic")
+              }
+              className="field w-full px-3 py-2.5 outline-none"
+            >
+              <option value="karmic">Karmic Path</option>
+              <option value="threads">Threads Path</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="mark-selection" className="mb-1 block text-xs font-medium">
+              Mark
+            </label>
+            <select
+              id="mark-selection"
+              value={state.markIndex}
+              onChange={(event) => set("markIndex", Number(event.target.value))}
+              className="field w-full px-3 py-2.5 outline-none"
+            >
+              {markList.map((mark, index) => (
+                <option key={mark.name} value={index}>
+                  {mark.name} · {mark.baseMps}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <Field
+            label={tr("Angezeigte Luck")}
+            id="mark-luck"
+            value={state.markLuck}
+            onChange={(value) => set("markLuck", value)}
+          />
+          <Field
+            label={tr("Angezeigte MPS")}
+            id="mark-mps"
+            value={state.markMps}
+            onChange={(value) => set("markMps", value)}
+            suffix="/s"
+          />
+          <div>
+            <label htmlFor="mark-copy" className="mb-1 block text-xs font-medium">
+              Copy / Clone
+            </label>
+            <input
+              id="mark-copy"
+              inputMode="numeric"
+              value={state.markCopy}
+              onChange={(event) => set("markCopy", event.target.value)}
+              className="field w-full px-3 py-2.5 font-mono outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <Field
+            label={tr("Aktuelle Copies (optional)")}
+            id="mark-current-copies"
+            value={state.markCurrentCopies}
+            onChange={(value) => set("markCurrentCopies", value)}
+          />
+          <Field
+            label={tr("Copy-Ziel (optional)")}
+            id="mark-target-copies"
+            value={state.markTargetCopies}
+            onChange={(value) => set("markTargetCopies", value)}
+          />
+        </div>
+
+        <div className="result-panel mt-5 p-4" data-testid="mark-result">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <span className="block text-xs text-muted-foreground">{tr("Ausgewählte Mark")}</span>
+              <strong className="text-lg">{selectedMark.name}</strong>
+            </div>
+            <div className="text-right">
+              <span className="block text-xs text-muted-foreground">{tr("Exakte Chance")}</span>
+              <strong className="font-mono text-lg" data-testid="mark-chance">
+                {markProbability === null
+                  ? "–"
+                  : markProbability <= 0
+                    ? "IMPOSSIBLE"
+                    : `1 / ${fmtSuffix(1 / markProbability, 2)}`}
+              </strong>
+            </div>
+          </div>
+
+          {markOutcome ? (
+            <>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat
+                  label={tr("Treffer pro Sekunde")}
+                  value={fmtSuffix(markOutcome.hitsPerSecond, 2)}
+                />
+                <Stat
+                  label={tr("Copies pro Sekunde")}
+                  value={fmtSuffix(markOutcome.copiesPerSecond, 2)}
+                />
+                <Stat
+                  label={tr("Ø erster Treffer")}
+                  value={markDuration(markOutcome.averageSeconds)}
+                />
+                <Stat
+                  label={tr("Zeit bis Copy-Ziel")}
+                  value={markTargetSeconds === null ? "–" : markDuration(markTargetSeconds)}
+                />
+              </div>
+              <div className="mt-4 grid gap-3 border-t pt-4 text-sm sm:grid-cols-3">
+                <Stat label="50 %" value={markDuration(markOutcome.chance50Seconds)} />
+                <Stat label="90 %" value={markDuration(markOutcome.chance90Seconds)} />
+                <Stat label="95 %" value={markDuration(markOutcome.chance95Seconds)} />
+              </div>
+            </>
+          ) : markProbability !== null && markProbability <= 0 ? (
+            <Hint>
+              <AlertTriangle className="inline size-4" />{" "}
+              {tr(
+                "Diese Mark kann bei der eingetragenen Luck nicht rollen, weil die nächsthöhere Stufe bereits garantiert ist.",
+              )}
+            </Hint>
+          ) : (
+            <Hint>{tr("Luck und MPS aus der rechten Board-Anzeige eintragen.")}</Hint>
+          )}
+        </div>
+      </section>
+
       <section className="grid gap-5 xl:grid-cols-2">
         <article className="samsara-panel p-4 sm:p-5">
           <h3 className="text-lg font-semibold">Karmic Path</h3>
@@ -629,7 +812,7 @@ export function SamsaraWorld10() {
           <h3 className="text-lg font-semibold">Soul Threads Upgrades</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
-              "Trage deine Level aus dem Spiel ein. Die sicheren Multiplikatoren werden automatisch berechnet; die exakte Kostenformel ist noch unbekannt.",
+              "Trage deine Level aus dem Spiel ein. Effekte und nächste Kosten werden aus dem gegen Screenshots geprüften Modell berechnet.",
             )}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -645,7 +828,7 @@ export function SamsaraWorld10() {
                   upgrade.id,
                   Math.min(upgrade.maxLevel, level + 1),
                 ),
-                nextCost = observedSoulThreadNextCost(upgrade.id, level),
+                nextCost = soulThreadUpgradeCost(upgrade.id, level),
                 maxed = level === upgrade.maxLevel;
               return (
                 <div key={upgrade.id} className={`samsara-upgrade-card ${maxed ? "is-maxed" : ""}`}>
@@ -708,9 +891,9 @@ export function SamsaraWorld10() {
             })}
           </div>
           <Hint>
-            <AlertTriangle className="inline size-4" />{" "}
+            <CheckCircle2 className="inline size-4 text-success" />{" "}
             {tr(
-              "Die Level sind persönliche, lokal gespeicherte Eingaben. Kaufkosten erscheinen nur für exakt beobachtete Level; fehlende Preise werden nicht geschätzt.",
+              "Die Level sind persönliche, lokal gespeicherte Eingaben. Das Kostenmodell reproduziert alle bekannten Screenshot-Werte innerhalb der Anzeigerundung.",
             )}
           </Hint>
           <div className="mt-4 grid gap-2 text-xs sm:grid-cols-2">

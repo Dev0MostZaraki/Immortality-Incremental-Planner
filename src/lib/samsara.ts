@@ -163,7 +163,8 @@ export type KarmicPath = {
   name: string;
   ashes: number | null;
   other: readonly string[];
-  baseMps: string | null;
+  baseMps: string;
+  baseRarity: number;
 };
 export const KARMIC_PATHS: readonly KarmicPath[] = [
   {
@@ -171,48 +172,56 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     ashes: 1.5,
     other: ["×100Oc Qi"],
     baseMps: "1 / 1",
+    baseRarity: 1,
   },
   {
     name: "Cinder",
     ashes: 2,
     other: ["×100Qa Qi", "×1.5 Dao Path Speed"],
     baseMps: "1 / 1M",
+    baseRarity: 1e6,
   },
   {
     name: "Smoulder",
     ashes: 2.5,
     other: ["×10B Qi", "×2 Dao Path Luck"],
     baseMps: "1 / 3.2M",
+    baseRarity: 3.2e6,
   },
   {
     name: "Pyre",
     ashes: 3,
     other: ["×10T Qi", "×5 Luck", "×2 Dao Path Bulk"],
     baseMps: "1 / 490M",
+    baseRarity: 490e6,
   },
   {
     name: "Wraithflame",
     ashes: 4,
     other: ["×10B Qi", "×2.5 Dao Path Luck"],
     baseMps: "1 / 3.8Qn",
+    baseRarity: 3.8e18,
   },
   {
     name: "Soulbrand",
     ashes: 5,
     other: ["×10B Qi", "×2 Soul Threads"],
     baseMps: "1 / 810Qn",
+    baseRarity: 810e18,
   },
   {
     name: "Pyreheart",
     ashes: null,
     other: [],
     baseMps: "1 / 6.7No",
+    baseRarity: 6.7e30,
   },
   {
     name: "Karmic Inferno",
     ashes: null,
     other: [],
-    baseMps: "1 / 3.8No",
+    baseMps: "1 / 38No",
+    baseRarity: 38e30,
   },
 ] as const;
 export const KARMIC_PATH_ROLL_COST = 10e3;
@@ -225,7 +234,9 @@ export type SoulThreadUpgrade = {
   maxLevel: number;
   effectPerLevel: number;
   effect: string;
-  baseCost: number | null;
+  baseCost: number;
+  costMultiplier: number;
+  costGrowth: number;
   status: EvidenceStatus;
 };
 export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
@@ -236,6 +247,8 @@ export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
     effectPerLevel: 1.3,
     effect: "Threads",
     baseCost: 5,
+    costMultiplier: 3,
+    costGrowth: 1.08,
     status: "observed",
   },
   {
@@ -245,6 +258,8 @@ export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
     effectPerLevel: 1.5,
     effect: "Ashes",
     baseCost: 3,
+    costMultiplier: 3,
+    costGrowth: 1.08,
     status: "observed",
   },
   {
@@ -254,6 +269,8 @@ export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
     effectPerLevel: 1e3,
     effect: "Qi",
     baseCost: 10,
+    costMultiplier: 2.2,
+    costGrowth: 1.04,
     status: "observed",
   },
   {
@@ -262,7 +279,9 @@ export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
     maxLevel: 34,
     effectPerLevel: 1.5,
     effect: "Breakthrough Luck",
-    baseCost: null,
+    baseCost: 8,
+    costMultiplier: 2.4,
+    costGrowth: 1.04,
     status: "observed",
   },
   {
@@ -271,7 +290,9 @@ export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
     maxLevel: 20,
     effectPerLevel: 1.25,
     effect: "Path Luck",
-    baseCost: null,
+    baseCost: 50,
+    costMultiplier: 3,
+    costGrowth: 1.08,
     status: "observed",
   },
   {
@@ -280,7 +301,9 @@ export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
     maxLevel: 15,
     effectPerLevel: 1.2,
     effect: "Path Speed",
-    baseCost: null,
+    baseCost: 100,
+    costMultiplier: 3.2,
+    costGrowth: 1.1,
     status: "observed",
   },
   {
@@ -289,7 +312,9 @@ export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
     maxLevel: 15,
     effectPerLevel: 1.2,
     effect: "Path Bulk",
-    baseCost: null,
+    baseCost: 150,
+    costMultiplier: 3.4,
+    costGrowth: 1.1,
     status: "observed",
   },
 ] as const;
@@ -300,31 +325,50 @@ export function soulThreadUpgradeEffect(id: SoulThreadUpgradeId, level: number):
   return upgrade.effectPerLevel ** level;
 }
 
+export function soulThreadUpgradeCost(id: SoulThreadUpgradeId, level: number): number | null {
+  const upgrade = SOUL_THREAD_UPGRADES.find((entry) => entry.id === id);
+  if (!upgrade || !Number.isInteger(level) || level < 0 || level >= upgrade.maxLevel) return null;
+  return (
+    upgrade.baseCost *
+    upgrade.costMultiplier ** level *
+    upgrade.costGrowth ** ((level * (level - 1)) / 2)
+  );
+}
+
 export const SOUL_THREAD_COST_ANCHORS: readonly {
   upgrade: SoulThreadUpgradeId;
   level: number;
   displayed: number;
 }[] = [
   { upgrade: "moreThreads", level: 9, displayed: 1.57e6 },
+  { upgrade: "moreThreads", level: 14, displayed: 26.32e9 },
+  { upgrade: "moreThreads", level: 15, displayed: 231.89e9 },
   { upgrade: "moreThreads", level: 18, displayed: 251.76e12 },
   { upgrade: "ashesBoost", level: 6, displayed: 6.94e3 },
+  { upgrade: "ashesBoost", level: 14, displayed: 15.79e9 },
+  { upgrade: "ashesBoost", level: 15, displayed: 139.13e9 },
   { upgrade: "ashesBoost", level: 18, displayed: 151.06e12 },
   { upgrade: "qiBoost", level: 6, displayed: 2.04e3 },
+  { upgrade: "qiBoost", level: 17, displayed: 1.37e9 },
+  { upgrade: "qiBoost", level: 18, displayed: 5.88e9 },
+  { upgrade: "qiBoost", level: 19, displayed: 26.23e9 },
   { upgrade: "qiBoost", level: 22, displayed: 2.94e12 },
   { upgrade: "luckBoost", level: 5, displayed: 943 },
+  { upgrade: "luckBoost", level: 16, displayed: 1.07e9 },
+  { upgrade: "luckBoost", level: 17, displayed: 4.82e9 },
+  { upgrade: "luckBoost", level: 19, displayed: 109.6e9 },
   { upgrade: "luckBoost", level: 21, displayed: 2.91e12 },
   { upgrade: "pathLuck", level: 4, displayed: 6.43e3 },
+  { upgrade: "pathLuck", level: 13, displayed: 32.26e9 },
+  { upgrade: "pathLuck", level: 14, displayed: 263.17e9 },
   { upgrade: "pathLuck", level: 17, displayed: 226.81e12 },
   { upgrade: "pathSpeed", level: 2, displayed: 1.13e3 },
+  { upgrade: "pathSpeed", level: 11, displayed: 6.81e9 },
+  { upgrade: "pathSpeed", level: 12, displayed: 62.19e9 },
   { upgrade: "pathBulk", level: 1, displayed: 510 },
+  { upgrade: "pathBulk", level: 11, displayed: 19.98e9 },
+  { upgrade: "pathBulk", level: 12, displayed: 193.09e9 },
 ] as const;
-
-export function observedSoulThreadNextCost(id: SoulThreadUpgradeId, level: number): number | null {
-  return (
-    SOUL_THREAD_COST_ANCHORS.find((anchor) => anchor.upgrade === id && anchor.level === level)
-      ?.displayed ?? null
-  );
-}
 export const SOUL_THREAD_RESET = {
   minimumRunAshes: 500e3,
   exactYieldFormula: null,
@@ -335,6 +379,7 @@ export const SOUL_THREAD_RESET = {
 export type ThreadMark = {
   name: string;
   baseMps: string;
+  baseRarity: number;
   bonuses: readonly string[];
 };
 
@@ -342,44 +387,126 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
   {
     name: "Strand",
     baseMps: "1 / 1",
+    baseRarity: 1,
     bonuses: ["×1Spd Qi", "×1.5 Soul Threads"],
   },
   {
     name: "Weft",
     baseMps: "1 / 470M",
+    baseRarity: 470e6,
     bonuses: ["×233.82Ocgaa Qi", "×1.94 Karmic Ashes"],
   },
   {
     name: "Loom",
     baseMps: "1 / 1.7B",
+    baseRarity: 1.7e9,
     bonuses: ["×1Qa Qi", "×2 Dao Path Speed", "×2 Soul Threads"],
   },
   {
     name: "Spindle",
     baseMps: "1 / 5.4B",
+    baseRarity: 5.4e9,
     bonuses: ["×1Sp Qi", "×2 Dao Path Bulk", "×2.5 Dao Path Luck"],
   },
   {
     name: "Tapestry",
     baseMps: "1 / 17B",
+    baseRarity: 17e9,
     bonuses: ["×10 Karmic Ashes", "×2.5 Soul Threads", "^1.004 Qi"],
   },
   {
     name: "Fateknot",
     baseMps: "1 / 390B",
+    baseRarity: 390e9,
     bonuses: ["×100T Qi", "×10 Luck", "×3 Soul Threads"],
   },
   {
     name: "Red String",
     baseMps: "1 / 2.1Qn",
+    baseRarity: 2.1e18,
     bonuses: ["×25 Karmic Ashes", "^1.004 Qi"],
   },
   {
     name: "Weaver's End",
     baseMps: "1 / 2.1Sx",
+    baseRarity: 2.1e21,
     bonuses: ["×5 Soul Threads", "^1.0015 Qi"],
   },
 ] as const;
+
+export type MarkBoardId = "karmic" | "threads";
+export type MarkOutcome = {
+  probability: number;
+  denominator: number;
+  hitsPerSecond: number;
+  copiesPerSecond: number;
+  averageSeconds: number;
+  chance50Seconds: number;
+  chance90Seconds: number;
+  chance95Seconds: number;
+};
+
+export function exactMarkProbability(
+  rarities: readonly number[],
+  markIndex: number,
+  luck: number,
+): number | null {
+  if (
+    !Number.isInteger(markIndex) ||
+    markIndex < 0 ||
+    markIndex >= rarities.length ||
+    !Number.isFinite(luck) ||
+    luck <= 0 ||
+    rarities.some((rarity) => !Number.isFinite(rarity) || rarity <= 0)
+  )
+    return null;
+  const reachesThis = Math.min(1, luck / rarities[markIndex]!);
+  const reachesNext =
+    markIndex + 1 < rarities.length ? Math.min(1, luck / rarities[markIndex + 1]!) : 0;
+  return Math.max(0, reachesThis - reachesNext);
+}
+
+export function calculateMarkOutcome({
+  rarities,
+  markIndex,
+  luck,
+  marksPerSecond,
+  copy,
+}: {
+  rarities: readonly number[];
+  markIndex: number;
+  luck: number;
+  marksPerSecond: number;
+  copy: number;
+}): MarkOutcome | null {
+  const probability = exactMarkProbability(rarities, markIndex, luck);
+  if (
+    probability === null ||
+    probability <= 0 ||
+    !Number.isFinite(marksPerSecond) ||
+    marksPerSecond <= 0 ||
+    !Number.isFinite(copy) ||
+    copy <= 0
+  )
+    return null;
+  const hitsPerSecond = marksPerSecond * probability,
+    copiesPerSecond = hitsPerSecond * copy,
+    averageSeconds = 1 / hitsPerSecond,
+    confidenceTime = (confidence: number) => {
+      if (probability >= 1) return 1 / marksPerSecond;
+      return Math.log1p(-confidence) / (marksPerSecond * Math.log1p(-probability));
+    };
+  return {
+    probability,
+    denominator: 1 / probability,
+    hitsPerSecond,
+    copiesPerSecond,
+    averageSeconds,
+    chance50Seconds: confidenceTime(0.5),
+    chance90Seconds: confidenceTime(0.9),
+    chance95Seconds: confidenceTime(0.95),
+  };
+}
 
 export const THREADS_PATH = {
   rollCost: 170e12,

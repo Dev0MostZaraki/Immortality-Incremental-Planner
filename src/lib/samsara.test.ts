@@ -2,15 +2,18 @@ import { describe, expect, it } from "vitest";
 import {
   ashesPerSecondFromCooldown,
   bestKarmicRoute,
+  calculateMarkOutcome,
   compareSamsaraPurchase,
+  exactMarkProbability,
   KARMIC_COST_ANCHORS,
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
   KARMIC_PATHS,
-  observedSoulThreadNextCost,
   SAMSARA_MILESTONES,
+  SOUL_THREAD_COST_ANCHORS,
   soulThreadUpgradeEffect,
+  soulThreadUpgradeCost,
   THREAD_MARKS,
   THREADS_PATH,
 } from "./samsara";
@@ -62,7 +65,7 @@ describe("Samsara World 10 cost models", () => {
       "1 / 3.8Qn",
       "1 / 810Qn",
       "1 / 6.7No",
-      "1 / 3.8No",
+      "1 / 38No",
     ]);
     expect(KARMIC_PATHS.find((path) => path.name === "Cinder")?.other).toContain("×100Qa Qi");
     expect(KARMIC_PATHS.find((path) => path.name === "Wraithflame")).toMatchObject({
@@ -83,19 +86,40 @@ describe("Samsara World 10 cost models", () => {
       "^1.0015 Qi",
     ]);
   });
-  it("reproduces the observed Soul Threads effects without assuming a cost formula", () => {
+  it("reproduces the observed Soul Threads effects and costs", () => {
     expect(soulThreadUpgradeEffect("moreThreads", 18)).toBeCloseTo(112.46, 2);
     expect(soulThreadUpgradeEffect("moreThreads", 19)).toBeCloseTo(146.19, 2);
     expect(soulThreadUpgradeEffect("ashesBoost", 18)).toBeCloseTo(1477.89, 1);
     expect(soulThreadUpgradeEffect("luckBoost", 21)).toBeCloseTo(4987.89, 1);
     expect(soulThreadUpgradeEffect("pathLuck", 17)).toBeCloseTo(44.41, 2);
     expect(soulThreadUpgradeEffect("pathLuck", 18)).toBeCloseTo(55.51, 2);
-    expect(observedSoulThreadNextCost("moreThreads", 18)).toBe(251.76e12);
-    expect(observedSoulThreadNextCost("ashesBoost", 18)).toBe(151.06e12);
-    expect(observedSoulThreadNextCost("qiBoost", 22)).toBe(2.94e12);
-    expect(observedSoulThreadNextCost("luckBoost", 21)).toBe(2.91e12);
-    expect(observedSoulThreadNextCost("pathLuck", 17)).toBe(226.81e12);
-    expect(observedSoulThreadNextCost("moreThreads", 17)).toBeNull();
+    for (const anchor of SOUL_THREAD_COST_ANCHORS) {
+      const modeled = soulThreadUpgradeCost(anchor.upgrade, anchor.level)!;
+      expect(Math.abs(modeled - anchor.displayed) / anchor.displayed).toBeLessThan(0.005);
+    }
+  });
+  it("reproduces the tiered Karmic and Threads Path chances", () => {
+    const karmicRarities = KARMIC_PATHS.map((mark) => mark.baseRarity),
+      threadRarities = THREAD_MARKS.map((mark) => mark.baseRarity);
+    expect(1 / exactMarkProbability(karmicRarities, 2, 253.92e6)!).toBeCloseTo(2.08, 2);
+    expect(exactMarkProbability(karmicRarities, 2, 507.84e6)).toBe(0);
+    expect(1 / exactMarkProbability(karmicRarities, 3, 253.92e6)!).toBeCloseTo(1.93, 2);
+    expect(1 / exactMarkProbability(karmicRarities, 6, 253.92e6)!).toBeCloseTo(32.03e21, -19);
+    expect(1 / exactMarkProbability(karmicRarities, 7, 253.92e6)!).toBeCloseTo(149.65e21, -19);
+    expect(1 / exactMarkProbability(threadRarities, 0, 253.92e6)!).toBeCloseTo(2.18, 2);
+    expect(1 / exactMarkProbability(threadRarities, 1, 253.92e6)!).toBeCloseTo(2.56, 2);
+    expect(1 / exactMarkProbability(threadRarities, 2, 253.92e6)!).toBeCloseTo(9.77, 2);
+  });
+  it("applies Copy to awarded marks without changing the hit chance", () => {
+    const outcome = calculateMarkOutcome({
+      rarities: KARMIC_PATHS.map((mark) => mark.baseRarity),
+      markIndex: 4,
+      luck: 507.84e6,
+      marksPerSecond: 88.04e15,
+      copy: 5,
+    })!;
+    expect(outcome.denominator).toBeCloseTo(7.52e9, -7);
+    expect(outcome.copiesPerSecond).toBeCloseTo(outcome.hitsPerSecond * 5);
   });
 });
 describe("Samsara purchase comparison and routes", () => {

@@ -42,6 +42,27 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByText("251,76 T Th.")).toBeInTheDocument();
   });
 
+  it("calculates tiered Thread Mark chances from the displayed board values", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Board"), { target: { value: "threads" } });
+    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Angezeigte Luck"), {
+      target: { value: "253.92" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte Luck Einheit"), {
+      target: { value: "M" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte MPS"), {
+      target: { value: "88.04" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte MPS Einheit"), {
+      target: { value: "Qa" },
+    });
+    fireEvent.change(screen.getByLabelText("Copy / Clone"), { target: { value: "5" } });
+    expect(screen.getByTestId("mark-chance")).toHaveTextContent("1 / 2,56");
+    expect(screen.getByTestId("mark-result")).toHaveTextContent("Copies pro Sekunde");
+  });
+
   it("compares upgrades and creates a purchase route from player inputs", () => {
     mount();
     fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), { target: { value: "0" } });
