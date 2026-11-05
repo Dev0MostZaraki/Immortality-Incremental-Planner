@@ -806,3 +806,95 @@ export function bestKarmicRoute(input: {
   visit(currentAshes, ashesPerSecond, levels, 0, []);
   return best;
 }
+
+export type ResetRoutePurchase = RoutePurchase & {
+  farmAshes: number;
+  elapsed: number;
+  runAshesAfter: number;
+};
+export type KarmicResetRoute = {
+  total: number;
+  purchases: ResetRoutePurchase[];
+  finalGain: number;
+  targetRunAshes: number;
+};
+
+/**
+ * Finds the fastest verified Karmic-upgrade route to a cumulative run-Ashes target.
+ * Spending affects the current balance, but never removes already generated run Ashes.
+ */
+export function bestKarmicResetRoute(input: {
+  currentAshes: number;
+  runGeneratedAshes: number;
+  ashesPerSecond: number;
+  targetRunAshes: number;
+  levels: KarmicLevels;
+  maxPurchases?: number;
+}): KarmicResetRoute | null {
+  const { currentAshes, runGeneratedAshes, ashesPerSecond, targetRunAshes, levels } = input,
+    maxPurchases = input.maxPurchases ?? 6;
+  if (
+    ![currentAshes, runGeneratedAshes, ashesPerSecond, targetRunAshes].every(Number.isFinite) ||
+    currentAshes < 0 ||
+    runGeneratedAshes < 0 ||
+    ashesPerSecond <= 0 ||
+    targetRunAshes < 0 ||
+    !Number.isInteger(maxPurchases) ||
+    maxPurchases < 0 ||
+    maxPurchases > 8
+  )
+    return null;
+
+  let best: KarmicResetRoute = {
+    total: Math.max(0, targetRunAshes - runGeneratedAshes) / ashesPerSecond,
+    purchases: [],
+    finalGain: ashesPerSecond,
+    targetRunAshes,
+  };
+  const visit = (
+    balance: number,
+    generated: number,
+    gain: number,
+    owned: KarmicLevels,
+    elapsed: number,
+    purchases: ResetRoutePurchase[],
+  ) => {
+    const remaining = Math.max(0, targetRunAshes - generated),
+      finish = elapsed + remaining / gain;
+    if (finish < best.total) best = { total: finish, purchases, finalGain: gain, targetRunAshes };
+    if (remaining === 0 || purchases.length >= maxPurchases || elapsed >= best.total) return;
+
+    for (const upgrade of KARMIC_UPGRADES) {
+      const level = owned[upgrade.id],
+        cost = karmicUpgradeCost(upgrade.id, level);
+      if (cost === null) continue;
+      const farmAshes = Math.max(0, cost - balance),
+        wait = farmAshes / gain,
+        buyAt = elapsed + wait,
+        generatedAtPurchase = generated + farmAshes;
+      if (buyAt >= best.total || generatedAtPurchase >= targetRunAshes) continue;
+      visit(
+        Math.max(0, balance + farmAshes - cost),
+        generatedAtPurchase,
+        gain * upgrade.effectPerLevel,
+        { ...owned, [upgrade.id]: level + 1 },
+        buyAt,
+        [
+          ...purchases,
+          {
+            id: upgrade.id,
+            level: level + 1,
+            cost,
+            wait,
+            gainAfter: gain * upgrade.effectPerLevel,
+            farmAshes,
+            elapsed: buyAt,
+            runAshesAfter: generatedAtPurchase,
+          },
+        ],
+      );
+    }
+  };
+  visit(currentAshes, runGeneratedAshes, ashesPerSecond, levels, 0, []);
+  return best;
+}

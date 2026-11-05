@@ -3,6 +3,7 @@ import {
   ashesRequiredForSoulThreads,
   ashesPerSecondFromCooldown,
   bestKarmicRoute,
+  bestKarmicResetRoute,
   calculateMarkOutcome,
   calculateSoulThreadYield,
   compareSamsaraPurchase,
@@ -197,6 +198,36 @@ describe("Samsara purchase comparison and routes", () => {
     expect(result).not.toBeNull();
     expect(result!.total).toBeLessThan(1000);
     expect(result!.purchases.length).toBeGreaterThan(0);
+  });
+  it("plans upgrades against cumulative run Ashes without losing spent progress", () => {
+    const result = bestKarmicResetRoute({
+      currentAshes: 0,
+      runGeneratedAshes: 0,
+      ashesPerSecond: 1,
+      targetRunAshes: 1000,
+      levels: { ashesBoost: 0, moreAshes: 0, punchSpeed: 0 },
+      maxPurchases: 5,
+    });
+    expect(result).not.toBeNull();
+    expect(result!.total).toBeLessThan(1000);
+    expect(result!.purchases[0]).toMatchObject({
+      id: "ashesBoost",
+      level: 1,
+      cost: 10,
+      farmAshes: 10,
+      runAshesAfter: 10,
+    });
+  });
+  it("recommends an immediate reset when the run target is already reached", () => {
+    expect(
+      bestKarmicResetRoute({
+        currentAshes: 2,
+        runGeneratedAshes: 1000,
+        ashesPerSecond: 1,
+        targetRunAshes: 1000,
+        levels: { ashesBoost: 0, moreAshes: 0, punchSpeed: 0 },
+      }),
+    ).toMatchObject({ total: 0, purchases: [] });
   });
   it("rejects invalid gains", () => {
     expect(

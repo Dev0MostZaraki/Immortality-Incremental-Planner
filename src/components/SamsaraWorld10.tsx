@@ -8,6 +8,7 @@ import {
   ashesRequiredForSoulThreads,
   ashesPerSecondFromCooldown,
   bestKarmicRoute,
+  bestKarmicResetRoute,
   calculateMarkOutcome,
   calculateSoulThreadYield,
   compareSamsaraPurchase,
@@ -186,7 +187,40 @@ export function SamsaraWorld10() {
             moreThreadsLevel: state.soulThreadLevels.moreThreads,
             nextMilestoneId: state.soulThreadNextMilestone,
             bonusIds: selectedSoulThreadBonusIds,
-          });
+          }),
+    resetPlanReady =
+      currentAshes !== null &&
+      gain !== null &&
+      gain > 0 &&
+      soulThreadRunAshes !== null &&
+      soulThreadTarget !== null &&
+      soulThreadRequiredAshes !== null,
+    resetRoute = resetPlanReady
+      ? bestKarmicResetRoute({
+          currentAshes,
+          runGeneratedAshes: soulThreadRunAshes,
+          ashesPerSecond: gain,
+          targetRunAshes: soulThreadRequiredAshes,
+          levels: state.levels,
+          maxPurchases: state.maxRoutePurchases,
+        })
+      : null,
+    resetPlanReached =
+      soulThreadYield !== null &&
+      soulThreadTarget !== null &&
+      soulThreadYield.pendingThreads >= soulThreadTarget,
+    resetFirstPurchase = resetRoute?.purchases[0],
+    resetFirstUpgrade = resetFirstPurchase
+      ? KARMIC_UPGRADES.find((upgrade) => upgrade.id === resetFirstPurchase.id)
+      : undefined,
+    resetLastPurchase = resetRoute?.purchases.at(-1),
+    resetFinalFarmAshes =
+      resetRoute && soulThreadRequiredAshes !== null && soulThreadRunAshes !== null
+        ? Math.max(
+            0,
+            soulThreadRequiredAshes - (resetLastPurchase?.runAshesAfter ?? soulThreadRunAshes),
+          )
+        : null;
 
   return (
     <main className="samsara-theme space-y-6" data-testid="samsara-world10">
@@ -873,7 +907,7 @@ export function SamsaraWorld10() {
               </select>
             </div>
             <Field
-              label={tr("Gewünschte Threads (optional)")}
+              label={tr("Dein Thread-Ziel")}
               id="soul-thread-target"
               value={state.soulThreadTarget}
               onChange={(value) => set("soulThreadTarget", value)}
@@ -905,68 +939,216 @@ export function SamsaraWorld10() {
             </div>
           </div>
 
-          <div className="result-panel mt-4 p-4" data-testid="soul-thread-result">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <span className="block text-xs text-muted-foreground">
-                  {tr("Erwarteter Reset-Ertrag")}
-                </span>
-                <strong className="font-mono text-xl" data-testid="soul-thread-yield">
-                  {soulThreadYield === null
-                    ? "–"
-                    : soulThreadYield.eligible
-                      ? `${fmtSuffix(soulThreadYield.pendingThreads, 2)} Threads`
-                      : tr("Noch nicht resetbereit")}
-                </strong>
-              </div>
-              <span
-                className={soulThreadYield?.eligible ? "text-success" : "text-muted-foreground"}
-              >
-                {soulThreadYield?.eligible
-                  ? tr("500K-Anforderung erfüllt ✓")
-                  : tr("Mindestens 500K erzeugte Ashes")}
-              </span>
+          <section
+            className="samsara-recommendation mt-4"
+            data-state={!resetPlanReady ? "incomplete" : resetPlanReached ? "reached" : "route"}
+            data-testid="soul-thread-advisor"
+          >
+            <div className="samsara-recommendation-label">
+              <Flame className="size-4" />
+              {tr("Dein persönlicher Reset-Plan")}
             </div>
-            {soulThreadYield && (
-              <div className="mt-4 grid gap-3 border-t pt-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <Stat
-                  label={tr("Basis aus Ashes")}
-                  value={fmtSuffix(soulThreadYield.baseThreads, 2)}
-                />
-                <Stat
-                  label="More Threads"
-                  value={`×${fmtSuffix(soulThreadYield.moreThreadsMultiplier, 2)}`}
-                />
-                <Stat
-                  label={tr("Milestone-Boni")}
-                  value={`×${fmtSuffix(soulThreadYield.milestoneMultiplier, 2)}`}
-                />
-                <Stat
-                  label={tr("Permanente Boni")}
-                  value={`×${fmtSuffix(soulThreadYield.permanentMultiplier, 2)}`}
-                />
+
+            {!resetPlanReady && (
+              <>
+                <h4>{tr("Sag der Seite, was du erreichen möchtest")}</h4>
+                <p>
+                  {tr(
+                    "Trage oben deine Run-Ashes und dein Thread-Ziel ein. Aktueller Ashes-Bestand, Produktion und Karmic-Upgrade-Level kommen aus deinem Ashes-Plan.",
+                  )}
+                </p>
+              </>
+            )}
+
+            {resetPlanReady && resetPlanReached && soulThreadYield && (
+              <>
+                <h4 className="flex flex-wrap items-center gap-2">
+                  {tr("Jetzt resetten")}
+                  <ArrowRight className="size-5" aria-hidden="true" />
+                  <span className="text-success">
+                    {fmtSuffix(soulThreadYield.pendingThreads, 2)} Threads
+                  </span>
+                </h4>
+                <p>{tr("Dein gewähltes Thread-Ziel ist bereits erreicht.")}</p>
+              </>
+            )}
+
+            {resetPlanReady && !resetPlanReached && resetFirstPurchase && resetFirstUpgrade && (
+              <>
+                <h4>
+                  {resetFirstPurchase.farmAshes > 0
+                    ? tr("Farme noch {p0}, dann kaufe {p1} Level {p2}", {
+                        p0: `${fmtSuffix(resetFirstPurchase.farmAshes, 2)} Ashes`,
+                        p1: resetFirstUpgrade.name,
+                        p2: resetFirstPurchase.level,
+                      })
+                    : tr("Kaufe jetzt {p0} Level {p1}", {
+                        p0: resetFirstUpgrade.name,
+                        p1: resetFirstPurchase.level,
+                      })}
+                </h4>
+                <p>
+                  {tr(
+                    "Diese geprüfte Kaufroute erreicht dein Thread-Ziel schneller als direkt bis zum Reset zu farmen.",
+                  )}
+                </p>
+              </>
+            )}
+
+            {resetPlanReady && !resetPlanReached && !resetFirstPurchase && (
+              <>
+                <h4>
+                  {tr("Farme noch {p0} Run-Ashes, dann resetten", {
+                    p0: fmtSuffix(
+                      Math.max(0, (soulThreadRequiredAshes ?? 0) - (soulThreadRunAshes ?? 0)),
+                      2,
+                    ),
+                  })}
+                </h4>
+                <p>{tr("Kein Karmic-Ashes-Upgrade verkürzt den Weg zu diesem Reset-Ziel.")}</p>
+              </>
+            )}
+
+            {resetPlanReady && resetRoute && soulThreadTarget !== null && (
+              <>
+                <div className="samsara-recommendation-stats">
+                  <Stat
+                    label={tr("Reset-Ertrag jetzt")}
+                    value={
+                      soulThreadYield?.eligible
+                        ? `${fmtSuffix(soulThreadYield.pendingThreads, 2)} Threads`
+                        : tr("Noch nicht resetbereit")
+                    }
+                  />
+                  <Stat
+                    label={tr("Thread-Ziel")}
+                    value={`${fmtSuffix(soulThreadTarget, 2)} Threads`}
+                  />
+                  <Stat
+                    label={tr("Benötigte Run-Ashes")}
+                    value={fmtSuffix(soulThreadRequiredAshes ?? 0, 2)}
+                  />
+                  <Stat label={tr("Zeit bis Reset")} value={naturalDuration(resetRoute.total)} />
+                </div>
+
+                {!resetPlanReached && (
+                  <ol className="samsara-route-steps" aria-label={tr("Empfohlene Schritte")}>
+                    {resetRoute.purchases.map((purchase, index) => {
+                      const upgrade = KARMIC_UPGRADES.find((entry) => entry.id === purchase.id);
+                      return (
+                        <li key={`${purchase.id}-${purchase.level}-${index}`}>
+                          <span>{index + 1}</span>
+                          <div>
+                            <strong>
+                              {purchase.farmAshes > 0
+                                ? tr("{p0} Ashes farmen", {
+                                    p0: fmtSuffix(purchase.farmAshes, 2),
+                                  })
+                                : tr("Jetzt kaufen")}
+                            </strong>
+                            <small>
+                              {upgrade?.name} · Level {purchase.level}
+                              {purchase.wait > 0 ? ` · ${naturalDuration(purchase.wait)}` : ""}
+                            </small>
+                          </div>
+                        </li>
+                      );
+                    })}
+                    <li>
+                      <span>{resetRoute.purchases.length + 1}</span>
+                      <div>
+                        <strong>
+                          {resetFinalFarmAshes && resetFinalFarmAshes > 0
+                            ? tr("Noch {p0} Run-Ashes erzeugen", {
+                                p0: fmtSuffix(resetFinalFarmAshes, 2),
+                              })
+                            : tr("Thread-Ziel ist bereit")}
+                        </strong>
+                        <small>
+                          {tr("Dann resetten für ungefähr {p0} Threads", {
+                            p0: fmtSuffix(soulThreadTarget, 2),
+                          })}
+                        </small>
+                      </div>
+                    </li>
+                  </ol>
+                )}
+              </>
+            )}
+          </section>
+
+          <details className="samsara-details mt-4">
+            <summary>
+              <span>
+                <strong>{tr("Rechnung und Formel anzeigen")}</strong>
+                <small>{tr("Reset-Ertrag, Multiplikatoren und Ziel-Rückrechnung")}</small>
+              </span>
+            </summary>
+            <div className="border-t border-[#58372d] p-4 sm:p-5">
+              <div className="result-panel p-4" data-testid="soul-thread-result">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <span className="block text-xs text-muted-foreground">
+                      {tr("Erwarteter Reset-Ertrag")}
+                    </span>
+                    <strong className="font-mono text-xl" data-testid="soul-thread-yield">
+                      {soulThreadYield === null
+                        ? "–"
+                        : soulThreadYield.eligible
+                          ? `${fmtSuffix(soulThreadYield.pendingThreads, 2)} Threads`
+                          : tr("Noch nicht resetbereit")}
+                    </strong>
+                  </div>
+                  <span
+                    className={soulThreadYield?.eligible ? "text-success" : "text-muted-foreground"}
+                  >
+                    {soulThreadYield?.eligible
+                      ? tr("500K-Anforderung erfüllt ✓")
+                      : tr("Mindestens 500K erzeugte Ashes")}
+                  </span>
+                </div>
+                {soulThreadYield && (
+                  <div className="mt-4 grid gap-3 border-t pt-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                    <Stat
+                      label={tr("Basis aus Ashes")}
+                      value={fmtSuffix(soulThreadYield.baseThreads, 2)}
+                    />
+                    <Stat
+                      label="More Threads"
+                      value={`×${fmtSuffix(soulThreadYield.moreThreadsMultiplier, 2)}`}
+                    />
+                    <Stat
+                      label={tr("Milestone-Boni")}
+                      value={`×${fmtSuffix(soulThreadYield.milestoneMultiplier, 2)}`}
+                    />
+                    <Stat
+                      label={tr("Permanente Boni")}
+                      value={`×${fmtSuffix(soulThreadYield.permanentMultiplier, 2)}`}
+                    />
+                  </div>
+                )}
+                {soulThreadRequiredAshes !== null && (
+                  <p className="mt-4 border-t pt-4 text-sm">
+                    {tr("Für dein Thread-Ziel benötigte Run-Ashes")}:{" "}
+                    <strong className="font-mono" data-testid="soul-thread-required-ashes">
+                      {fmtSuffix(soulThreadRequiredAshes, 2)} Ashes
+                    </strong>
+                  </p>
+                )}
               </div>
-            )}
-            {soulThreadRequiredAshes !== null && (
-              <p className="mt-4 border-t pt-4 text-sm">
-                {tr("Für dein Thread-Ziel benötigte Run-Ashes")}:{" "}
-                <strong className="font-mono" data-testid="soul-thread-required-ashes">
-                  {fmtSuffix(soulThreadRequiredAshes, 2)} Ashes
-                </strong>
+              <Hint>
+                <CheckCircle2 className="inline size-4 text-success" />{" "}
+                {tr(
+                  "Video-bestätigt: √(erzeugte Ashes ÷ 500K) × More Threads × aktive Thread-Boni. Die interne Rundung des Spiels bleibt unbekannt.",
+                )}
+              </Hint>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {tr(
+                  "Wichtig: Nicht den aktuellen Restbestand eintragen, sondern alle in diesem Run erzeugten Ashes. Der im Spiel angezeigte Converter-Wert bleibt die exakte Kontrolle.",
+                )}
               </p>
-            )}
-          </div>
-          <Hint>
-            <CheckCircle2 className="inline size-4 text-success" />{" "}
-            {tr(
-              "Video-bestätigt: √(erzeugte Ashes ÷ 500K) × More Threads × aktive Thread-Boni. Die interne Rundung des Spiels bleibt unbekannt.",
-            )}
-          </Hint>
-          <p className="mt-3 text-xs text-muted-foreground">
-            {tr(
-              "Wichtig: Nicht den aktuellen Restbestand eintragen, sondern alle in diesem Run erzeugten Ashes. Der im Spiel angezeigte Converter-Wert bleibt die exakte Kontrolle.",
-            )}
-          </p>
+            </div>
+          </details>
 
           <h4 className="mt-6 text-lg font-semibold">Soul Threads Upgrades</h4>
           <p className="mt-1 text-xs text-muted-foreground">

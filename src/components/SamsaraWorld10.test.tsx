@@ -56,13 +56,57 @@ describe("Samsara World 10 module", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: /Soulbrand/ }));
     expect(screen.getByTestId("soul-thread-yield")).toHaveTextContent("3,62 B Threads");
 
-    fireEvent.change(screen.getByLabelText("Gewünschte Threads (optional)"), {
+    fireEvent.change(screen.getByLabelText("Dein Thread-Ziel"), {
       target: { value: "8.1" },
     });
-    fireEvent.change(screen.getByLabelText("Gewünschte Threads (optional) Einheit"), {
+    fireEvent.change(screen.getByLabelText("Dein Thread-Ziel Einheit"), {
       target: { value: "B" },
     });
     expect(screen.getByTestId("soul-thread-required-ashes")).toHaveTextContent("280,32 T Ashes");
+  });
+
+  it("turns the reset calculation into a concrete farm and reset plan", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), {
+      target: { value: "0" },
+    });
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff"), {
+      target: { value: "1" },
+    });
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff Einheit"), {
+      target: { value: "T" },
+    });
+    fireEvent.change(screen.getByLabelText("Cooldown (Sekunden)"), {
+      target: { value: "1" },
+    });
+    for (const [name, value] of [
+      ["Ashes Boost Aktuelles Level", "50"],
+      ["More Ashes Aktuelles Level", "30"],
+      ["Punch Speed Aktuelles Level", "25"],
+    ])
+      fireEvent.change(screen.getByLabelText(name), { target: { value } });
+    fireEvent.change(screen.getByLabelText("Soul Threads More Threads Aktuelles Level"), {
+      target: { value: "20" },
+    });
+    fireEvent.change(screen.getByLabelText("Im Run erzeugte Ashes"), {
+      target: { value: "56.11" },
+    });
+    fireEvent.change(screen.getByLabelText("Im Run erzeugte Ashes Einheit"), {
+      target: { value: "T" },
+    });
+    fireEvent.change(screen.getByLabelText("Dein Thread-Ziel"), {
+      target: { value: "8.1" },
+    });
+    fireEvent.change(screen.getByLabelText("Dein Thread-Ziel Einheit"), {
+      target: { value: "B" },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: /Soulbrand/ }));
+    expect(screen.getByTestId("soul-thread-advisor")).toHaveTextContent(
+      "Farme noch 224,21 T Run-Ashes, dann resetten",
+    );
+    expect(screen.getByTestId("soul-thread-advisor")).toHaveTextContent(
+      "Dann resetten für ungefähr 8,1 B Threads",
+    );
   });
 
   it("calculates tiered Thread Mark chances from the displayed board values", () => {
