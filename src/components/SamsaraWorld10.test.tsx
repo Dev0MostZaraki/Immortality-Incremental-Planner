@@ -18,6 +18,7 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByRole("heading", { name: "Samsara" })).toBeInTheDocument();
     expect(screen.getByText("Karmic Milestones")).toBeInTheDocument();
     expect(screen.getAllByText("Unbekannt").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /^M11 66 Sp$/ })).toBeInTheDocument();
     expect(screen.getByText("More Threads")).toBeInTheDocument();
   });
 

@@ -548,7 +548,7 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Karmic Milestones</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–10 sind durch Screenshots belegt.",
+            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–11 sind durch Screenshots belegt.",
           )}
         </p>
         <div className="mt-4 overflow-x-auto">
@@ -567,7 +567,9 @@ export function SamsaraWorld10() {
                   <td className="pr-3 font-mono">
                     {milestone.cost === null ? tr("Unbekannt") : fmtSuffix(milestone.cost)}
                   </td>
-                  <td>{milestone.bonuses.join(" · ")}</td>
+                  <td>
+                    {milestone.bonuses.length > 0 ? milestone.bonuses.join(" · ") : tr("Unbekannt")}
+                  </td>
                 </tr>
               ))}
             </tbody>

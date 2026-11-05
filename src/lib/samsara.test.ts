@@ -34,6 +34,8 @@ describe("Samsara World 10 cost models", () => {
     expect(SAMSARA_MILESTONES[7].cost).toBe(220e15);
     expect(SAMSARA_MILESTONES[8].cost).toBe(2.4e21);
     expect(SAMSARA_MILESTONES[9].cost).toBe(4.7e21);
+    expect(SAMSARA_MILESTONES[10].cost).toBe(66e24);
+    expect(SAMSARA_MILESTONES[10].bonuses).toEqual([]);
     expect(SAMSARA_MILESTONES.every((milestone) => milestone.cost !== null)).toBe(true);
   });
 });

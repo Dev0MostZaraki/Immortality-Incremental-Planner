@@ -131,6 +131,7 @@ export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
     bonuses: ["×100 Ashes", "×3 Threads", "×1SxDc Qi"],
     status: "observed",
   },
+  { id: 11, cost: 66e24, bonuses: [], status: "observed" },
 ] as const;
 
 export type KarmicPath = {
