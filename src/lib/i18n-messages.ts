@@ -637,20 +637,16 @@ export const messages = {
   "Freischaltung bei Milestone 2 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.": "Unlocked at milestone 2 · 10K Ashes per roll · progress persists through resets.",
   "Weitere Boni": "Other bonuses",
   "Beobachtete Chance": "Observed chance",
-  "Chancen sind eine Momentaufnahme; Luck-, Bulk-, Speed- und Clone-Formeln sind unbekannt.": "Chances are one observed snapshot; Luck, Bulk, Speed and Clone formulas are unknown.",
+  "Persönliche Copies und effektive Chancen werden nicht angezeigt. Base MPS ist der feste Wert aus der Kartenanzeige; fehlende Werte bleiben unbekannt.":
+    "Personal copies and effective chances are not shown. Base MPS is the fixed value from the card display; missing values remain unknown.",
   "Roll-Kosten": "Roll cost",
   "Reset ab 500K im Run verdienten Ashes. Die exakte Thread-Ertragsformel ist unbekannt.": "Reset after earning 500K Ashes in the run. The exact Thread yield formula is unknown.",
   "Effekt pro Level": "Effect per level",
   "Bleibt erhalten": "Persists",
   "Wird zurückgesetzt": "Resets",
   "Freischaltung und Boni sind unbekannt.": "Unlock condition and bonuses are unknown.",
-  "Werte aus dem Spielstand eines Freundes. In der Kartenanzeige steht links vom Strich die aktuelle Chance mit den dortigen Luck-, Bulk- und Speed-Werten; in Klammern steht der benötigte Base-MPS-Wert. Es sind Momentaufnahmen, keine bestätigte Formel; die Freischaltung ist noch unbekannt.":
-    "Values from a friend's game state. On each card, the value left of the separator is the current chance with that account's Luck, Bulk and Speed; the value in parentheses is the required base MPS. These are snapshots, not a confirmed formula; the unlock condition is still unknown.",
-  "Kopien": "Copies",
-  "Path-Menü-Chance": "Path menu chance",
-  "Aktuelle Kartenchance": "Current card chance",
-  "Benötigte Base MPS": "Required base MPS",
-  "Geöffnet": "Opened",
+  "Gezeigt werden nur die festen Base-MPS-Werte und Boni aus der Kartenanzeige. Persönliche Copies, Stats, MAX-Status und effektive Chancen sind bewusst weggelassen; die Freischaltung ist noch unbekannt.":
+    "Only the fixed base MPS values and bonuses from the card display are shown. Personal copies, stats, MAX status and effective chances are intentionally omitted; the unlock condition is still unknown.",
   "Die angezeigten Ashes pro Angriff enthalten bereits freigeschaltete Milestone- und Path-Boni; sie werden nicht erneut multipliziert.": "The displayed Ashes per attack already include unlocked milestone and Path bonuses; they are not multiplied again.",
   "Soul-Threads-Resets sind nicht Teil der Route, solange ihre Ertragsformel unbekannt ist. Punch-Speed-Produktion bleibt wegen der gerundeten Cooldown-Anzeige eine Näherung.": "Soul Threads resets are excluded from the route while their yield formula remains unknown. Punch Speed production remains an approximation because the displayed cooldown is rounded.",
 } as const;

@@ -591,27 +591,22 @@ export function SamsaraWorld10() {
               <thead className="text-left text-xs text-muted-foreground">
                 <tr>
                   <th className="py-2 pr-3">Path</th>
-                  <th className="pr-3">{tr("Kopien")}</th>
                   <th className="pr-3">Ashes</th>
                   <th className="pr-3">{tr("Weitere Boni")}</th>
-                  <th>{tr("Beobachtete Chance")}</th>
+                  <th>Base MPS</th>
                 </tr>
               </thead>
               <tbody>
                 {KARMIC_PATHS.map((path) => (
                   <tr key={path.name} className="border-t">
-                    <td className="py-3 pr-3">
-                      {path.name}
-                      {path.maxed && <span className="ml-2 text-xs text-success">MAX</span>}
-                    </td>
-                    <td className="pr-3 font-mono">
-                      {path.observedCopies === null ? "–" : path.observedCopies}
-                    </td>
+                    <td className="py-3 pr-3">{path.name}</td>
                     <td className="pr-3 font-mono">
                       {path.ashes === null ? tr("Unbekannt") : `×${path.ashes}`}
                     </td>
                     <td className="pr-3">{path.other.join(" · ") || tr("Unbekannt")}</td>
-                    <td className="font-mono text-xs">{path.observedChance}</td>
+                    <td className="font-mono text-xs">
+                      {path.baseMps === null ? tr("Unbekannt") : path.baseMps}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -620,7 +615,7 @@ export function SamsaraWorld10() {
           <Hint>
             <AlertTriangle className="inline size-4" />{" "}
             {tr(
-              "Chancen sind eine Momentaufnahme; Luck-, Bulk-, Speed- und Clone-Formeln sind unbekannt.",
+              "Persönliche Copies und effektive Chancen werden nicht angezeigt. Base MPS ist der feste Wert aus der Kartenanzeige; fehlende Werte bleiben unbekannt.",
             )}
           </Hint>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -678,64 +673,36 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Thread Mark</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Werte aus dem Spielstand eines Freundes. In der Kartenanzeige steht links vom Strich die aktuelle Chance mit den dortigen Luck-, Bulk- und Speed-Werten; in Klammern steht der benötigte Base-MPS-Wert. Es sind Momentaufnahmen, keine bestätigte Formel; die Freischaltung ist noch unbekannt.",
+            "Gezeigt werden nur die festen Base-MPS-Werte und Boni aus der Kartenanzeige. Persönliche Copies, Stats, MAX-Status und effektive Chancen sind bewusst weggelassen; die Freischaltung ist noch unbekannt.",
           )}
         </p>
-        <div className="mt-4 grid gap-2 text-xs sm:grid-cols-4 lg:grid-cols-7">
-          <span>
-            <span className="block text-muted-foreground">{tr("Roll-Kosten")}</span>
-            <strong className="font-mono">{fmtSuffix(THREADS_PATH.rollCost)} Threads</strong>
-          </span>
-          <span>
-            <span className="block text-muted-foreground">{tr("Geöffnet")}</span>
-            <strong className="font-mono">{THREADS_PATH.observedSetup.opened}</strong>
-          </span>
-          <span>
-            <span className="block text-muted-foreground">MPS</span>
-            <strong className="font-mono">{THREADS_PATH.observedSetup.mps}</strong>
-          </span>
-          <span>
-            <span className="block text-muted-foreground">Luck</span>
-            <strong className="font-mono">{THREADS_PATH.observedSetup.luck}</strong>
-          </span>
-          <span>
-            <span className="block text-muted-foreground">Bulk</span>
-            <strong className="font-mono">{THREADS_PATH.observedSetup.bulk}</strong>
-          </span>
-          <span>
-            <span className="block text-muted-foreground">Speed</span>
-            <strong className="font-mono">{THREADS_PATH.observedSetup.speed}</strong>
-          </span>
-          <span>
-            <span className="block text-muted-foreground">Clones</span>
-            <strong className="font-mono">{THREADS_PATH.observedSetup.clones}</strong>
-          </span>
-        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          {tr("Roll-Kosten")}:{" "}
+          <strong className="font-mono">{fmtSuffix(THREADS_PATH.rollCost)} Threads</strong> {"·"}{" "}
+          <a
+            className="underline underline-offset-2 hover:text-foreground"
+            href="https://astral3nt.github.io/Immortality-Incremental-Hub/mark_calc.html"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Mark Calculator
+          </a>
+        </p>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[72rem] text-sm">
+          <table className="w-full min-w-[42rem] text-sm">
             <thead className="text-left text-xs text-muted-foreground">
               <tr>
                 <th className="py-2 pr-3">Mark</th>
-                <th className="pr-3">{tr("Kopien")}</th>
-                <th className="pr-3">{tr("Path-Menü-Chance")}</th>
-                <th className="pr-3">{tr("Aktuelle Kartenchance")}</th>
-                <th className="pr-3">{tr("Benötigte Base MPS")}</th>
-                <th className="pr-3">{tr("Boni")}</th>
-                <th>Status</th>
+                <th className="pr-3">Base MPS</th>
+                <th>{tr("Boni")}</th>
               </tr>
             </thead>
             <tbody>
               {THREAD_MARKS.map((mark) => (
                 <tr key={mark.name} className="border-t align-top">
                   <td className="py-3 pr-3 font-medium">{mark.name}</td>
-                  <td className="pr-3 font-mono">{mark.observedCopies}</td>
-                  <td className="pr-3 font-mono text-xs">{mark.pathChance}</td>
-                  <td className="pr-3 font-mono text-xs">{mark.currentChance}</td>
-                  <td className="pr-3 font-mono text-xs">{mark.requiredBaseMps}</td>
-                  <td className="pr-3">{mark.bonuses.join(" · ")}</td>
-                  <td className={mark.maxed ? "text-success" : "text-muted-foreground"}>
-                    {mark.maxed ? "MAX" : mark.note}
-                  </td>
+                  <td className="pr-3 font-mono text-xs">{mark.baseMps}</td>
+                  <td>{mark.bonuses.join(" · ")}</td>
                 </tr>
               ))}
             </tbody>

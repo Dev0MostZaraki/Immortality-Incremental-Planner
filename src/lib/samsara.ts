@@ -161,76 +161,58 @@ export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
 
 export type KarmicPath = {
   name: string;
-  observedCopies: string | null;
   ashes: number | null;
   other: readonly string[];
-  maxed: boolean;
-  observedChance: string;
+  baseMps: string | null;
 };
 export const KARMIC_PATHS: readonly KarmicPath[] = [
   {
     name: "Ember",
-    observedCopies: null,
     ashes: 1.5,
     other: ["×100Oc Qi"],
-    maxed: true,
-    observedChance: "1 / 1.79",
+    baseMps: null,
   },
   {
     name: "Cinder",
-    observedCopies: null,
     ashes: 2,
     other: ["×10Qa Qi", "×1.5 Dao Path Speed"],
-    maxed: true,
-    observedChance: "1 / 3.29",
+    baseMps: null,
   },
   {
     name: "Smoulder",
-    observedCopies: null,
     ashes: 2.5,
     other: ["×10B Qi", "×2 Dao Path Luck"],
-    maxed: true,
-    observedChance: "1 / 7.29",
+    baseMps: null,
   },
   {
     name: "Pyre",
-    observedCopies: null,
     ashes: 3,
     other: ["×10T Qi", "×5 Luck", "×2 Dao Path Bulk"],
-    maxed: true,
-    observedChance: "1 / 1.11K",
+    baseMps: null,
   },
   {
     name: "Wraithflame",
-    observedCopies: "67.75M",
     ashes: 4,
     other: ["×10B Qi", "×2.5 Dao Path Luck"],
-    maxed: true,
-    observedChance: "1 / 30.07B | (1 / 3.8Qn)",
+    baseMps: "1 / 3.8Qn",
   },
   {
     name: "Soulbrand",
-    observedCopies: "319.28K",
     ashes: 5,
     other: ["×10B Qi", "×2 Soul Threads"],
-    maxed: true,
-    observedChance: "1 / 6.38T | (1 / 810Qn)",
+    baseMps: "1 / 810Qn",
   },
   {
     name: "Pyreheart",
-    observedCopies: null,
     ashes: null,
     other: [],
-    maxed: false,
-    observedChance: "1 / 18.4Sp",
+    baseMps: null,
   },
   {
     name: "Karmic Inferno",
-    observedCopies: null,
     ashes: null,
     other: [],
-    maxed: false,
-    observedChance: "1 / 85.96Sp",
+    baseMps: null,
   },
 ] as const;
 export const KARMIC_PATH_ROLL_COST = 10e3;
@@ -326,109 +308,56 @@ export const SOUL_THREAD_RESET = {
 } as const;
 export type ThreadMark = {
   name: string;
-  observedCopies: string;
-  pathChance: string;
-  currentChance: string;
-  requiredBaseMps: string;
+  baseMps: string;
   bonuses: readonly string[];
-  maxed: boolean;
-  note: string | null;
 };
 
 export const THREAD_MARKS: readonly ThreadMark[] = [
   {
     name: "Strand",
-    observedCopies: "310.08M",
-    pathChance: "1 / 1.16",
-    currentChance: "IMPOSSIBLE",
-    requiredBaseMps: "1 / 1",
+    baseMps: "1 / 1",
     bonuses: ["×1Spd Qi", "×1.5 Soul Threads"],
-    maxed: true,
-    note: null,
   },
   {
     name: "Weft",
-    observedCopies: "273.35K",
-    pathChance: "1 / 10.23",
-    currentChance: "IMPOSSIBLE",
-    requiredBaseMps: "1 / 470M",
+    baseMps: "1 / 470M",
     bonuses: ["×233.82Ocgaa Qi", "×1.94 Karmic Ashes"],
-    maxed: false,
-    note: "5M copies to max",
   },
   {
     name: "Loom",
-    observedCopies: "212.57M",
-    pathChance: "1 / 39.08",
-    currentChance: "IMPOSSIBLE",
-    requiredBaseMps: "1 / 1.7B",
+    baseMps: "1 / 1.7B",
     bonuses: ["×1Qa Qi", "×2 Dao Path Speed", "×2 Soul Threads"],
-    maxed: true,
-    note: null,
   },
   {
     name: "Spindle",
-    observedCopies: "18.22B",
-    pathChance: "1 / 124.67",
-    currentChance: "63.53%",
-    requiredBaseMps: "1 / 5.4B",
+    baseMps: "1 / 5.4B",
     bonuses: ["×1Sp Qi", "×2 Dao Path Bulk", "×2.5 Dao Path Luck"],
-    maxed: true,
-    note: null,
   },
   {
     name: "Tapestry",
-    observedCopies: "9.98B",
-    pathChance: "1 / 280.01",
-    currentChance: "34.88%",
-    requiredBaseMps: "1 / 17B",
+    baseMps: "1 / 17B",
     bonuses: ["×10 Karmic Ashes", "×2.5 Soul Threads", "^1.004 Qi"],
-    maxed: true,
-    note: null,
   },
   {
     name: "Fateknot",
-    observedCopies: "454.98M",
-    pathChance: "1 / 6.14K",
-    currentChance: "1.59%",
-    requiredBaseMps: "1 / 390B",
+    baseMps: "1 / 390B",
     bonuses: ["×100T Qi", "×10 Luck", "×3 Soul Threads"],
-    maxed: true,
-    note: null,
   },
   {
     name: "Red String",
-    observedCopies: "100",
-    pathChance: "1 / 33.11B",
-    currentChance: "1 / 339.09M",
-    requiredBaseMps: "1 / 2.1Qn",
+    baseMps: "1 / 2.1Qn",
     bonuses: ["×25 Karmic Ashes", "^1.004 Qi"],
-    maxed: true,
-    note: null,
   },
   {
     name: "Weaver's End",
-    observedCopies: "15",
-    pathChance: "1 / 33.08T",
-    currentChance: "1 / 338.75B",
-    requiredBaseMps: "1 / 2.1Sx",
+    baseMps: "1 / 2.1Sx",
     bonuses: ["×5 Soul Threads", "^1.0015 Qi"],
-    maxed: true,
-    note: null,
   },
 ] as const;
 
 export const THREADS_PATH = {
   rollCost: 170e12,
   unlock: null,
-  observedSetup: {
-    opened: 0,
-    mps: "5.5Qa",
-    luck: "×63.48M",
-    bulk: "143.65M",
-    speed: "38.31M/s",
-    clones: 5,
-  },
 } as const;
 
 export type PurchaseComparison = {

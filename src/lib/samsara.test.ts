@@ -46,27 +46,19 @@ describe("Samsara World 10 cost models", () => {
     expect(SAMSARA_MILESTONES.slice(12).every((milestone) => milestone.cost === null)).toBe(true);
     expect(SAMSARA_MILESTONES[15].bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
   });
-  it("keeps the observed late Karmic Path and Thread Mark data as screenshots show it", () => {
+  it("keeps only standard base values and bonuses for Karmic Path and Thread Mark", () => {
     expect(KARMIC_PATHS.find((path) => path.name === "Wraithflame")).toMatchObject({
       ashes: 4,
-      maxed: true,
-      observedCopies: "67.75M",
-      observedChance: "1 / 30.07B | (1 / 3.8Qn)",
+      baseMps: "1 / 3.8Qn",
     });
     expect(KARMIC_PATHS.find((path) => path.name === "Soulbrand")).toMatchObject({
       ashes: 5,
-      maxed: true,
-      observedCopies: "319.28K",
-      observedChance: "1 / 6.38T | (1 / 810Qn)",
+      baseMps: "1 / 810Qn",
     });
     expect(THREADS_PATH.rollCost).toBe(170e12);
     expect(THREAD_MARKS).toHaveLength(8);
     expect(THREAD_MARKS.find((mark) => mark.name === "Weft")).toMatchObject({
-      observedCopies: "273.35K",
-      pathChance: "1 / 10.23",
-      currentChance: "IMPOSSIBLE",
-      requiredBaseMps: "1 / 470M",
-      maxed: false,
+      baseMps: "1 / 470M",
     });
     expect(THREAD_MARKS.find((mark) => mark.name === "Weaver's End")?.bonuses).toEqual([
       "×5 Soul Threads",
