@@ -631,7 +631,8 @@ export const messages = {
   "Direkt auf das Ziel sparen": "Save directly for the target",
   "Finale Produktion": "Final production",
   "Käufe geprüft": "Purchases",
-  "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten von Milestone 10 sind unbekannt.": "Milestones persist through a Soul Threads reset; buying one resets nothing. The cost of milestone 10 is unknown.",
+  "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–10 sind durch Screenshots belegt.":
+    "Milestones persist through a Soul Threads reset; buying one resets nothing. Costs 1–10 are supported by screenshots.",
   "Boni": "Bonuses",
   "Freischaltung bei Milestone 2 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.": "Unlocked at milestone 2 · 10K Ashes per roll · progress persists through resets.",
   "Weitere Boni": "Other bonuses",

@@ -13,7 +13,7 @@ const mount = () =>
 describe("Samsara World 10 module", () => {
   beforeEach(() => localStorage.clear());
 
-  it("shows verified data and explicitly marks unknown milestone costs", () => {
+  it("shows verified data and explicitly marks unknown mechanics", () => {
     mount();
     expect(screen.getByRole("heading", { name: "Samsara" })).toBeInTheDocument();
     expect(screen.getByText("Karmic Milestones")).toBeInTheDocument();
