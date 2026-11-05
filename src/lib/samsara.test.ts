@@ -34,17 +34,22 @@ describe("Samsara World 10 cost models", () => {
     expect(karmicUpgradeEffect("punchSpeed", 25)).toBeCloseTo(10.8347, 3);
   });
   it("includes all observed milestone costs", () => {
-    expect(SAMSARA_MILESTONES[7].cost).toBe(220e15);
-    expect(SAMSARA_MILESTONES[8].cost).toBe(2.4e21);
-    expect(SAMSARA_MILESTONES[9].cost).toBe(4.7e21);
-    expect(SAMSARA_MILESTONES[10].cost).toBe(66e24);
-    expect(SAMSARA_MILESTONES[10].bonuses).toEqual(["×50 Ashes", "×2 Path Luck", "^1.0018 Qi"]);
-    expect(SAMSARA_MILESTONES[11].cost).toBe(2.2e27);
-    expect(SAMSARA_MILESTONES.slice(0, 12).every((milestone) => milestone.cost !== null)).toBe(
-      true,
-    );
-    expect(SAMSARA_MILESTONES.slice(12).every((milestone) => milestone.cost === null)).toBe(true);
-    expect(SAMSARA_MILESTONES[15].bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
+    const milestone = (id: number) => SAMSARA_MILESTONES.find((entry) => entry.id === id)!;
+    expect(SAMSARA_MILESTONES.map((entry) => entry.id)).toEqual([
+      2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+    ]);
+    expect(milestone(9).cost).toBe(220e15);
+    expect(milestone(10).cost).toBe(2.4e21);
+    expect(milestone(11).cost).toBe(4.7e21);
+    expect(milestone(12).cost).toBe(66e24);
+    expect(milestone(12).bonuses).toEqual(["×50 Ashes", "×2 Path Luck", "^1.0018 Qi"]);
+    expect(milestone(13).cost).toBe(2.2e27);
+    expect(milestone(14).cost).toBe(5.3e27);
+    expect(milestone(15).cost).toBe(4.1e30);
+    expect(milestone(16).cost).toBe(39e30);
+    expect(SAMSARA_MILESTONES.slice(0, -1).every((entry) => entry.cost !== null)).toBe(true);
+    expect(milestone(17).cost).toBeNull();
+    expect(milestone(17).bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
   });
   it("keeps only standard base values and bonuses for Karmic Path and Thread Mark", () => {
     expect(KARMIC_PATHS.find((path) => path.name === "Wraithflame")).toMatchObject({

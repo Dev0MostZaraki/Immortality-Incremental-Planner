@@ -18,8 +18,12 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByRole("heading", { name: "Samsara" })).toBeInTheDocument();
     expect(screen.getByText("Karmic Milestones")).toBeInTheDocument();
     expect(screen.getAllByText("Unbekannt").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /^M11 66 Sp$/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^M12 2,2 Oc$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M11 4,7 Sx$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M12 66 Sp$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M13 2,2 Oc$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M14 5,3 Oc$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M15 4,1 No$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M16 39 No$/ })).toBeInTheDocument();
     expect(screen.getByText("More Threads")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Thread Mark" })).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader", { name: "Base MPS" })).toHaveLength(2);
@@ -38,7 +42,7 @@ describe("Samsara World 10 module", () => {
       target: { value: "" },
     });
     fireEvent.change(screen.getByLabelText("Cooldown (Sekunden)"), { target: { value: "1" } });
-    fireEvent.click(screen.getByRole("button", { name: /^M1 4 K$/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^M2 4 K$/ }));
     expect(screen.getByTestId("samsara-route")).toBeInTheDocument();
     expect(screen.getAllByText("Für dieses Ziel kaufen").length).toBeGreaterThan(0);
   });
@@ -76,9 +80,9 @@ describe("Samsara World 10 module", () => {
     fireEvent.change(screen.getByLabelText("Punch Speed Aktuelles Level"), {
       target: { value: "25" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /M8 220 Qa/i }));
+    fireEvent.click(screen.getByRole("button", { name: /M9 220 Qa/i }));
     expect(screen.getByTestId("samsara-recommendation")).toHaveTextContent(
-      "Direkt für Milestone 8 sparen",
+      "Direkt für Milestone 9 sparen",
     );
     expect(screen.queryByText("Bester einzelner Kauf")).not.toBeInTheDocument();
   });
@@ -109,12 +113,12 @@ describe("Samsara World 10 module", () => {
     fireEvent.change(screen.getByLabelText("Punch Speed Aktuelles Level"), {
       target: { value: "25" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /M9 2,4 Sx/i }));
+    fireEvent.click(screen.getByRole("button", { name: /M10 2,4 Sx/i }));
 
     expect(screen.getByTestId("samsara-next-purchase-time")).toHaveTextContent(/^6 Minuten/);
     expect(screen.getByTestId("samsara-total-target-time")).toHaveTextContent(/^1 Stunde/);
     expect(screen.getByTestId("samsara-recommendation")).toHaveTextContent(
-      "Die Gesamtzeit bezieht sich auf das Endziel M9 · 2,4 Sx, nicht auf den Kaufpreis.",
+      "Die Gesamtzeit bezieht sich auf das Endziel M10 · 2,4 Sx, nicht auf den Kaufpreis.",
     );
   });
 });

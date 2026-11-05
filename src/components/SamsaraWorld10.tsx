@@ -549,7 +549,7 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Karmic Milestones</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–12 und die Boni 1–16 sind durch Screenshots belegt.",
+            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten M2–M16 und Boni M2–M17 sind belegt. Für M1 ist kein separater Kaufwert belegt.",
           )}
         </p>
         <div className="mt-4 overflow-x-auto">
@@ -583,7 +583,7 @@ export function SamsaraWorld10() {
           <h3 className="text-lg font-semibold">Karmic Path</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
-              "Freischaltung bei Milestone 2 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.",
+              "Freischaltung bei Milestone 3 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.",
             )}
           </p>
           <div className="mt-4 overflow-x-auto">

@@ -631,10 +631,10 @@ export const messages = {
   "Direkt auf das Ziel sparen": "Save directly for the target",
   "Finale Produktion": "Final production",
   "Käufe geprüft": "Purchases",
-  "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–12 und die Boni 1–16 sind durch Screenshots belegt.":
-    "Milestones persist through a Soul Threads reset; buying one resets nothing. Costs 1–12 and bonuses 1–16 are supported by screenshots.",
+  "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten M2–M16 und Boni M2–M17 sind belegt. Für M1 ist kein separater Kaufwert belegt.":
+    "Milestones persist through a Soul Threads reset; buying one resets nothing. Costs M2–M16 and bonuses M2–M17 are supported by evidence. No separate purchase value is supported for M1.",
   "Boni": "Bonuses",
-  "Freischaltung bei Milestone 2 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.": "Unlocked at milestone 2 · 10K Ashes per roll · progress persists through resets.",
+  "Freischaltung bei Milestone 3 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.": "Unlocked at milestone 3 · 10K Ashes per roll · progress persists through resets.",
   "Weitere Boni": "Other bonuses",
   "Beobachtete Chance": "Observed chance",
   "Persönliche Copies und effektive Chancen werden nicht angezeigt. Base MPS ist der feste Wert aus der Kartenanzeige; fehlende Werte bleiben unbekannt.":
