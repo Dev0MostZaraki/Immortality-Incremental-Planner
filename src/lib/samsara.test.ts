@@ -6,9 +6,15 @@ import {
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
+  measuredAshesPerSecond,
   SAMSARA_MILESTONES,
 } from "./samsara";
 describe("Samsara World 10 cost models", () => {
+  it("derives production from observed balances without using ATK Speed", () => {
+    expect(measuredAshesPerSecond(17.6e12, 17.67e12, 10)).toBe(7e9);
+    expect(measuredAshesPerSecond(100, 90, 10)).toBeNull();
+    expect(measuredAshesPerSecond(100, 110, 0)).toBeNull();
+  });
   it("reproduces every displayed cost anchor within UI rounding", () => {
     for (const anchor of KARMIC_COST_ANCHORS) {
       const modeled = karmicUpgradeCost(anchor.upgrade, anchor.level)!;

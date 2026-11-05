@@ -8,6 +8,8 @@ export type SamsaraState = {
   currentAshes: NU;
   ashesGain: NU;
   targetAshes: NU;
+  measurementStart: NU;
+  measurementSeconds: number;
   previewCount: number;
   maxRoutePurchases: number;
 };
@@ -17,6 +19,8 @@ export const SAMSARA_DEFAULTS: SamsaraState = {
   currentAshes: { v: "", u: "B" },
   ashesGain: { v: "", u: "M" },
   targetAshes: { v: "", u: "M" },
+  measurementStart: { v: "", u: "B" },
+  measurementSeconds: 30,
   previewCount: 3,
   maxRoutePurchases: 5,
 };
@@ -47,7 +51,7 @@ export function restoreSamsara(raw: unknown): SamsaraState {
     row["selected"] === "punchSpeed"
   )
     restored.selected = row["selected"];
-  for (const key of ["currentAshes", "ashesGain", "targetAshes"] as const)
+  for (const key of ["currentAshes", "ashesGain", "targetAshes", "measurementStart"] as const)
     if (isNU(row[key])) restored[key] = row[key];
   if (row["levels"] && typeof row["levels"] === "object")
     for (const [id, maximum] of [
@@ -59,6 +63,13 @@ export function restoreSamsara(raw: unknown): SamsaraState {
       if (typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= maximum)
         restored.levels[id] = value;
     }
+  if (
+    typeof row["measurementSeconds"] === "number" &&
+    Number.isFinite(row["measurementSeconds"]) &&
+    row["measurementSeconds"] >= 1 &&
+    row["measurementSeconds"] <= 3600
+  )
+    restored.measurementSeconds = row["measurementSeconds"];
   if (
     typeof row["previewCount"] === "number" &&
     Number.isInteger(row["previewCount"]) &&

@@ -274,6 +274,23 @@ export type PurchaseComparison = {
   payback: number;
   recommendation: "buy" | "skip" | "target-reached";
 };
+
+/** Derives a real production rate from two observed balances without assuming game internals. */
+export function measuredAshesPerSecond(
+  startAshes: number,
+  endAshes: number,
+  elapsedSeconds: number,
+): number | null {
+  if (
+    ![startAshes, endAshes, elapsedSeconds].every(Number.isFinite) ||
+    startAshes < 0 ||
+    endAshes < startAshes ||
+    elapsedSeconds <= 0
+  )
+    return null;
+  return (endAshes - startAshes) / elapsedSeconds;
+}
+
 export function compareSamsaraPurchase(input: {
   currentAshes: number;
   ashesPerSecond: number;
