@@ -24,9 +24,10 @@ describe("Samsara World 10 cost models", () => {
     expect(karmicUpgradeEffect("moreAshes", 16)).toBeCloseTo(656.8408, 3);
     expect(karmicUpgradeEffect("punchSpeed", 25)).toBeCloseTo(10.8347, 3);
   });
-  it("keeps unknown milestone costs unknown", () => {
-    expect(SAMSARA_MILESTONES.slice(0, 7).every((m) => m.cost !== null)).toBe(true);
-    expect(SAMSARA_MILESTONES.slice(7).every((m) => m.cost === null)).toBe(true);
+  it("includes the observed milestone 8 cost and keeps later costs unknown", () => {
+    expect(SAMSARA_MILESTONES[7].cost).toBe(220e15);
+    expect(SAMSARA_MILESTONES.slice(0, 8).every((m) => m.cost !== null)).toBe(true);
+    expect(SAMSARA_MILESTONES.slice(8).every((m) => m.cost === null)).toBe(true);
   });
 });
 describe("Samsara purchase comparison and routes", () => {

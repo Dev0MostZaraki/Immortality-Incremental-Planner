@@ -118,7 +118,7 @@ export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
     bonuses: ["×2 Threads", "×3 Path Luck", "×10 Luck", "×10B Qi"],
     status: "verified",
   },
-  { id: 8, cost: null, bonuses: ["×25 Ashes", "^1.0005 Qi"], status: "observed" },
+  { id: 8, cost: 220e15, bonuses: ["×25 Ashes", "^1.0005 Qi"], status: "observed" },
   { id: 9, cost: null, bonuses: ["×5 Threads", "×2 Path Speed", "×100Oc Qi"], status: "observed" },
   { id: 10, cost: null, bonuses: ["×100 Ashes", "×3 Threads", "×1SxDc Qi"], status: "observed" },
 ] as const;
