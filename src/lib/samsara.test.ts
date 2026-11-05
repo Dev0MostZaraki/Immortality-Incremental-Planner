@@ -64,6 +64,8 @@ describe("Samsara World 10 cost models", () => {
     expect(THREAD_MARKS.find((mark) => mark.name === "Weft")).toMatchObject({
       observedCopies: "273.35K",
       pathChance: "1 / 10.23",
+      currentChance: "IMPOSSIBLE",
+      requiredBaseMps: "1 / 470M",
       maxed: false,
     });
     expect(THREAD_MARKS.find((mark) => mark.name === "Weaver's End")?.bonuses).toEqual([

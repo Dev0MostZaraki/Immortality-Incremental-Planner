@@ -22,6 +22,8 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByRole("button", { name: /^M12 2,2 Oc$/ })).toBeInTheDocument();
     expect(screen.getByText("More Threads")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Thread Mark" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Aktuelle Kartenchance" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Benötigte Base MPS" })).toBeInTheDocument();
     expect(screen.getByText("×5 Soul Threads · ^1.0015 Qi")).toBeInTheDocument();
   });
 

@@ -328,7 +328,8 @@ export type ThreadMark = {
   name: string;
   observedCopies: string;
   pathChance: string;
-  cardChance: string;
+  currentChance: string;
+  requiredBaseMps: string;
   bonuses: readonly string[];
   maxed: boolean;
   note: string | null;
@@ -339,7 +340,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Strand",
     observedCopies: "310.08M",
     pathChance: "1 / 1.16",
-    cardChance: "IMPOSSIBLE | (1 / 1)",
+    currentChance: "IMPOSSIBLE",
+    requiredBaseMps: "1 / 1",
     bonuses: ["×1Spd Qi", "×1.5 Soul Threads"],
     maxed: true,
     note: null,
@@ -348,7 +350,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Weft",
     observedCopies: "273.35K",
     pathChance: "1 / 10.23",
-    cardChance: "IMPOSSIBLE | (1 / 470M)",
+    currentChance: "IMPOSSIBLE",
+    requiredBaseMps: "1 / 470M",
     bonuses: ["×233.82Ocgaa Qi", "×1.94 Karmic Ashes"],
     maxed: false,
     note: "5M copies to max",
@@ -357,7 +360,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Loom",
     observedCopies: "212.57M",
     pathChance: "1 / 39.08",
-    cardChance: "IMPOSSIBLE | (1 / 1.7B)",
+    currentChance: "IMPOSSIBLE",
+    requiredBaseMps: "1 / 1.7B",
     bonuses: ["×1Qa Qi", "×2 Dao Path Speed", "×2 Soul Threads"],
     maxed: true,
     note: null,
@@ -366,7 +370,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Spindle",
     observedCopies: "18.22B",
     pathChance: "1 / 124.67",
-    cardChance: "63.53% | (1 / 5.4B)",
+    currentChance: "63.53%",
+    requiredBaseMps: "1 / 5.4B",
     bonuses: ["×1Sp Qi", "×2 Dao Path Bulk", "×2.5 Dao Path Luck"],
     maxed: true,
     note: null,
@@ -375,7 +380,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Tapestry",
     observedCopies: "9.98B",
     pathChance: "1 / 280.01",
-    cardChance: "34.88% | (1 / 17B)",
+    currentChance: "34.88%",
+    requiredBaseMps: "1 / 17B",
     bonuses: ["×10 Karmic Ashes", "×2.5 Soul Threads", "^1.004 Qi"],
     maxed: true,
     note: null,
@@ -384,7 +390,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Fateknot",
     observedCopies: "454.98M",
     pathChance: "1 / 6.14K",
-    cardChance: "1.59% | (1 / 390B)",
+    currentChance: "1.59%",
+    requiredBaseMps: "1 / 390B",
     bonuses: ["×100T Qi", "×10 Luck", "×3 Soul Threads"],
     maxed: true,
     note: null,
@@ -393,7 +400,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Red String",
     observedCopies: "100",
     pathChance: "1 / 33.11B",
-    cardChance: "1 / 339.09M | (1 / 2.1Qn)",
+    currentChance: "1 / 339.09M",
+    requiredBaseMps: "1 / 2.1Qn",
     bonuses: ["×25 Karmic Ashes", "^1.004 Qi"],
     maxed: true,
     note: null,
@@ -402,7 +410,8 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     name: "Weaver's End",
     observedCopies: "15",
     pathChance: "1 / 33.08T",
-    cardChance: "1 / 338.75B | (1 / 2.1Sx)",
+    currentChance: "1 / 338.75B",
+    requiredBaseMps: "1 / 2.1Sx",
     bonuses: ["×5 Soul Threads", "^1.0015 Qi"],
     maxed: true,
     note: null,

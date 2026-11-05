@@ -644,11 +644,12 @@ export const messages = {
   "Bleibt erhalten": "Persists",
   "Wird zurückgesetzt": "Resets",
   "Freischaltung und Boni sind unbekannt.": "Unlock condition and bonuses are unknown.",
-  "Werte aus dem Spielstand eines Freundes. Chancen sind Momentaufnahmen und keine bestätigte Formel; die Freischaltung ist noch unbekannt.":
-    "Values from a friend's game state. Chances are snapshots, not a confirmed formula; the unlock condition is still unknown.",
+  "Werte aus dem Spielstand eines Freundes. In der Kartenanzeige steht links vom Strich die aktuelle Chance mit den dortigen Luck-, Bulk- und Speed-Werten; in Klammern steht der benötigte Base-MPS-Wert. Es sind Momentaufnahmen, keine bestätigte Formel; die Freischaltung ist noch unbekannt.":
+    "Values from a friend's game state. On each card, the value left of the separator is the current chance with that account's Luck, Bulk and Speed; the value in parentheses is the required base MPS. These are snapshots, not a confirmed formula; the unlock condition is still unknown.",
   "Kopien": "Copies",
-  "Path-Chance": "Path chance",
-  "Kartenanzeige": "Card display",
+  "Path-Menü-Chance": "Path menu chance",
+  "Aktuelle Kartenchance": "Current card chance",
+  "Benötigte Base MPS": "Required base MPS",
   "Geöffnet": "Opened",
   "Die angezeigten Ashes pro Angriff enthalten bereits freigeschaltete Milestone- und Path-Boni; sie werden nicht erneut multipliziert.": "The displayed Ashes per attack already include unlocked milestone and Path bonuses; they are not multiplied again.",
   "Soul-Threads-Resets sind nicht Teil der Route, solange ihre Ertragsformel unbekannt ist. Punch-Speed-Produktion bleibt wegen der gerundeten Cooldown-Anzeige eine Näherung.": "Soul Threads resets are excluded from the route while their yield formula remains unknown. Punch Speed production remains an approximation because the displayed cooldown is rounded.",

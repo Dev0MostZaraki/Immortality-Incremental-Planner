@@ -678,7 +678,7 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Thread Mark</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Werte aus dem Spielstand eines Freundes. Chancen sind Momentaufnahmen und keine bestätigte Formel; die Freischaltung ist noch unbekannt.",
+            "Werte aus dem Spielstand eines Freundes. In der Kartenanzeige steht links vom Strich die aktuelle Chance mit den dortigen Luck-, Bulk- und Speed-Werten; in Klammern steht der benötigte Base-MPS-Wert. Es sind Momentaufnahmen, keine bestätigte Formel; die Freischaltung ist noch unbekannt.",
           )}
         </p>
         <div className="mt-4 grid gap-2 text-xs sm:grid-cols-4 lg:grid-cols-7">
@@ -712,13 +712,14 @@ export function SamsaraWorld10() {
           </span>
         </div>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[64rem] text-sm">
+          <table className="w-full min-w-[72rem] text-sm">
             <thead className="text-left text-xs text-muted-foreground">
               <tr>
                 <th className="py-2 pr-3">Mark</th>
                 <th className="pr-3">{tr("Kopien")}</th>
-                <th className="pr-3">{tr("Path-Chance")}</th>
-                <th className="pr-3">{tr("Kartenanzeige")}</th>
+                <th className="pr-3">{tr("Path-Menü-Chance")}</th>
+                <th className="pr-3">{tr("Aktuelle Kartenchance")}</th>
+                <th className="pr-3">{tr("Benötigte Base MPS")}</th>
                 <th className="pr-3">{tr("Boni")}</th>
                 <th>Status</th>
               </tr>
@@ -729,7 +730,8 @@ export function SamsaraWorld10() {
                   <td className="py-3 pr-3 font-medium">{mark.name}</td>
                   <td className="pr-3 font-mono">{mark.observedCopies}</td>
                   <td className="pr-3 font-mono text-xs">{mark.pathChance}</td>
-                  <td className="pr-3 font-mono text-xs">{mark.cardChance}</td>
+                  <td className="pr-3 font-mono text-xs">{mark.currentChance}</td>
+                  <td className="pr-3 font-mono text-xs">{mark.requiredBaseMps}</td>
                   <td className="pr-3">{mark.bonuses.join(" · ")}</td>
                   <td className={mark.maxed ? "text-success" : "text-muted-foreground"}>
                     {mark.maxed ? "MAX" : mark.note}
