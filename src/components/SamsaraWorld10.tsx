@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Flame, Gauge, RotateCcw } from "lucide-react";
 import { Button } from "./ui/button";
 import { UnitField, val, type NU } from "./planner-fields";
 import { useI18n } from "./LanguageProvider";
@@ -84,9 +84,6 @@ export function SamsaraWorld10() {
         return { upgrade, level, cost, result };
       })
     : [];
-  const bestSingle = comparisons
-    .filter((row) => row.result)
-    .sort((a, b) => (a.result?.withPurchase ?? Infinity) - (b.result?.withPurchase ?? Infinity))[0];
   const route = useMemo(
     () =>
       ready
@@ -100,29 +97,62 @@ export function SamsaraWorld10() {
         : null,
     [ashes, gain, ready, state.levels, state.maxRoutePurchases, target],
   );
+  const targetMilestone =
+      target === null
+        ? undefined
+        : SAMSARA_MILESTONES.find(
+            (milestone) =>
+              milestone.cost !== null &&
+              Math.abs(milestone.cost - target) <= Math.max(1, milestone.cost * 1e-9),
+          ),
+    firstPurchase = route?.purchases[0],
+    firstUpgrade = firstPurchase
+      ? KARMIC_UPGRADES.find((upgrade) => upgrade.id === firstPurchase.id)
+      : undefined,
+    remaining = target === null ? null : Math.max(0, target - ashes),
+    recommendationState = !ready
+      ? "incomplete"
+      : ashes >= target!
+        ? "reached"
+        : firstPurchase
+          ? "buy"
+          : "save";
 
   return (
-    <main className="space-y-6" data-testid="samsara-world10">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b pb-4">
-        <div>
-          <p className="section-label">WORLD 10</p>
-          <h2 className="text-2xl font-semibold">Samsara</h2>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            {tr(
-              "Karmic Ashes, Milestones, Karmic Path und Soul Threads – bestätigte Werte und klar markierte offene Mechaniken.",
-            )}
-          </p>
+    <main className="samsara-theme space-y-6" data-testid="samsara-world10">
+      <header className="samsara-hero">
+        <div className="relative z-10 flex items-start gap-4">
+          <span className="samsara-hero-icon" aria-hidden="true">
+            <Flame />
+          </span>
+          <div>
+            <p className="samsara-eyebrow">WORLD 10 · KARMIC ASHES</p>
+            <h2 className="samsara-title">Samsara</h2>
+            <p className="mt-2 max-w-3xl text-sm text-[#d9b8a6]">
+              {tr("Dein World-10-Fahrplan – vom Spielwert zur nächsten Kaufentscheidung.")}
+            </p>
+            <p className="mt-1 max-w-3xl text-xs text-[#a98f84]">
+              {tr(
+                "Karmic Ashes, Milestones, Karmic Path und Soul Threads – bestätigte Werte und klar markierte offene Mechaniken.",
+              )}
+            </p>
+          </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setState(SAMSARA_DEFAULTS)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="samsara-reset relative z-10"
+          onClick={() => setState(SAMSARA_DEFAULTS)}
+        >
           <RotateCcw />
           {tr("Samsara-Eingaben zurücksetzen")}
         </Button>
-      </div>
+      </header>
 
-      <section className="panel p-4 sm:p-5" aria-labelledby="samsara-calculator-title">
+      <section className="samsara-panel p-4 sm:p-6" aria-labelledby="samsara-calculator-title">
         <div className="mb-4">
           <h3 id="samsara-calculator-title" className="text-lg font-semibold">
-            {tr("Upgrade-Rechner und Kaufvergleich")}
+            {tr("Dein Ashes-Plan")}
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
@@ -130,7 +160,12 @@ export function SamsaraWorld10() {
             )}
           </p>
         </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <StepHeader
+          number="1"
+          title={tr("Spielwerte eintragen")}
+          description={tr("Diese drei Werte werden dir direkt im Spiel angezeigt.")}
+        />
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
           <Field
             label={tr("Aktuelle Karmic Ashes")}
             id="samsara-current"
@@ -161,35 +196,20 @@ export function SamsaraWorld10() {
               </span>
             </div>
           </div>
-          <Field
-            label={tr("Ziel / Milestone-Kosten")}
-            id="samsara-target"
-            value={state.targetAshes}
-            onChange={(value) => set("targetAshes", value)}
-          />
         </div>
-        <div className="mt-3 rounded-md border bg-secondary/20 px-4 py-3">
-          <span className="text-xs text-muted-foreground">{tr("Berechnete Produktion")}</span>
-          <strong className="ml-2 font-mono" data-testid="samsara-rate">
-            {gain === null ? "–" : `${fmtSuffix(gain)}/s`}
-          </strong>
+        <div className="samsara-rate-card mt-3">
+          <Gauge className="size-5" aria-hidden="true" />
+          <div>
+            <span className="block text-xs text-[#baa094]">{tr("Berechnete Produktion")}</span>
+            <strong className="font-mono text-lg text-[#f7e7dc]" data-testid="samsara-rate">
+              {gain === null ? "–" : `${fmtSuffix(gain)}/s`}
+            </strong>
+          </div>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
               "Die Rate wird automatisch aus Ashes pro Angriff ÷ Cooldown berechnet. Da der Cooldown im Spiel gerundet angezeigt wird, ist das Ergebnis eine Näherung.",
             )}
           </p>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2" aria-label={tr("Bekannte Milestone-Ziele")}>
-          {SAMSARA_MILESTONES.filter((milestone) => milestone.cost !== null).map((milestone) => (
-            <Button
-              key={milestone.id}
-              variant="outline"
-              size="sm"
-              onClick={() => set("targetAshes", asNU(milestone.cost!))}
-            >
-              M{milestone.id} · {fmtSuffix(milestone.cost!)}
-            </Button>
-          ))}
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           {tr(
@@ -197,19 +217,49 @@ export function SamsaraWorld10() {
           )}
         </p>
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        <StepHeader
+          number="2"
+          title={tr("Ziel auswählen")}
+          description={tr("Wähle einen Milestone oder gib ein eigenes Ashes-Ziel ein.")}
+        />
+        <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-end">
+          <div className="flex flex-wrap gap-2" aria-label={tr("Bekannte Milestone-Ziele")}>
+            {SAMSARA_MILESTONES.filter((milestone) => milestone.cost !== null).map((milestone) => (
+              <button
+                key={milestone.id}
+                type="button"
+                aria-pressed={targetMilestone?.id === milestone.id}
+                className="samsara-target-chip"
+                onClick={() => set("targetAshes", asNU(milestone.cost!))}
+              >
+                <span>M{milestone.id}</span>
+                <strong>{fmtSuffix(milestone.cost!)}</strong>
+              </button>
+            ))}
+          </div>
+          <Field
+            label={tr("Eigenes Ziel")}
+            id="samsara-target"
+            value={state.targetAshes}
+            onChange={(value) => set("targetAshes", value)}
+          />
+        </div>
+
+        <StepHeader
+          number="3"
+          title={tr("Aktuelle Upgrade-Level")}
+          description={tr("Trage die drei Level aus dem Karmic-Ashes-Shop ein.")}
+        />
+        <div className="mt-3 grid gap-3 lg:grid-cols-3">
           {KARMIC_UPGRADES.map((upgrade) => {
             const level = state.levels[upgrade.id],
               cost = karmicUpgradeCost(upgrade.id, level),
               effect = karmicUpgradeEffect(upgrade.id, level),
               next = karmicUpgradeEffect(upgrade.id, Math.min(upgrade.maxLevel, level + 1));
             return (
-              <button
+              <div
                 key={upgrade.id}
-                type="button"
-                aria-pressed={state.selected === upgrade.id}
-                onClick={() => set("selected", upgrade.id)}
-                className={`min-w-0 rounded-lg border p-4 text-left ${state.selected === upgrade.id ? "border-primary bg-accent/40" : "bg-card"}`}
+                className={`samsara-upgrade-card ${cost === null ? "is-maxed" : ""}`}
               >
                 <span className="flex items-center justify-between gap-2">
                   <strong>{upgrade.name}</strong>
@@ -223,7 +273,6 @@ export function SamsaraWorld10() {
                   min={0}
                   max={upgrade.maxLevel}
                   value={level}
-                  onClick={(event) => event.stopPropagation()}
                   onChange={(event) =>
                     set("levels", {
                       ...state.levels,
@@ -251,139 +300,226 @@ export function SamsaraWorld10() {
                     </span>
                   </span>
                 </span>
-              </button>
+              </div>
             );
           })}
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-          <div>
-            <label htmlFor="preview-count" className="mb-1 block text-xs font-medium">
-              {tr("Weitere Level zusammenrechnen")}
-            </label>
-            <input
-              id="preview-count"
-              type="number"
-              min={1}
-              max={10}
-              value={state.previewCount}
-              onChange={(event) =>
-                set("previewCount", Math.min(10, Math.max(1, Number(event.target.value) || 1)))
-              }
-              className="field w-full px-3 py-2 font-mono outline-none"
-            />
+        <section
+          className="samsara-recommendation mt-5"
+          data-state={recommendationState}
+          data-testid="samsara-recommendation"
+        >
+          <div className="samsara-recommendation-label">
+            <Flame className="size-4" />
+            {tr("Nächster bester Schritt")}
           </div>
-          <div className="rounded-md border px-4 py-2">
-            <span className="block text-xs text-muted-foreground">
-              {selected.name} · {previewCount} Lv.
-            </span>
-            <strong className="font-mono">
-              {previewCost === null ? "–" : fmtSuffix(previewCost)} Ashes
-            </strong>
-          </div>
-        </div>
-
-        {!ready ? (
-          <Hint>{tr("Produktionsrate und Ziel eintragen, um Käufe zu vergleichen.")}</Hint>
-        ) : (
-          <div className="mt-5 overflow-x-auto">
-            <table className="w-full min-w-[48rem] text-sm">
-              <thead className="text-left text-xs text-muted-foreground">
-                <tr>
-                  <th className="py-2 pr-3">Upgrade</th>
-                  <th className="pr-3">{tr("Kosten")}</th>
-                  <th className="pr-3">{tr("Zeit bis Kauf")}</th>
-                  <th className="pr-3">{tr("Amortisation")}</th>
-                  <th className="pr-3">{tr("Gesamtzeit bis Ziel")}</th>
-                  <th>{tr("Bewertung")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisons.map(({ upgrade, cost, result }) => (
-                  <tr key={upgrade.id} className="border-t">
-                    <td className="py-3 pr-3 font-medium">{upgrade.name}</td>
-                    <td className="pr-3 font-mono">{cost === null ? "MAX" : fmtSuffix(cost)}</td>
-                    <td className="pr-3 font-mono">
-                      {result ? naturalDuration(result.affordIn) : "–"}
-                    </td>
-                    <td className="pr-3 font-mono">
-                      {result ? naturalDuration(result.payback) : "–"}
-                    </td>
-                    <td className="pr-3 font-mono">
-                      {result ? naturalDuration(result.withPurchase) : "–"}
-                    </td>
-                    <td>
-                      {result?.recommendation === "buy" ? (
-                        <span className="text-success">{tr("Für dieses Ziel kaufen")}</span>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          {tr("Für dieses Ziel sparen")}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {bestSingle?.result && (
-              <p className="mt-3 border-l-2 border-primary pl-3 text-sm">
-                <strong>{tr("Bester einzelner Kauf")}:</strong> {bestSingle.upgrade.name} ·{" "}
-                {tr("Zeitersparnis")}: {naturalDuration(Math.max(0, bestSingle.result.saved))}
+          {recommendationState === "incomplete" && (
+            <>
+              <h4>{tr("Eingaben vervollständigen")}</h4>
+              <p>
+                {tr(
+                  "Trage aktuelle Ashes, Ashes pro Angriff, Cooldown, Upgrade-Level und ein Ziel ein.",
+                )}
               </p>
+            </>
+          )}
+          {recommendationState === "reached" && (
+            <>
+              <h4>{tr("Ziel erreicht")}</h4>
+              <p>{tr("Du hast bereits genug Karmic Ashes für dieses Ziel.")}</p>
+            </>
+          )}
+          {recommendationState === "save" && route && (
+            <>
+              <h4>
+                {targetMilestone
+                  ? tr("Direkt für Milestone {p0} sparen", { p0: targetMilestone.id })
+                  : tr("Direkt für dein Ziel sparen")}
+              </h4>
+              <p>{tr("Kein Upgrade spart auf dem Weg zu diesem Ziel Zeit.")}</p>
+            </>
+          )}
+          {recommendationState === "buy" && firstPurchase && firstUpgrade && (
+            <>
+              <h4 className="flex flex-wrap items-center gap-2">
+                {tr("Kaufen, sobald verfügbar")}
+                <ArrowRight className="size-5" aria-hidden="true" />
+                <span className="text-[#ffbe75]">
+                  {firstUpgrade.name} · Level {firstPurchase.level}
+                </span>
+              </h4>
+              <p>{tr("Dieser Kauf verkürzt die gesamte Zeit bis zu deinem gewählten Ziel.")}</p>
+            </>
+          )}
+          {ready && route && (
+            <div className="samsara-recommendation-stats">
+              <Stat label={tr("Aktueller Stand")} value={fmtSuffix(ashes)} />
+              <Stat
+                label={recommendationState === "buy" ? tr("Nächster Kauf") : tr("Noch benötigt")}
+                value={
+                  recommendationState === "buy" && firstPurchase
+                    ? fmtSuffix(firstPurchase.cost)
+                    : fmtSuffix(remaining ?? 0)
+                }
+              />
+              <Stat label={tr("Produktion")} value={`${fmtSuffix(gain)}/s`} />
+              <Stat label={tr("Voraussichtliche Zielzeit")} value={naturalDuration(route.total)} />
+            </div>
+          )}
+        </section>
+
+        <details className="samsara-details mt-5">
+          <summary>
+            <span>
+              <strong>{tr("Warum ist das der beste Schritt?")}</strong>
+              <small>{tr("Kaufvergleich, Mehrfachkosten und geprüfte Route anzeigen")}</small>
+            </span>
+          </summary>
+          <div className="border-t border-[#58372d] p-4 sm:p-5">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_8rem_auto] md:items-end">
+              <div>
+                <label htmlFor="preview-upgrade" className="mb-1 block text-xs font-medium">
+                  {tr("Upgrade für Mehrfachkosten")}
+                </label>
+                <select
+                  id="preview-upgrade"
+                  value={state.selected}
+                  onChange={(event) => set("selected", event.target.value as KarmicUpgradeId)}
+                  className="field w-full px-3 py-2.5 font-mono outline-none"
+                >
+                  {KARMIC_UPGRADES.map((upgrade) => (
+                    <option key={upgrade.id} value={upgrade.id}>
+                      {upgrade.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="preview-count" className="mb-1 block text-xs font-medium">
+                  {tr("Weitere Level")}
+                </label>
+                <input
+                  id="preview-count"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={state.previewCount}
+                  onChange={(event) =>
+                    set("previewCount", Math.min(10, Math.max(1, Number(event.target.value) || 1)))
+                  }
+                  className="field w-full px-3 py-2 font-mono outline-none"
+                />
+              </div>
+              <div className="rounded-md border border-[#58372d] bg-black/20 px-4 py-2">
+                <span className="block text-xs text-muted-foreground">
+                  {selected.name} · {previewCount} Lv.
+                </span>
+                <strong className="font-mono">
+                  {previewCost === null ? "–" : fmtSuffix(previewCost)} Ashes
+                </strong>
+              </div>
+            </div>
+
+            {!ready ? (
+              <Hint>{tr("Produktionsrate und Ziel eintragen, um Käufe zu vergleichen.")}</Hint>
+            ) : (
+              <div className="mt-5 overflow-x-auto">
+                <table className="w-full min-w-[48rem] text-sm">
+                  <thead className="text-left text-xs text-muted-foreground">
+                    <tr>
+                      <th className="py-2 pr-3">Upgrade</th>
+                      <th className="pr-3">{tr("Kosten")}</th>
+                      <th className="pr-3">{tr("Zeit bis Kauf")}</th>
+                      <th className="pr-3">{tr("Amortisation")}</th>
+                      <th className="pr-3">{tr("Gesamtzeit bis Ziel")}</th>
+                      <th>{tr("Bewertung")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparisons.map(({ upgrade, cost, result }) => (
+                      <tr key={upgrade.id} className="border-t">
+                        <td className="py-3 pr-3 font-medium">{upgrade.name}</td>
+                        <td className="pr-3 font-mono">
+                          {cost === null ? "MAX" : fmtSuffix(cost)}
+                        </td>
+                        <td className="pr-3 font-mono">
+                          {result ? naturalDuration(result.affordIn) : "–"}
+                        </td>
+                        <td className="pr-3 font-mono">
+                          {result ? naturalDuration(result.payback) : "–"}
+                        </td>
+                        <td className="pr-3 font-mono">
+                          {result ? naturalDuration(result.withPurchase) : "–"}
+                        </td>
+                        <td>
+                          {result?.recommendation === "buy" ? (
+                            <span className="text-success">{tr("Für dieses Ziel kaufen")}</span>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {tr("Für dieses Ziel sparen")}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {route && (
+              <div className="result-panel mt-5 p-4" data-testid="samsara-route">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="font-semibold">{tr("Beste geprüfte Kaufroute")}</h4>
+                  <label className="text-xs text-muted-foreground">
+                    {tr("Max. Käufe")}{" "}
+                    <input
+                      type="number"
+                      min={0}
+                      max={8}
+                      value={state.maxRoutePurchases}
+                      onChange={(event) =>
+                        set(
+                          "maxRoutePurchases",
+                          Math.min(8, Math.max(0, Number(event.target.value) || 0)),
+                        )
+                      }
+                      className="field ml-2 w-16 px-2 py-1 font-mono"
+                    />
+                  </label>
+                </div>
+                <p className="mt-2 text-sm">
+                  {route.purchases.length
+                    ? route.purchases
+                        .map(
+                          (purchase) =>
+                            `${KARMIC_UPGRADES.find((upgrade) => upgrade.id === purchase.id)?.name} ${purchase.level}`,
+                        )
+                        .join(" → ")
+                    : tr("Direkt auf das Ziel sparen")}
+                </p>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+                  <Stat label={tr("Gesamtzeit")} value={naturalDuration(route.total)} />
+                  <Stat label={tr("Finale Produktion")} value={`${fmtSuffix(route.finalGain)}/s`} />
+                  <Stat label={tr("Käufe geprüft")} value={String(route.purchases.length)} />
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {tr(
+                    "Soul-Threads-Resets sind nicht Teil der Route, solange ihre Ertragsformel unbekannt ist. Punch-Speed-Produktion bleibt wegen der gerundeten Cooldown-Anzeige eine Näherung.",
+                  )}
+                </p>
+              </div>
             )}
           </div>
-        )}
-
-        {route && (
-          <div className="result-panel mt-5 p-4" data-testid="samsara-route">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="font-semibold">{tr("Beste geprüfte Kaufroute")}</h4>
-              <label className="text-xs text-muted-foreground">
-                {tr("Max. Käufe")}{" "}
-                <input
-                  type="number"
-                  min={0}
-                  max={8}
-                  value={state.maxRoutePurchases}
-                  onChange={(event) =>
-                    set(
-                      "maxRoutePurchases",
-                      Math.min(8, Math.max(0, Number(event.target.value) || 0)),
-                    )
-                  }
-                  className="field ml-2 w-16 px-2 py-1 font-mono"
-                />
-              </label>
-            </div>
-            <p className="mt-2 text-sm">
-              {route.purchases.length
-                ? route.purchases
-                    .map(
-                      (purchase) =>
-                        `${KARMIC_UPGRADES.find((upgrade) => upgrade.id === purchase.id)?.name} ${purchase.level}`,
-                    )
-                    .join(" → ")
-                : tr("Direkt auf das Ziel sparen")}
-            </p>
-            <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
-              <Stat label={tr("Gesamtzeit")} value={naturalDuration(route.total)} />
-              <Stat label={tr("Finale Produktion")} value={`${fmtSuffix(route.finalGain)}/s`} />
-              <Stat label={tr("Käufe geprüft")} value={String(route.purchases.length)} />
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              {tr(
-                "Soul-Threads-Resets sind nicht Teil der Route, solange ihre Ertragsformel unbekannt ist. Punch-Speed-Produktion bleibt wegen der gerundeten Cooldown-Anzeige eine Näherung.",
-              )}
-            </p>
-          </div>
-        )}
+        </details>
       </section>
 
-      <section className="panel p-4 sm:p-5">
+      <section className="samsara-panel p-4 sm:p-5">
         <h3 className="text-lg font-semibold">Karmic Milestones</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten 9–10 sind unbekannt.",
+            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten von Milestone 10 sind unbekannt.",
           )}
         </p>
         <div className="mt-4 overflow-x-auto">
@@ -411,7 +547,7 @@ export function SamsaraWorld10() {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-2">
-        <article className="panel p-4 sm:p-5">
+        <article className="samsara-panel p-4 sm:p-5">
           <h3 className="text-lg font-semibold">Karmic Path</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
@@ -456,7 +592,7 @@ export function SamsaraWorld10() {
           </p>
         </article>
 
-        <article className="panel p-4 sm:p-5">
+        <article className="samsara-panel p-4 sm:p-5">
           <h3 className="text-lg font-semibold">Soul Threads</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
@@ -547,6 +683,25 @@ function Field({
         suffix={suffix}
         hideLabel
       />
+    </div>
+  );
+}
+function StepHeader({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="samsara-step-header mt-6 first:mt-0">
+      <span>{number}</span>
+      <div>
+        <h4>{title}</h4>
+        <p>{description}</p>
+      </div>
     </div>
   );
 }

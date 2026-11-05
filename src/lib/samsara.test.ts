@@ -11,10 +11,7 @@ import {
 } from "./samsara";
 describe("Samsara World 10 cost models", () => {
   it("derives production from the displayed Ashes and cooldown", () => {
-    expect(ashesPerSecondFromCooldown(24.16e12, 0.09)).toBeCloseTo(
-      268_444_444_444_444.44,
-      -1,
-    );
+    expect(ashesPerSecondFromCooldown(24.16e12, 0.09)).toBeCloseTo(268_444_444_444_444.44, -1);
     expect(ashesPerSecondFromCooldown(100, 0)).toBeNull();
     expect(ashesPerSecondFromCooldown(-1, 1)).toBeNull();
   });
@@ -33,10 +30,11 @@ describe("Samsara World 10 cost models", () => {
     expect(karmicUpgradeEffect("moreAshes", 16)).toBeCloseTo(656.8408, 3);
     expect(karmicUpgradeEffect("punchSpeed", 25)).toBeCloseTo(10.8347, 3);
   });
-  it("includes the observed milestone 8 cost and keeps later costs unknown", () => {
+  it("includes the observed milestone 8 and 9 costs and keeps later costs unknown", () => {
     expect(SAMSARA_MILESTONES[7].cost).toBe(220e15);
-    expect(SAMSARA_MILESTONES.slice(0, 8).every((m) => m.cost !== null)).toBe(true);
-    expect(SAMSARA_MILESTONES.slice(8).every((m) => m.cost === null)).toBe(true);
+    expect(SAMSARA_MILESTONES[8].cost).toBe(2.4e21);
+    expect(SAMSARA_MILESTONES.slice(0, 9).every((m) => m.cost !== null)).toBe(true);
+    expect(SAMSARA_MILESTONES.slice(9).every((m) => m.cost === null)).toBe(true);
   });
 });
 describe("Samsara purchase comparison and routes", () => {

@@ -31,7 +31,7 @@ describe("Samsara World 10 module", () => {
       target: { value: "" },
     });
     fireEvent.change(screen.getByLabelText("Cooldown (Sekunden)"), { target: { value: "1" } });
-    fireEvent.click(screen.getByRole("button", { name: /^M1 ·/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^M1 4 K$/ }));
     expect(screen.getByTestId("samsara-route")).toBeInTheDocument();
     expect(screen.getAllByText("Für dieses Ziel kaufen").length).toBeGreaterThan(0);
   });
@@ -44,5 +44,35 @@ describe("Samsara World 10 module", () => {
     });
     expect(screen.getByTestId("samsara-rate")).not.toHaveTextContent("–");
     expect(screen.queryByText("Ashes-Rate messen (empfohlen)")).not.toBeInTheDocument();
+  });
+
+  it("surfaces one clear next step instead of competing recommendations", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), {
+      target: { value: "215" },
+    });
+    fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes Einheit"), {
+      target: { value: "Qa" },
+    });
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff"), {
+      target: { value: "24.16" },
+    });
+    fireEvent.change(screen.getByLabelText("Cooldown (Sekunden)"), {
+      target: { value: "0.09" },
+    });
+    fireEvent.change(screen.getByLabelText("Ashes Boost Aktuelles Level"), {
+      target: { value: "50" },
+    });
+    fireEvent.change(screen.getByLabelText("More Ashes Aktuelles Level"), {
+      target: { value: "20" },
+    });
+    fireEvent.change(screen.getByLabelText("Punch Speed Aktuelles Level"), {
+      target: { value: "25" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /M8 220 Qa/i }));
+    expect(screen.getByTestId("samsara-recommendation")).toHaveTextContent(
+      "Direkt für Milestone 8 sparen",
+    );
+    expect(screen.queryByText("Bester einzelner Kauf")).not.toBeInTheDocument();
   });
 });
