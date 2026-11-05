@@ -737,6 +737,10 @@ export const messages = {
   "Käufe geprüft": "Purchases",
   "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten M2–M16 und Boni M2–M17 sind belegt. Für M1 ist kein separater Kaufwert belegt.":
     "Milestones persist through a Soul Threads reset; buying one resets nothing. Costs M2–M16 and bonuses M2–M17 are supported by evidence. No separate purchase value is supported for M1.",
+  "Auf dem Spielbrett stehen die bereits aktiven Boni. Der Button darunter zeigt den Kaufpreis des nächsten Milestones.":
+    "The game board lists bonuses that are already active. The button below shows the purchase price of the next milestone.",
+  Kaufpreis: "Purchase price",
+  "Bonus nach dem Kauf": "Bonus after purchase",
   Boni: "Bonuses",
   "Freischaltung bei Milestone 3 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.":
     "Unlocked at milestone 3 · 10K Ashes per roll · progress persists through resets.",

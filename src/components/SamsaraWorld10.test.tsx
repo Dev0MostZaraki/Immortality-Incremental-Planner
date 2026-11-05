@@ -17,6 +17,13 @@ describe("Samsara World 10 module", () => {
     mount();
     expect(screen.getByRole("heading", { name: "Samsara" })).toBeInTheDocument();
     expect(screen.getByText("Karmic Milestones")).toBeInTheDocument();
+    expect(screen.getByText("Kaufpreis")).toBeInTheDocument();
+    expect(screen.getByText("Bonus nach dem Kauf")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Auf dem Spielbrett stehen die bereits aktiven Boni. Der Button darunter zeigt den Kaufpreis des nächsten Milestones.",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("Unbekannt").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /^M11 4,7 Sx$/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^M12 66 Sp$/ })).toBeInTheDocument();

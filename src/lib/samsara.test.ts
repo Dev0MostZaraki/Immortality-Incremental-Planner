@@ -55,6 +55,12 @@ describe("Samsara World 10 cost models", () => {
     expect(milestone(12).bonuses).toEqual(["×50 Ashes", "×2 Path Luck", "^1.0018 Qi"]);
     expect(milestone(13).cost).toBe(2.2e27);
     expect(milestone(14).cost).toBe(5.3e27);
+    expect(milestone(14).bonuses).toEqual([
+      "×100 Ashes",
+      "×3 Path Bulk",
+      "×3 Path Speed",
+      "^1.0005 Qi",
+    ]);
     expect(milestone(15).cost).toBe(4.1e30);
     expect(milestone(16).cost).toBe(39e30);
     expect(SAMSARA_MILESTONES.slice(0, -1).every((entry) => entry.cost !== null)).toBe(true);

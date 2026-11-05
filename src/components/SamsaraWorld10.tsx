@@ -649,13 +649,18 @@ export function SamsaraWorld10() {
             "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten M2–M16 und Boni M2–M17 sind belegt. Für M1 ist kein separater Kaufwert belegt.",
           )}
         </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {tr(
+            "Auf dem Spielbrett stehen die bereits aktiven Boni. Der Button darunter zeigt den Kaufpreis des nächsten Milestones.",
+          )}
+        </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[42rem] text-sm">
             <thead className="text-left text-xs text-muted-foreground">
               <tr>
                 <th className="py-2 pr-3">#</th>
-                <th className="pr-3">{tr("Kosten")}</th>
-                <th>{tr("Boni")}</th>
+                <th className="pr-3">{tr("Kaufpreis")}</th>
+                <th>{tr("Bonus nach dem Kauf")}</th>
               </tr>
             </thead>
             <tbody>
