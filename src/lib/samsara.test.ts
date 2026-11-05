@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  ashesRequiredForSoulThreads,
   ashesPerSecondFromCooldown,
   bestKarmicRoute,
   calculateMarkOutcome,
+  calculateSoulThreadYield,
   compareSamsaraPurchase,
   exactMarkProbability,
   KARMIC_COST_ANCHORS,
@@ -12,6 +14,8 @@ import {
   KARMIC_PATHS,
   SAMSARA_MILESTONES,
   SOUL_THREAD_COST_ANCHORS,
+  soulThreadBonusMultiplier,
+  soulThreadMilestoneMultiplier,
   soulThreadUpgradeEffect,
   soulThreadUpgradeCost,
   THREAD_MARKS,
@@ -97,6 +101,46 @@ describe("Samsara World 10 cost models", () => {
       const modeled = soulThreadUpgradeCost(anchor.upgrade, anchor.level)!;
       expect(Math.abs(modeled - anchor.displayed) / anchor.displayed).toBeLessThan(0.005);
     }
+  });
+  it("reproduces the video-observed Soul Threads reset sequence", () => {
+    expect(soulThreadMilestoneMultiplier(13)).toBe(90);
+    expect(soulThreadMilestoneMultiplier(14)).toBe(900);
+    expect(soulThreadBonusMultiplier(["soulbrand"])).toBe(2);
+
+    const oneHit = calculateSoulThreadYield({
+      runGeneratedAshes: 56.11e12,
+      moreThreadsLevel: 20,
+      nextMilestoneId: 14,
+      bonusIds: ["soulbrand"],
+    })!;
+    expect(oneHit.eligible).toBe(true);
+    expect(oneHit.totalMultiplier).toBeCloseTo(190.05 * 1800, -1);
+    expect(oneHit.pendingThreads).toBeCloseTo(3.62e9, -7);
+
+    const fourHits = calculateSoulThreadYield({
+      runGeneratedAshes: 224.45e12,
+      moreThreadsLevel: 20,
+      nextMilestoneId: 14,
+      bonusIds: ["soulbrand"],
+    })!;
+    expect(fourHits.pendingThreads).toBeCloseTo(7.25e9, -7);
+    expect(
+      ashesRequiredForSoulThreads({
+        targetThreads: 8.1e9,
+        moreThreadsLevel: 20,
+        nextMilestoneId: 14,
+        bonusIds: ["soulbrand"],
+      }),
+    ).toBeCloseTo(280.32e12, -10);
+  });
+  it("keeps the reset locked below 500K generated Ashes", () => {
+    const result = calculateSoulThreadYield({
+      runGeneratedAshes: 499_999,
+      moreThreadsLevel: 0,
+      nextMilestoneId: 2,
+    })!;
+    expect(result.eligible).toBe(false);
+    expect(result.pendingThreads).toBe(0);
   });
   it("reproduces the tiered Karmic and Threads Path chances", () => {
     const karmicRarities = KARMIC_PATHS.map((mark) => mark.baseRarity),

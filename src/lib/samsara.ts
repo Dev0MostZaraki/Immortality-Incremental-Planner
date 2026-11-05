@@ -371,11 +371,160 @@ export const SOUL_THREAD_COST_ANCHORS: readonly {
 ] as const;
 export const SOUL_THREAD_RESET = {
   minimumRunAshes: 500e3,
-  exactYieldFormula: null,
-  loses: ["Karmic Ashes", "regular Ashes upgrades"],
+  exactYieldFormula: "sqrt(runGeneratedAshes / 500000) × More Threads × active Thread bonuses",
+  yieldStatus: "observed" as const,
+  loses: ["Karmic Ashes", "Karmic Ashes upgrades"],
   keeps: ["Karmic Milestones", "Karmic Paths", "Soul Threads upgrades"],
-  observed: { existingThreads: 800, displayedYield: 518.48e3 },
+  observed: {
+    generatedAshes: [56.11e12, 112.22e12, 224.45e12, 280.55e12],
+    displayedYield: [3.62e9, 5.13e9, 7.25e9, 8.1e9],
+  },
 } as const;
+
+export type SoulThreadBonusId =
+  "soulbrand" | "strand" | "loom" | "tapestry" | "fateknot" | "weaversEnd";
+export type SoulThreadBonus = {
+  id: SoulThreadBonusId;
+  name: string;
+  source: "Karmic Path" | "Threads Path";
+  multiplier: number;
+  status: EvidenceStatus;
+};
+
+/** Displayed permanent Thread multipliers. Soulbrand is also isolated in the reset videos. */
+export const SOUL_THREAD_BONUSES: readonly SoulThreadBonus[] = [
+  {
+    id: "soulbrand",
+    name: "Soulbrand",
+    source: "Karmic Path",
+    multiplier: 2,
+    status: "observed",
+  },
+  {
+    id: "strand",
+    name: "Strand",
+    source: "Threads Path",
+    multiplier: 1.5,
+    status: "observed",
+  },
+  {
+    id: "loom",
+    name: "Loom",
+    source: "Threads Path",
+    multiplier: 2,
+    status: "observed",
+  },
+  {
+    id: "tapestry",
+    name: "Tapestry",
+    source: "Threads Path",
+    multiplier: 2.5,
+    status: "observed",
+  },
+  {
+    id: "fateknot",
+    name: "Fateknot",
+    source: "Threads Path",
+    multiplier: 3,
+    status: "observed",
+  },
+  {
+    id: "weaversEnd",
+    name: "Weaver's End",
+    source: "Threads Path",
+    multiplier: 5,
+    status: "observed",
+  },
+] as const;
+
+const MILESTONE_THREAD_MULTIPLIERS = [
+  { milestoneId: 6, multiplier: 3 },
+  { milestoneId: 8, multiplier: 2 },
+  { milestoneId: 10, multiplier: 5 },
+  { milestoneId: 11, multiplier: 3 },
+  { milestoneId: 13, multiplier: 10 },
+  { milestoneId: 15, multiplier: 25 },
+  { milestoneId: 17, multiplier: 100 },
+] as const;
+
+/** The board button buys nextMilestoneId, so only lower milestone IDs are already active. */
+export function soulThreadMilestoneMultiplier(nextMilestoneId: number): number | null {
+  if (!Number.isInteger(nextMilestoneId) || nextMilestoneId < 2 || nextMilestoneId > 18)
+    return null;
+  return MILESTONE_THREAD_MULTIPLIERS.filter((entry) => entry.milestoneId < nextMilestoneId).reduce(
+    (product, entry) => product * entry.multiplier,
+    1,
+  );
+}
+
+export function soulThreadBonusMultiplier(ids: readonly SoulThreadBonusId[]): number | null {
+  if (new Set(ids).size !== ids.length) return null;
+  let product = 1;
+  for (const id of ids) {
+    const bonus = SOUL_THREAD_BONUSES.find((entry) => entry.id === id);
+    if (!bonus) return null;
+    product *= bonus.multiplier;
+  }
+  return product;
+}
+
+export type SoulThreadYield = {
+  eligible: boolean;
+  baseThreads: number;
+  moreThreadsMultiplier: number;
+  milestoneMultiplier: number;
+  permanentMultiplier: number;
+  totalMultiplier: number;
+  pendingThreads: number;
+};
+
+export function calculateSoulThreadYield(input: {
+  runGeneratedAshes: number;
+  moreThreadsLevel: number;
+  nextMilestoneId: number;
+  bonusIds?: readonly SoulThreadBonusId[];
+}): SoulThreadYield | null {
+  const { runGeneratedAshes, moreThreadsLevel, nextMilestoneId } = input;
+  if (!Number.isFinite(runGeneratedAshes) || runGeneratedAshes < 0) return null;
+  const moreThreadsMultiplier = soulThreadUpgradeEffect("moreThreads", moreThreadsLevel),
+    milestoneMultiplier = soulThreadMilestoneMultiplier(nextMilestoneId),
+    permanentMultiplier = soulThreadBonusMultiplier(input.bonusIds ?? []);
+  if (
+    moreThreadsMultiplier === null ||
+    milestoneMultiplier === null ||
+    permanentMultiplier === null
+  )
+    return null;
+  const baseThreads = Math.sqrt(runGeneratedAshes / SOUL_THREAD_RESET.minimumRunAshes),
+    totalMultiplier = moreThreadsMultiplier * milestoneMultiplier * permanentMultiplier,
+    eligible = runGeneratedAshes >= SOUL_THREAD_RESET.minimumRunAshes;
+  return {
+    eligible,
+    baseThreads,
+    moreThreadsMultiplier,
+    milestoneMultiplier,
+    permanentMultiplier,
+    totalMultiplier,
+    pendingThreads: eligible ? baseThreads * totalMultiplier : 0,
+  };
+}
+
+export function ashesRequiredForSoulThreads(input: {
+  targetThreads: number;
+  moreThreadsLevel: number;
+  nextMilestoneId: number;
+  bonusIds?: readonly SoulThreadBonusId[];
+}): number | null {
+  const { targetThreads, ...multipliers } = input;
+  if (!Number.isFinite(targetThreads) || targetThreads < 0) return null;
+  const result = calculateSoulThreadYield({ ...multipliers, runGeneratedAshes: 0 });
+  if (!result || result.totalMultiplier <= 0) return null;
+  if (targetThreads === 0) return 0;
+  return Math.max(
+    SOUL_THREAD_RESET.minimumRunAshes,
+    (targetThreads / result.totalMultiplier) ** 2 * SOUL_THREAD_RESET.minimumRunAshes,
+  );
+}
 export type ThreadMark = {
   name: string;
   baseMps: string;

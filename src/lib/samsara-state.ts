@@ -4,6 +4,7 @@ import {
   SOUL_THREAD_UPGRADES,
   type KarmicUpgradeId,
   type MarkBoardId,
+  type SoulThreadBonusId,
   type SoulThreadUpgradeId,
 } from "./samsara";
 export const SAMSARA_KEY = "ii-samsara-world10-v1";
@@ -11,6 +12,10 @@ export type SamsaraState = {
   selected: KarmicUpgradeId;
   levels: Record<KarmicUpgradeId, number>;
   soulThreadLevels: Record<SoulThreadUpgradeId, number>;
+  soulThreadRunAshes: NU;
+  soulThreadTarget: NU;
+  soulThreadNextMilestone: number;
+  soulThreadBonuses: Record<SoulThreadBonusId, boolean>;
   currentAshes: NU;
   ashesPerAttack: NU;
   attackCooldown: string;
@@ -36,6 +41,17 @@ export const SAMSARA_DEFAULTS: SamsaraState = {
     pathLuck: 0,
     pathSpeed: 0,
     pathBulk: 0,
+  },
+  soulThreadRunAshes: { v: "", u: "T" },
+  soulThreadTarget: { v: "", u: "B" },
+  soulThreadNextMilestone: 14,
+  soulThreadBonuses: {
+    soulbrand: false,
+    strand: false,
+    loom: false,
+    tapestry: false,
+    fateknot: false,
+    weaversEnd: false,
   },
   currentAshes: { v: "", u: "B" },
   ashesPerAttack: { v: "", u: "T" },
@@ -75,6 +91,7 @@ export function restoreSamsara(raw: unknown): SamsaraState {
       ...SAMSARA_DEFAULTS,
       levels: { ...SAMSARA_DEFAULTS.levels },
       soulThreadLevels: { ...SAMSARA_DEFAULTS.soulThreadLevels },
+      soulThreadBonuses: { ...SAMSARA_DEFAULTS.soulThreadBonuses },
     };
   if (
     row["selected"] === "ashesBoost" ||
@@ -86,6 +103,8 @@ export function restoreSamsara(raw: unknown): SamsaraState {
     "currentAshes",
     "ashesPerAttack",
     "targetAshes",
+    "soulThreadRunAshes",
+    "soulThreadTarget",
     "markLuck",
     "markMps",
     "markCurrentCopies",
@@ -114,6 +133,25 @@ export function restoreSamsara(raw: unknown): SamsaraState {
         value <= upgrade.maxLevel
       )
         restored.soulThreadLevels[upgrade.id] = value;
+    }
+  if (
+    typeof row["soulThreadNextMilestone"] === "number" &&
+    Number.isInteger(row["soulThreadNextMilestone"]) &&
+    row["soulThreadNextMilestone"] >= 2 &&
+    row["soulThreadNextMilestone"] <= 18
+  )
+    restored.soulThreadNextMilestone = row["soulThreadNextMilestone"];
+  if (row["soulThreadBonuses"] && typeof row["soulThreadBonuses"] === "object")
+    for (const id of [
+      "soulbrand",
+      "strand",
+      "loom",
+      "tapestry",
+      "fateknot",
+      "weaversEnd",
+    ] as const) {
+      const value = (row["soulThreadBonuses"] as Record<string, unknown>)[id];
+      if (typeof value === "boolean") restored.soulThreadBonuses[id] = value;
     }
   if (
     typeof row["previewCount"] === "number" &&

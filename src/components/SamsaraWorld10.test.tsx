@@ -42,6 +42,29 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByText("251,76 T Th.")).toBeInTheDocument();
   });
 
+  it("calculates the video-validated Soul Threads reset yield", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Soul Threads More Threads Aktuelles Level"), {
+      target: { value: "20" },
+    });
+    fireEvent.change(screen.getByLabelText("Im Run erzeugte Ashes"), {
+      target: { value: "56.11" },
+    });
+    fireEvent.change(screen.getByLabelText("Im Run erzeugte Ashes Einheit"), {
+      target: { value: "T" },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: /Soulbrand/ }));
+    expect(screen.getByTestId("soul-thread-yield")).toHaveTextContent("3,62 B Threads");
+
+    fireEvent.change(screen.getByLabelText("Gewünschte Threads (optional)"), {
+      target: { value: "8.1" },
+    });
+    fireEvent.change(screen.getByLabelText("Gewünschte Threads (optional) Einheit"), {
+      target: { value: "B" },
+    });
+    expect(screen.getByTestId("soul-thread-required-ashes")).toHaveTextContent("280,32 T Ashes");
+  });
+
   it("calculates tiered Thread Mark chances from the displayed board values", () => {
     mount();
     fireEvent.change(screen.getByLabelText("Board"), { target: { value: "threads" } });
