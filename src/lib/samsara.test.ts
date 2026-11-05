@@ -8,7 +8,9 @@ import {
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
   KARMIC_PATHS,
+  observedSoulThreadNextCost,
   SAMSARA_MILESTONES,
+  soulThreadUpgradeEffect,
   THREAD_MARKS,
   THREADS_PATH,
 } from "./samsara";
@@ -80,6 +82,20 @@ describe("Samsara World 10 cost models", () => {
       "×5 Soul Threads",
       "^1.0015 Qi",
     ]);
+  });
+  it("reproduces the observed Soul Threads effects without assuming a cost formula", () => {
+    expect(soulThreadUpgradeEffect("moreThreads", 18)).toBeCloseTo(112.46, 2);
+    expect(soulThreadUpgradeEffect("moreThreads", 19)).toBeCloseTo(146.19, 2);
+    expect(soulThreadUpgradeEffect("ashesBoost", 18)).toBeCloseTo(1477.89, 1);
+    expect(soulThreadUpgradeEffect("luckBoost", 21)).toBeCloseTo(4987.89, 1);
+    expect(soulThreadUpgradeEffect("pathLuck", 17)).toBeCloseTo(44.41, 2);
+    expect(soulThreadUpgradeEffect("pathLuck", 18)).toBeCloseTo(55.51, 2);
+    expect(observedSoulThreadNextCost("moreThreads", 18)).toBe(251.76e12);
+    expect(observedSoulThreadNextCost("ashesBoost", 18)).toBe(151.06e12);
+    expect(observedSoulThreadNextCost("qiBoost", 22)).toBe(2.94e12);
+    expect(observedSoulThreadNextCost("luckBoost", 21)).toBe(2.91e12);
+    expect(observedSoulThreadNextCost("pathLuck", 17)).toBe(226.81e12);
+    expect(observedSoulThreadNextCost("moreThreads", 17)).toBeNull();
   });
 });
 describe("Samsara purchase comparison and routes", () => {

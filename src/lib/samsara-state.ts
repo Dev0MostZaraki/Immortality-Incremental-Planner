@@ -1,10 +1,11 @@
 import { SUFFIXES } from "./endurance";
 import type { NU } from "@/components/planner-fields";
-import type { KarmicUpgradeId } from "./samsara";
+import { SOUL_THREAD_UPGRADES, type KarmicUpgradeId, type SoulThreadUpgradeId } from "./samsara";
 export const SAMSARA_KEY = "ii-samsara-world10-v1";
 export type SamsaraState = {
   selected: KarmicUpgradeId;
   levels: Record<KarmicUpgradeId, number>;
+  soulThreadLevels: Record<SoulThreadUpgradeId, number>;
   currentAshes: NU;
   ashesPerAttack: NU;
   attackCooldown: string;
@@ -15,6 +16,15 @@ export type SamsaraState = {
 export const SAMSARA_DEFAULTS: SamsaraState = {
   selected: "ashesBoost",
   levels: { ashesBoost: 0, moreAshes: 0, punchSpeed: 0 },
+  soulThreadLevels: {
+    moreThreads: 0,
+    ashesBoost: 0,
+    qiBoost: 0,
+    luckBoost: 0,
+    pathLuck: 0,
+    pathSpeed: 0,
+    pathBulk: 0,
+  },
   currentAshes: { v: "", u: "B" },
   ashesPerAttack: { v: "", u: "T" },
   attackCooldown: "",
@@ -42,7 +52,11 @@ export function restoreSamsara(raw: unknown): SamsaraState {
   }
   if (!data || typeof data !== "object") return SAMSARA_DEFAULTS;
   const row = data as Record<string, unknown>,
-    restored = { ...SAMSARA_DEFAULTS, levels: { ...SAMSARA_DEFAULTS.levels } };
+    restored = {
+      ...SAMSARA_DEFAULTS,
+      levels: { ...SAMSARA_DEFAULTS.levels },
+      soulThreadLevels: { ...SAMSARA_DEFAULTS.soulThreadLevels },
+    };
   if (
     row["selected"] === "ashesBoost" ||
     row["selected"] === "moreAshes" ||
@@ -62,6 +76,17 @@ export function restoreSamsara(raw: unknown): SamsaraState {
       const value = (row["levels"] as Record<string, unknown>)[id];
       if (typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= maximum)
         restored.levels[id] = value;
+    }
+  if (row["soulThreadLevels"] && typeof row["soulThreadLevels"] === "object")
+    for (const upgrade of SOUL_THREAD_UPGRADES) {
+      const value = (row["soulThreadLevels"] as Record<string, unknown>)[upgrade.id];
+      if (
+        typeof value === "number" &&
+        Number.isInteger(value) &&
+        value >= 0 &&
+        value <= upgrade.maxLevel
+      )
+        restored.soulThreadLevels[upgrade.id] = value;
     }
   if (
     typeof row["previewCount"] === "number" &&

@@ -14,9 +14,11 @@ import {
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
+  observedSoulThreadNextCost,
   SAMSARA_MILESTONES,
   SOUL_THREAD_RESET,
   SOUL_THREAD_UPGRADES,
+  soulThreadUpgradeEffect,
   THREAD_MARKS,
   THREADS_PATH,
   type KarmicUpgradeId,
@@ -624,38 +626,93 @@ export function SamsaraWorld10() {
         </article>
 
         <article className="samsara-panel p-4 sm:p-5">
-          <h3 className="text-lg font-semibold">Soul Threads</h3>
+          <h3 className="text-lg font-semibold">Soul Threads Upgrades</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {tr(
+              "Trage deine Level aus dem Spiel ein. Die sicheren Multiplikatoren werden automatisch berechnet; die exakte Kostenformel ist noch unbekannt.",
+            )}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
               "Reset ab 500K im Run verdienten Ashes. Die exakte Thread-Ertragsformel ist unbekannt.",
             )}
           </p>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-sm">
-              <thead className="text-left text-xs text-muted-foreground">
-                <tr>
-                  <th className="py-2 pr-3">Upgrade</th>
-                  <th className="pr-3">Level</th>
-                  <th className="pr-3">{tr("Nächste Kosten")}</th>
-                  <th>{tr("Effekt pro Level")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {SOUL_THREAD_UPGRADES.map((upgrade) => (
-                  <tr key={upgrade.name} className="border-t">
-                    <td className="py-3 pr-3">{upgrade.name}</td>
-                    <td className="pr-3 font-mono">
-                      {upgrade.level}/{upgrade.maxLevel}
-                    </td>
-                    <td className="pr-3 font-mono">{fmtSuffix(upgrade.nextCost)}</td>
-                    <td>
-                      ×{fmtSuffix(upgrade.effectPerLevel)} {upgrade.effect}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {SOUL_THREAD_UPGRADES.map((upgrade) => {
+              const level = state.soulThreadLevels[upgrade.id],
+                currentEffect = soulThreadUpgradeEffect(upgrade.id, level),
+                nextEffect = soulThreadUpgradeEffect(
+                  upgrade.id,
+                  Math.min(upgrade.maxLevel, level + 1),
+                ),
+                nextCost = observedSoulThreadNextCost(upgrade.id, level),
+                maxed = level === upgrade.maxLevel;
+              return (
+                <div key={upgrade.id} className={`samsara-upgrade-card ${maxed ? "is-maxed" : ""}`}>
+                  <span className="flex items-center justify-between gap-2">
+                    <strong>{upgrade.name}</strong>
+                    <span className="text-xs text-muted-foreground">
+                      {level}/{upgrade.maxLevel}
+                    </span>
+                  </span>
+                  <label
+                    htmlFor={`soul-thread-${upgrade.id}`}
+                    className="mt-3 block text-xs text-muted-foreground"
+                  >
+                    {tr("Dein Level")}
+                  </label>
+                  <input
+                    id={`soul-thread-${upgrade.id}`}
+                    aria-label={`Soul Threads ${upgrade.name} ${tr("Aktuelles Level")}`}
+                    type="number"
+                    min={0}
+                    max={upgrade.maxLevel}
+                    value={level}
+                    onChange={(event) =>
+                      set("soulThreadLevels", {
+                        ...state.soulThreadLevels,
+                        [upgrade.id]: Math.min(
+                          upgrade.maxLevel,
+                          Math.max(0, Number(event.target.value) || 0),
+                        ),
+                      })
+                    }
+                    className="field mt-1 w-full px-3 py-2 font-mono outline-none"
+                  />
+                  <span className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                    <span>
+                      <span className="block text-muted-foreground">{tr("Aktueller Effekt")}</span>
+                      <strong className="font-mono">
+                        ×{fmtSuffix(currentEffect ?? 1, 2)} {upgrade.effect}
+                      </strong>
+                    </span>
+                    <span>
+                      <span className="block text-muted-foreground">{tr("Nächster Effekt")}</span>
+                      <strong className="font-mono">
+                        {maxed ? "MAX" : `×${fmtSuffix(nextEffect ?? 1, 2)}`}
+                      </strong>
+                    </span>
+                    <span>
+                      <span className="block text-muted-foreground">{tr("Nächste Kosten")}</span>
+                      <strong className="font-mono">
+                        {maxed
+                          ? "MAX"
+                          : nextCost === null
+                            ? tr("Unbekannt")
+                            : `${fmtSuffix(nextCost, 2)} Th.`}
+                      </strong>
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
+          <Hint>
+            <AlertTriangle className="inline size-4" />{" "}
+            {tr(
+              "Die Level sind persönliche, lokal gespeicherte Eingaben. Kaufkosten erscheinen nur für exakt beobachtete Level; fehlende Preise werden nicht geschätzt.",
+            )}
+          </Hint>
           <div className="mt-4 grid gap-2 text-xs sm:grid-cols-2">
             <p>
               <CheckCircle2 className="mr-1 inline size-4 text-success" />

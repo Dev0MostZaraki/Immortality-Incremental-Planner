@@ -32,6 +32,16 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByText("×5 Soul Threads · ^1.0015 Qi")).toBeInTheDocument();
   });
 
+  it("lets players enter their own Soul Threads upgrade levels", () => {
+    mount();
+    const level = screen.getByLabelText("Soul Threads More Threads Aktuelles Level");
+    fireEvent.change(level, { target: { value: "18" } });
+    expect(level).toHaveValue(18);
+    expect(screen.getByText("×112,46 Threads")).toBeInTheDocument();
+    expect(screen.getByText("×146,19")).toBeInTheDocument();
+    expect(screen.getByText("251,76 T Th.")).toBeInTheDocument();
+  });
+
   it("compares upgrades and creates a purchase route from player inputs", () => {
     mount();
     fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), { target: { value: "0" } });

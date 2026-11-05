@@ -217,11 +217,12 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
 ] as const;
 export const KARMIC_PATH_ROLL_COST = 10e3;
 
+export type SoulThreadUpgradeId =
+  "moreThreads" | "ashesBoost" | "qiBoost" | "luckBoost" | "pathLuck" | "pathSpeed" | "pathBulk";
 export type SoulThreadUpgrade = {
+  id: SoulThreadUpgradeId;
   name: string;
-  level: number;
   maxLevel: number;
-  nextCost: number;
   effectPerLevel: number;
   effect: string;
   baseCost: number | null;
@@ -229,76 +230,101 @@ export type SoulThreadUpgrade = {
 };
 export const SOUL_THREAD_UPGRADES: readonly SoulThreadUpgrade[] = [
   {
+    id: "moreThreads",
     name: "More Threads",
-    level: 9,
     maxLevel: 40,
-    nextCost: 1.57e6,
     effectPerLevel: 1.3,
     effect: "Threads",
     baseCost: 5,
     status: "observed",
   },
   {
+    id: "ashesBoost",
     name: "Ashes Boost",
-    level: 6,
     maxLevel: 50,
-    nextCost: 6.94e3,
     effectPerLevel: 1.5,
     effect: "Ashes",
     baseCost: 3,
     status: "observed",
   },
   {
+    id: "qiBoost",
     name: "Qi Boost",
-    level: 6,
     maxLevel: 30,
-    nextCost: 2.04e3,
     effectPerLevel: 1e3,
     effect: "Qi",
     baseCost: 10,
     status: "observed",
   },
   {
+    id: "luckBoost",
     name: "Luck Boost",
-    level: 5,
     maxLevel: 34,
-    nextCost: 943,
     effectPerLevel: 1.5,
     effect: "Breakthrough Luck",
     baseCost: null,
     status: "observed",
   },
   {
+    id: "pathLuck",
     name: "Path Luck",
-    level: 4,
     maxLevel: 20,
-    nextCost: 6.43e3,
     effectPerLevel: 1.25,
     effect: "Path Luck",
     baseCost: null,
     status: "observed",
   },
   {
+    id: "pathSpeed",
     name: "Path Speed",
-    level: 2,
     maxLevel: 15,
-    nextCost: 1.13e3,
     effectPerLevel: 1.2,
     effect: "Path Speed",
     baseCost: null,
     status: "observed",
   },
   {
+    id: "pathBulk",
     name: "Path Bulk",
-    level: 1,
     maxLevel: 15,
-    nextCost: 510,
     effectPerLevel: 1.2,
     effect: "Path Bulk",
     baseCost: null,
     status: "observed",
   },
 ] as const;
+
+export function soulThreadUpgradeEffect(id: SoulThreadUpgradeId, level: number): number | null {
+  const upgrade = SOUL_THREAD_UPGRADES.find((entry) => entry.id === id);
+  if (!upgrade || !Number.isInteger(level) || level < 0 || level > upgrade.maxLevel) return null;
+  return upgrade.effectPerLevel ** level;
+}
+
+export const SOUL_THREAD_COST_ANCHORS: readonly {
+  upgrade: SoulThreadUpgradeId;
+  level: number;
+  displayed: number;
+}[] = [
+  { upgrade: "moreThreads", level: 9, displayed: 1.57e6 },
+  { upgrade: "moreThreads", level: 18, displayed: 251.76e12 },
+  { upgrade: "ashesBoost", level: 6, displayed: 6.94e3 },
+  { upgrade: "ashesBoost", level: 18, displayed: 151.06e12 },
+  { upgrade: "qiBoost", level: 6, displayed: 2.04e3 },
+  { upgrade: "qiBoost", level: 22, displayed: 2.94e12 },
+  { upgrade: "luckBoost", level: 5, displayed: 943 },
+  { upgrade: "luckBoost", level: 21, displayed: 2.91e12 },
+  { upgrade: "pathLuck", level: 4, displayed: 6.43e3 },
+  { upgrade: "pathLuck", level: 17, displayed: 226.81e12 },
+  { upgrade: "pathSpeed", level: 2, displayed: 1.13e3 },
+  { upgrade: "pathBulk", level: 1, displayed: 510 },
+] as const;
+
+export function observedSoulThreadNextCost(id: SoulThreadUpgradeId, level: number): number | null {
+  return (
+    SOUL_THREAD_COST_ANCHORS.find((anchor) => anchor.upgrade === id && anchor.level === level)
+      ?.displayed ?? null
+  );
+}
 export const SOUL_THREAD_RESET = {
   minimumRunAshes: 500e3,
   exactYieldFormula: null,
