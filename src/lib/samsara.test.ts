@@ -52,6 +52,17 @@ describe("Samsara World 10 cost models", () => {
     expect(milestone(17).bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
   });
   it("keeps only standard base values and bonuses for Karmic Path and Thread Mark", () => {
+    expect(KARMIC_PATHS.map((path) => path.baseMps)).toEqual([
+      "1 / 1",
+      "1 / 1M",
+      "1 / 3.2M",
+      "1 / 490M",
+      "1 / 3.8Qn",
+      "1 / 810Qn",
+      "1 / 6.7No",
+      "1 / 3.8No",
+    ]);
+    expect(KARMIC_PATHS.find((path) => path.name === "Cinder")?.other).toContain("×100Qa Qi");
     expect(KARMIC_PATHS.find((path) => path.name === "Wraithflame")).toMatchObject({
       ashes: 4,
       baseMps: "1 / 3.8Qn",

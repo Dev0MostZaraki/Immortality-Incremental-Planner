@@ -170,25 +170,25 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     name: "Ember",
     ashes: 1.5,
     other: ["×100Oc Qi"],
-    baseMps: null,
+    baseMps: "1 / 1",
   },
   {
     name: "Cinder",
     ashes: 2,
-    other: ["×10Qa Qi", "×1.5 Dao Path Speed"],
-    baseMps: null,
+    other: ["×100Qa Qi", "×1.5 Dao Path Speed"],
+    baseMps: "1 / 1M",
   },
   {
     name: "Smoulder",
     ashes: 2.5,
     other: ["×10B Qi", "×2 Dao Path Luck"],
-    baseMps: null,
+    baseMps: "1 / 3.2M",
   },
   {
     name: "Pyre",
     ashes: 3,
     other: ["×10T Qi", "×5 Luck", "×2 Dao Path Bulk"],
-    baseMps: null,
+    baseMps: "1 / 490M",
   },
   {
     name: "Wraithflame",
@@ -206,13 +206,13 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     name: "Pyreheart",
     ashes: null,
     other: [],
-    baseMps: null,
+    baseMps: "1 / 6.7No",
   },
   {
     name: "Karmic Inferno",
     ashes: null,
     other: [],
-    baseMps: null,
+    baseMps: "1 / 3.8No",
   },
 ] as const;
 export const KARMIC_PATH_ROLL_COST = 10e3;
