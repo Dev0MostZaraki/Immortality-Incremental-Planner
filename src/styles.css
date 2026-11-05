@@ -270,7 +270,7 @@
 .samsara-recommendation > p { margin-top: 4px; color: #baa094; font-size: 0.82rem; }
 .samsara-recommendation-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
   gap: 12px;
   margin-top: 18px;
 }

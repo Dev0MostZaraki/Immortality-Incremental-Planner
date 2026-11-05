@@ -75,4 +75,39 @@ describe("Samsara World 10 module", () => {
     );
     expect(screen.queryByText("Bester einzelner Kauf")).not.toBeInTheDocument();
   });
+
+  it("separates the short wait for the next purchase from the final target time", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), {
+      target: { value: "8" },
+    });
+    fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes Einheit"), {
+      target: { value: "Qi" },
+    });
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff"), {
+      target: { value: "31" },
+    });
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff Einheit"), {
+      target: { value: "Qa" },
+    });
+    fireEvent.change(screen.getByLabelText("Cooldown (Sekunden)"), {
+      target: { value: "0.09" },
+    });
+    fireEvent.change(screen.getByLabelText("Ashes Boost Aktuelles Level"), {
+      target: { value: "50" },
+    });
+    fireEvent.change(screen.getByLabelText("More Ashes Aktuelles Level"), {
+      target: { value: "23" },
+    });
+    fireEvent.change(screen.getByLabelText("Punch Speed Aktuelles Level"), {
+      target: { value: "25" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /M9 2,4 Sx/i }));
+
+    expect(screen.getByTestId("samsara-next-purchase-time")).toHaveTextContent(/^6 Minuten/);
+    expect(screen.getByTestId("samsara-total-target-time")).toHaveTextContent(/^1 Stunde/);
+    expect(screen.getByTestId("samsara-recommendation")).toHaveTextContent(
+      "Die Gesamtzeit bezieht sich auf das Endziel M9 · 2,4 Sx, nicht auf den Kaufpreis.",
+    );
+  });
 });

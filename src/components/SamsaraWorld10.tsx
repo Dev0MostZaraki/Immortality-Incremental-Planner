@@ -110,6 +110,12 @@ export function SamsaraWorld10() {
       ? KARMIC_UPGRADES.find((upgrade) => upgrade.id === firstPurchase.id)
       : undefined,
     remaining = target === null ? null : Math.max(0, target - ashes),
+    targetLabel =
+      target === null
+        ? "–"
+        : targetMilestone
+          ? `M${targetMilestone.id} · ${fmtSuffix(target)}`
+          : fmtSuffix(target),
     recommendationState = !ready
       ? "incomplete"
       : ashes >= target!
@@ -349,22 +355,45 @@ export function SamsaraWorld10() {
                   {firstUpgrade.name} · Level {firstPurchase.level}
                 </span>
               </h4>
-              <p>{tr("Dieser Kauf verkürzt die gesamte Zeit bis zu deinem gewählten Ziel.")}</p>
+              <p>
+                {tr(
+                  "Der Kauf ist in {p0} verfügbar. Die Gesamtzeit bezieht sich auf das Endziel {p1}, nicht auf den Kaufpreis.",
+                  {
+                    p0: naturalDuration(firstPurchase.wait),
+                    p1: targetLabel,
+                  },
+                )}
+              </p>
             </>
           )}
           {ready && route && (
             <div className="samsara-recommendation-stats">
-              <Stat label={tr("Aktueller Stand")} value={fmtSuffix(ashes)} />
+              <Stat label={tr("Aktuelle Ashes")} value={fmtSuffix(ashes)} />
+              {recommendationState === "buy" && firstPurchase ? (
+                <>
+                  <Stat label={tr("Kaufpreis")} value={fmtSuffix(firstPurchase.cost)} />
+                  <Stat
+                    label={tr("Kauf verfügbar in")}
+                    value={naturalDuration(firstPurchase.wait)}
+                    testId="samsara-next-purchase-time"
+                  />
+                  <Stat
+                    label={tr("Produktion nach Kauf")}
+                    value={`${fmtSuffix(firstPurchase.gainAfter)}/s`}
+                  />
+                </>
+              ) : (
+                <>
+                  <Stat label={tr("Noch benötigt")} value={fmtSuffix(remaining ?? 0)} />
+                  <Stat label={tr("Produktion")} value={`${fmtSuffix(gain)}/s`} />
+                </>
+              )}
+              <Stat label={tr("Gewähltes Endziel")} value={targetLabel} />
               <Stat
-                label={recommendationState === "buy" ? tr("Nächster Kauf") : tr("Noch benötigt")}
-                value={
-                  recommendationState === "buy" && firstPurchase
-                    ? fmtSuffix(firstPurchase.cost)
-                    : fmtSuffix(remaining ?? 0)
-                }
+                label={tr("Gesamtzeit bis zum Endziel")}
+                value={naturalDuration(route.total)}
+                testId="samsara-total-target-time"
               />
-              <Stat label={tr("Produktion")} value={`${fmtSuffix(gain)}/s`} />
-              <Stat label={tr("Voraussichtliche Zielzeit")} value={naturalDuration(route.total)} />
             </div>
           )}
         </section>
@@ -712,11 +741,13 @@ function Hint({ children }: { children: ReactNode }) {
     </p>
   );
 }
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, testId }: { label: string; value: string; testId?: string }) {
   return (
     <div>
       <span className="block text-xs text-muted-foreground">{label}</span>
-      <strong className="font-mono">{value}</strong>
+      <strong className="font-mono" data-testid={testId}>
+        {value}
+      </strong>
     </div>
   );
 }
