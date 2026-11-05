@@ -631,8 +631,8 @@ export const messages = {
   "Direkt auf das Ziel sparen": "Save directly for the target",
   "Finale Produktion": "Final production",
   "Käufe geprüft": "Purchases",
-  "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–11 sind durch Screenshots belegt.":
-    "Milestones persist through a Soul Threads reset; buying one resets nothing. Costs 1–11 are supported by screenshots.",
+  "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–12 und die Boni 1–16 sind durch Screenshots belegt.":
+    "Milestones persist through a Soul Threads reset; buying one resets nothing. Costs 1–12 and bonuses 1–16 are supported by screenshots.",
   "Boni": "Bonuses",
   "Freischaltung bei Milestone 2 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.": "Unlocked at milestone 2 · 10K Ashes per roll · progress persists through resets.",
   "Weitere Boni": "Other bonuses",
@@ -644,6 +644,12 @@ export const messages = {
   "Bleibt erhalten": "Persists",
   "Wird zurückgesetzt": "Resets",
   "Freischaltung und Boni sind unbekannt.": "Unlock condition and bonuses are unknown.",
+  "Werte aus dem Spielstand eines Freundes. Chancen sind Momentaufnahmen und keine bestätigte Formel; die Freischaltung ist noch unbekannt.":
+    "Values from a friend's game state. Chances are snapshots, not a confirmed formula; the unlock condition is still unknown.",
+  "Kopien": "Copies",
+  "Path-Chance": "Path chance",
+  "Kartenanzeige": "Card display",
+  "Geöffnet": "Opened",
   "Die angezeigten Ashes pro Angriff enthalten bereits freigeschaltete Milestone- und Path-Boni; sie werden nicht erneut multipliziert.": "The displayed Ashes per attack already include unlocked milestone and Path bonuses; they are not multiplied again.",
   "Soul-Threads-Resets sind nicht Teil der Route, solange ihre Ertragsformel unbekannt ist. Punch-Speed-Produktion bleibt wegen der gerundeten Cooldown-Anzeige eine Näherung.": "Soul Threads resets are excluded from the route while their yield formula remains unknown. Punch Speed production remains an approximation because the displayed cooldown is rounded.",
 } as const;

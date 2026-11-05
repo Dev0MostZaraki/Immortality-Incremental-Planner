@@ -19,7 +19,10 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByText("Karmic Milestones")).toBeInTheDocument();
     expect(screen.getAllByText("Unbekannt").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /^M11 66 Sp$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M12 2,2 Oc$/ })).toBeInTheDocument();
     expect(screen.getByText("More Threads")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Thread Mark" })).toBeInTheDocument();
+    expect(screen.getByText("×5 Soul Threads · ^1.0015 Qi")).toBeInTheDocument();
   });
 
   it("compares upgrades and creates a purchase route from player inputs", () => {

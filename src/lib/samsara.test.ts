@@ -7,7 +7,10 @@ import {
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
+  KARMIC_PATHS,
   SAMSARA_MILESTONES,
+  THREAD_MARKS,
+  THREADS_PATH,
 } from "./samsara";
 describe("Samsara World 10 cost models", () => {
   it("derives production from the displayed Ashes and cooldown", () => {
@@ -35,8 +38,38 @@ describe("Samsara World 10 cost models", () => {
     expect(SAMSARA_MILESTONES[8].cost).toBe(2.4e21);
     expect(SAMSARA_MILESTONES[9].cost).toBe(4.7e21);
     expect(SAMSARA_MILESTONES[10].cost).toBe(66e24);
-    expect(SAMSARA_MILESTONES[10].bonuses).toEqual([]);
-    expect(SAMSARA_MILESTONES.every((milestone) => milestone.cost !== null)).toBe(true);
+    expect(SAMSARA_MILESTONES[10].bonuses).toEqual(["×50 Ashes", "×2 Path Luck", "^1.0018 Qi"]);
+    expect(SAMSARA_MILESTONES[11].cost).toBe(2.2e27);
+    expect(SAMSARA_MILESTONES.slice(0, 12).every((milestone) => milestone.cost !== null)).toBe(
+      true,
+    );
+    expect(SAMSARA_MILESTONES.slice(12).every((milestone) => milestone.cost === null)).toBe(true);
+    expect(SAMSARA_MILESTONES[15].bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
+  });
+  it("keeps the observed late Karmic Path and Thread Mark data as screenshots show it", () => {
+    expect(KARMIC_PATHS.find((path) => path.name === "Wraithflame")).toMatchObject({
+      ashes: 4,
+      maxed: true,
+      observedCopies: "67.75M",
+      observedChance: "1 / 30.07B | (1 / 3.8Qn)",
+    });
+    expect(KARMIC_PATHS.find((path) => path.name === "Soulbrand")).toMatchObject({
+      ashes: 5,
+      maxed: true,
+      observedCopies: "319.28K",
+      observedChance: "1 / 6.38T | (1 / 810Qn)",
+    });
+    expect(THREADS_PATH.rollCost).toBe(170e12);
+    expect(THREAD_MARKS).toHaveLength(8);
+    expect(THREAD_MARKS.find((mark) => mark.name === "Weft")).toMatchObject({
+      observedCopies: "273.35K",
+      pathChance: "1 / 10.23",
+      maxed: false,
+    });
+    expect(THREAD_MARKS.find((mark) => mark.name === "Weaver's End")?.bonuses).toEqual([
+      "×5 Soul Threads",
+      "^1.0015 Qi",
+    ]);
   });
 });
 describe("Samsara purchase comparison and routes", () => {

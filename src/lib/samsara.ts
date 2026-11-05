@@ -131,20 +131,54 @@ export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
     bonuses: ["×100 Ashes", "×3 Threads", "×1SxDc Qi"],
     status: "observed",
   },
-  { id: 11, cost: 66e24, bonuses: [], status: "observed" },
+  {
+    id: 11,
+    cost: 66e24,
+    bonuses: ["×50 Ashes", "×2 Path Luck", "^1.0018 Qi"],
+    status: "observed",
+  },
+  {
+    id: 12,
+    cost: 2.2e27,
+    bonuses: ["×10 Threads", "×10SxDc Qi"],
+    status: "observed",
+  },
+  {
+    id: 13,
+    cost: null,
+    bonuses: ["×100 Ashes", "×3 Path Bulk", "×3 Path Speed", "^1.0005 Qi"],
+    status: "observed",
+  },
+  {
+    id: 14,
+    cost: null,
+    bonuses: ["×25 Threads", "×5 Path Luck", "×10B Qi"],
+    status: "observed",
+  },
+  { id: 15, cost: null, bonuses: ["×250 Ashes", "^1.0005 Qi"], status: "observed" },
+  { id: 16, cost: null, bonuses: ["×100 Threads", "^1.0005 Qi"], status: "observed" },
 ] as const;
 
 export type KarmicPath = {
   name: string;
+  observedCopies: string | null;
   ashes: number | null;
   other: readonly string[];
   maxed: boolean;
   observedChance: string;
 };
 export const KARMIC_PATHS: readonly KarmicPath[] = [
-  { name: "Ember", ashes: 1.5, other: ["×100Oc Qi"], maxed: true, observedChance: "1 / 1.79" },
+  {
+    name: "Ember",
+    observedCopies: null,
+    ashes: 1.5,
+    other: ["×100Oc Qi"],
+    maxed: true,
+    observedChance: "1 / 1.79",
+  },
   {
     name: "Cinder",
+    observedCopies: null,
     ashes: 2,
     other: ["×10Qa Qi", "×1.5 Dao Path Speed"],
     maxed: true,
@@ -152,6 +186,7 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
   },
   {
     name: "Smoulder",
+    observedCopies: null,
     ashes: 2.5,
     other: ["×10B Qi", "×2 Dao Path Luck"],
     maxed: true,
@@ -159,15 +194,44 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
   },
   {
     name: "Pyre",
+    observedCopies: null,
     ashes: 3,
     other: ["×10T Qi", "×5 Luck", "×2 Dao Path Bulk"],
     maxed: true,
     observedChance: "1 / 1.11K",
   },
-  { name: "Wraithflame", ashes: null, other: [], maxed: false, observedChance: "1 / 8.64T" },
-  { name: "Soulbrand", ashes: null, other: [], maxed: false, observedChance: "1 / 1.83Qa" },
-  { name: "Pyreheart", ashes: null, other: [], maxed: false, observedChance: "1 / 18.4Sp" },
-  { name: "Karmic Inferno", ashes: null, other: [], maxed: false, observedChance: "1 / 85.96Sp" },
+  {
+    name: "Wraithflame",
+    observedCopies: "67.75M",
+    ashes: 4,
+    other: ["×10B Qi", "×2.5 Dao Path Luck"],
+    maxed: true,
+    observedChance: "1 / 30.07B | (1 / 3.8Qn)",
+  },
+  {
+    name: "Soulbrand",
+    observedCopies: "319.28K",
+    ashes: 5,
+    other: ["×10B Qi", "×2 Soul Threads"],
+    maxed: true,
+    observedChance: "1 / 6.38T | (1 / 810Qn)",
+  },
+  {
+    name: "Pyreheart",
+    observedCopies: null,
+    ashes: null,
+    other: [],
+    maxed: false,
+    observedChance: "1 / 18.4Sp",
+  },
+  {
+    name: "Karmic Inferno",
+    observedCopies: null,
+    ashes: null,
+    other: [],
+    maxed: false,
+    observedChance: "1 / 85.96Sp",
+  },
 ] as const;
 export const KARMIC_PATH_ROLL_COST = 10e3;
 
@@ -260,20 +324,102 @@ export const SOUL_THREAD_RESET = {
   keeps: ["Karmic Milestones", "Karmic Paths", "Soul Threads upgrades"],
   observed: { existingThreads: 800, displayedYield: 518.48e3 },
 } as const;
+export type ThreadMark = {
+  name: string;
+  observedCopies: string;
+  pathChance: string;
+  cardChance: string;
+  bonuses: readonly string[];
+  maxed: boolean;
+  note: string | null;
+};
+
+export const THREAD_MARKS: readonly ThreadMark[] = [
+  {
+    name: "Strand",
+    observedCopies: "310.08M",
+    pathChance: "1 / 1.16",
+    cardChance: "IMPOSSIBLE | (1 / 1)",
+    bonuses: ["×1Spd Qi", "×1.5 Soul Threads"],
+    maxed: true,
+    note: null,
+  },
+  {
+    name: "Weft",
+    observedCopies: "273.35K",
+    pathChance: "1 / 10.23",
+    cardChance: "IMPOSSIBLE | (1 / 470M)",
+    bonuses: ["×233.82Ocgaa Qi", "×1.94 Karmic Ashes"],
+    maxed: false,
+    note: "5M copies to max",
+  },
+  {
+    name: "Loom",
+    observedCopies: "212.57M",
+    pathChance: "1 / 39.08",
+    cardChance: "IMPOSSIBLE | (1 / 1.7B)",
+    bonuses: ["×1Qa Qi", "×2 Dao Path Speed", "×2 Soul Threads"],
+    maxed: true,
+    note: null,
+  },
+  {
+    name: "Spindle",
+    observedCopies: "18.22B",
+    pathChance: "1 / 124.67",
+    cardChance: "63.53% | (1 / 5.4B)",
+    bonuses: ["×1Sp Qi", "×2 Dao Path Bulk", "×2.5 Dao Path Luck"],
+    maxed: true,
+    note: null,
+  },
+  {
+    name: "Tapestry",
+    observedCopies: "9.98B",
+    pathChance: "1 / 280.01",
+    cardChance: "34.88% | (1 / 17B)",
+    bonuses: ["×10 Karmic Ashes", "×2.5 Soul Threads", "^1.004 Qi"],
+    maxed: true,
+    note: null,
+  },
+  {
+    name: "Fateknot",
+    observedCopies: "454.98M",
+    pathChance: "1 / 6.14K",
+    cardChance: "1.59% | (1 / 390B)",
+    bonuses: ["×100T Qi", "×10 Luck", "×3 Soul Threads"],
+    maxed: true,
+    note: null,
+  },
+  {
+    name: "Red String",
+    observedCopies: "100",
+    pathChance: "1 / 33.11B",
+    cardChance: "1 / 339.09M | (1 / 2.1Qn)",
+    bonuses: ["×25 Karmic Ashes", "^1.004 Qi"],
+    maxed: true,
+    note: null,
+  },
+  {
+    name: "Weaver's End",
+    observedCopies: "15",
+    pathChance: "1 / 33.08T",
+    cardChance: "1 / 338.75B | (1 / 2.1Sx)",
+    bonuses: ["×5 Soul Threads", "^1.0015 Qi"],
+    maxed: true,
+    note: null,
+  },
+] as const;
+
 export const THREADS_PATH = {
   rollCost: 170e12,
-  names: [
-    "Strand",
-    "Weft",
-    "Loom",
-    "Spindle",
-    "Tapestry",
-    "Fateknot",
-    "Red String",
-    "Weaver's End",
-  ],
   unlock: null,
-  bonuses: null,
+  observedSetup: {
+    opened: 0,
+    mps: "5.5Qa",
+    luck: "×63.48M",
+    bulk: "143.65M",
+    speed: "38.31M/s",
+    clones: 5,
+  },
 } as const;
 
 export type PurchaseComparison = {

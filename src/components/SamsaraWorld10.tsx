@@ -17,6 +17,7 @@ import {
   SAMSARA_MILESTONES,
   SOUL_THREAD_RESET,
   SOUL_THREAD_UPGRADES,
+  THREAD_MARKS,
   THREADS_PATH,
   type KarmicUpgradeId,
 } from "@/lib/samsara";
@@ -548,7 +549,7 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Karmic Milestones</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–11 sind durch Screenshots belegt.",
+            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Kosten 1–12 und die Boni 1–16 sind durch Screenshots belegt.",
           )}
         </p>
         <div className="mt-4 overflow-x-auto">
@@ -590,6 +591,7 @@ export function SamsaraWorld10() {
               <thead className="text-left text-xs text-muted-foreground">
                 <tr>
                   <th className="py-2 pr-3">Path</th>
+                  <th className="pr-3">{tr("Kopien")}</th>
                   <th className="pr-3">Ashes</th>
                   <th className="pr-3">{tr("Weitere Boni")}</th>
                   <th>{tr("Beobachtete Chance")}</th>
@@ -601,6 +603,9 @@ export function SamsaraWorld10() {
                     <td className="py-3 pr-3">
                       {path.name}
                       {path.maxed && <span className="ml-2 text-xs text-success">MAX</span>}
+                    </td>
+                    <td className="pr-3 font-mono">
+                      {path.observedCopies === null ? "–" : path.observedCopies}
                     </td>
                     <td className="pr-3 font-mono">
                       {path.ashes === null ? tr("Unbekannt") : `×${path.ashes}`}
@@ -666,16 +671,74 @@ export function SamsaraWorld10() {
               {tr("Wird zurückgesetzt")}: {SOUL_THREAD_RESET.loses.join(", ")}
             </p>
           </div>
-          <details className="mt-4 border-t pt-3">
-            <summary className="cursor-pointer text-sm font-medium">Threads Path</summary>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {fmtSuffix(THREADS_PATH.rollCost)} Threads / Roll · {THREADS_PATH.names.join(" · ")}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {tr("Freischaltung und Boni sind unbekannt.")}
-            </p>
-          </details>
         </article>
+      </section>
+
+      <section className="samsara-panel p-4 sm:p-5">
+        <h3 className="text-lg font-semibold">Thread Mark</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {tr(
+            "Werte aus dem Spielstand eines Freundes. Chancen sind Momentaufnahmen und keine bestätigte Formel; die Freischaltung ist noch unbekannt.",
+          )}
+        </p>
+        <div className="mt-4 grid gap-2 text-xs sm:grid-cols-4 lg:grid-cols-7">
+          <span>
+            <span className="block text-muted-foreground">{tr("Roll-Kosten")}</span>
+            <strong className="font-mono">{fmtSuffix(THREADS_PATH.rollCost)} Threads</strong>
+          </span>
+          <span>
+            <span className="block text-muted-foreground">{tr("Geöffnet")}</span>
+            <strong className="font-mono">{THREADS_PATH.observedSetup.opened}</strong>
+          </span>
+          <span>
+            <span className="block text-muted-foreground">MPS</span>
+            <strong className="font-mono">{THREADS_PATH.observedSetup.mps}</strong>
+          </span>
+          <span>
+            <span className="block text-muted-foreground">Luck</span>
+            <strong className="font-mono">{THREADS_PATH.observedSetup.luck}</strong>
+          </span>
+          <span>
+            <span className="block text-muted-foreground">Bulk</span>
+            <strong className="font-mono">{THREADS_PATH.observedSetup.bulk}</strong>
+          </span>
+          <span>
+            <span className="block text-muted-foreground">Speed</span>
+            <strong className="font-mono">{THREADS_PATH.observedSetup.speed}</strong>
+          </span>
+          <span>
+            <span className="block text-muted-foreground">Clones</span>
+            <strong className="font-mono">{THREADS_PATH.observedSetup.clones}</strong>
+          </span>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[64rem] text-sm">
+            <thead className="text-left text-xs text-muted-foreground">
+              <tr>
+                <th className="py-2 pr-3">Mark</th>
+                <th className="pr-3">{tr("Kopien")}</th>
+                <th className="pr-3">{tr("Path-Chance")}</th>
+                <th className="pr-3">{tr("Kartenanzeige")}</th>
+                <th className="pr-3">{tr("Boni")}</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {THREAD_MARKS.map((mark) => (
+                <tr key={mark.name} className="border-t align-top">
+                  <td className="py-3 pr-3 font-medium">{mark.name}</td>
+                  <td className="pr-3 font-mono">{mark.observedCopies}</td>
+                  <td className="pr-3 font-mono text-xs">{mark.pathChance}</td>
+                  <td className="pr-3 font-mono text-xs">{mark.cardChance}</td>
+                  <td className="pr-3">{mark.bonuses.join(" · ")}</td>
+                  <td className={mark.maxed ? "text-success" : "text-muted-foreground"}>
+                    {mark.maxed ? "MAX" : mark.note}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
       {storageError && (
         <p role="status" className="text-center text-xs text-destructive">
