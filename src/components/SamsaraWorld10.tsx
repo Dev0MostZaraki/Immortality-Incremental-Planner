@@ -5,6 +5,7 @@ import { UnitField, val, type NU } from "./planner-fields";
 import { useI18n } from "./LanguageProvider";
 import { SUFFIXES } from "@/lib/endurance";
 import {
+  ashesPerSecondFromCooldown,
   bestKarmicRoute,
   compareSamsaraPurchase,
   KARMIC_PATHS,
@@ -13,7 +14,6 @@ import {
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
-  measuredAshesPerSecond,
   SAMSARA_MILESTONES,
   SOUL_THREAD_RESET,
   SOUL_THREAD_UPGRADES,
@@ -59,15 +59,10 @@ export function SamsaraWorld10() {
     setState((current) => ({ ...current, [key]: value }));
   const currentAshes = val(state.currentAshes),
     ashes = currentAshes ?? 0,
-    gain = val(state.ashesGain),
+    ashesPerAttack = val(state.ashesPerAttack),
+    cooldown = Number(state.attackCooldown.trim().replace(",", ".")),
+    gain = ashesPerAttack === null ? null : ashesPerSecondFromCooldown(ashesPerAttack, cooldown),
     target = val(state.targetAshes);
-  const measurementStart = val(state.measurementStart),
-    measuredGain =
-      currentAshes === null || measurementStart === null
-        ? null
-        : measuredAshesPerSecond(measurementStart, currentAshes, state.measurementSeconds),
-    measurementReversed =
-      currentAshes !== null && measurementStart !== null && currentAshes < measurementStart;
   const ready = gain !== null && gain > 0 && target !== null;
   const selected = KARMIC_UPGRADES.find((upgrade) => upgrade.id === state.selected)!;
   const previewCount = Math.min(state.previewCount, selected.maxLevel - state.levels[selected.id]);
@@ -135,7 +130,7 @@ export function SamsaraWorld10() {
             )}
           </p>
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Field
             label={tr("Aktuelle Karmic Ashes")}
             id="samsara-current"
@@ -143,82 +138,46 @@ export function SamsaraWorld10() {
             onChange={(value) => set("currentAshes", value)}
           />
           <Field
+            label={tr("Ashes pro Angriff")}
+            id="samsara-ashes-per-attack"
+            value={state.ashesPerAttack}
+            onChange={(value) => set("ashesPerAttack", value)}
+          />
+          <div>
+            <label htmlFor="samsara-cooldown" className="mb-1 block text-xs font-medium">
+              {tr("Cooldown (Sekunden)")}
+            </label>
+            <div className="field flex items-stretch overflow-hidden">
+              <input
+                id="samsara-cooldown"
+                inputMode="decimal"
+                autoComplete="off"
+                value={state.attackCooldown}
+                onChange={(event) => set("attackCooldown", event.target.value)}
+                className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono text-base outline-none"
+              />
+              <span className="flex items-center bg-secondary px-3 text-xs text-muted-foreground">
+                s
+              </span>
+            </div>
+          </div>
+          <Field
             label={tr("Ziel / Milestone-Kosten")}
             id="samsara-target"
             value={state.targetAshes}
             onChange={(value) => set("targetAshes", value)}
           />
         </div>
-        <div className="mt-4 rounded-lg border bg-secondary/20 p-4">
-          <h4 className="text-sm font-semibold">{tr("Ashes-Rate messen (empfohlen)")}</h4>
+        <div className="mt-3 rounded-md border bg-secondary/20 px-4 py-3">
+          <span className="text-xs text-muted-foreground">{tr("Berechnete Produktion")}</span>
+          <strong className="ml-2 font-mono" data-testid="samsara-rate">
+            {gain === null ? "–" : `${fmtSuffix(gain)}/s`}
+          </strong>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
-              "ATK Speed allein reicht nicht. Notiere den Ashes-Stand, warte 30–60 Sekunden und trage den neuen Stand oben als aktuelle Karmic Ashes ein.",
+              "Die Rate wird automatisch aus Ashes pro Angriff ÷ Cooldown berechnet. Da der Cooldown im Spiel gerundet angezeigt wird, ist das Ergebnis eine Näherung.",
             )}
           </p>
-          <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1fr)] md:items-end">
-            <Field
-              label={tr("Messbeginn – Karmic Ashes")}
-              id="samsara-measurement-start"
-              value={state.measurementStart}
-              onChange={(value) => set("measurementStart", value)}
-            />
-            <div>
-              <label
-                htmlFor="samsara-measurement-seconds"
-                className="mb-1 block text-xs font-medium"
-              >
-                {tr("Messdauer in Sekunden")}
-              </label>
-              <input
-                id="samsara-measurement-seconds"
-                type="number"
-                min={1}
-                max={3600}
-                value={state.measurementSeconds}
-                onChange={(event) =>
-                  set(
-                    "measurementSeconds",
-                    Math.min(3600, Math.max(1, Number(event.target.value) || 1)),
-                  )
-                }
-                className="field w-full px-3 py-2.5 font-mono outline-none"
-              />
-            </div>
-            <div className="rounded-md border px-4 py-2.5">
-              <span className="block text-xs text-muted-foreground">{tr("Gemessene Rate")}</span>
-              <strong className="font-mono">
-                {measuredGain === null ? "–" : `${fmtSuffix(measuredGain)}/s`}
-              </strong>
-            </div>
-          </div>
-          {measurementReversed && (
-            <p className="mt-2 text-xs text-destructive">
-              {tr(
-                "Der aktuelle Ashes-Stand muss mindestens so hoch wie der Stand am Messbeginn sein.",
-              )}
-            </p>
-          )}
-          <div className="mt-3 flex flex-wrap items-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={measuredGain === null || measuredGain <= 0}
-              onClick={() => measuredGain !== null && set("ashesGain", asNU(measuredGain))}
-            >
-              {tr("Gemessene Rate übernehmen")}
-            </Button>
-            <div className="min-w-[16rem] flex-1">
-              <Field
-                label={tr("Ashes pro Sekunde (alternativ manuell)")}
-                id="samsara-gain"
-                value={state.ashesGain}
-                onChange={(value) => set("ashesGain", value)}
-                suffix="/ s"
-              />
-            </div>
-          </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2" aria-label={tr("Bekannte Milestone-Ziele")}>
           {SAMSARA_MILESTONES.filter((milestone) => milestone.cost !== null).map((milestone) => (
@@ -234,7 +193,7 @@ export function SamsaraWorld10() {
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           {tr(
-            "Die eingegebene Produktion enthält bereits freigeschaltete Milestone- und Path-Boni; sie werden nicht erneut multipliziert.",
+            "Die angezeigten Ashes pro Angriff enthalten bereits freigeschaltete Milestone- und Path-Boni; sie werden nicht erneut multipliziert.",
           )}
         </p>
 

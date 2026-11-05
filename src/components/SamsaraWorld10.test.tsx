@@ -24,31 +24,25 @@ describe("Samsara World 10 module", () => {
   it("compares upgrades and creates a purchase route from player inputs", () => {
     mount();
     fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), { target: { value: "0" } });
-    fireEvent.change(screen.getByLabelText("Ashes pro Sekunde (alternativ manuell)"), {
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff"), {
       target: { value: "1" },
     });
-    fireEvent.change(screen.getByLabelText("Ashes pro Sekunde (alternativ manuell) Einheit"), {
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff Einheit"), {
       target: { value: "" },
     });
+    fireEvent.change(screen.getByLabelText("Cooldown (Sekunden)"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: /^M1 ·/ }));
     expect(screen.getByTestId("samsara-route")).toBeInTheDocument();
     expect(screen.getAllByText("Für dieses Ziel kaufen").length).toBeGreaterThan(0);
   });
 
-  it("calculates Ashes per second from a timed balance measurement", () => {
+  it("calculates Ashes per second from the two displayed game values", () => {
     mount();
-    fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), { target: { value: "100" } });
-    fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes Einheit"), {
-      target: { value: "" },
+    fireEvent.change(screen.getByLabelText("Ashes pro Angriff"), { target: { value: "24.16" } });
+    fireEvent.change(screen.getByLabelText("Cooldown (Sekunden)"), {
+      target: { value: "0.09" },
     });
-    fireEvent.change(screen.getByLabelText("Messbeginn – Karmic Ashes"), {
-      target: { value: "40" },
-    });
-    fireEvent.change(screen.getByLabelText("Messbeginn – Karmic Ashes Einheit"), {
-      target: { value: "" },
-    });
-    fireEvent.change(screen.getByLabelText("Messdauer in Sekunden"), { target: { value: "10" } });
-    fireEvent.click(screen.getByRole("button", { name: "Gemessene Rate übernehmen" }));
-    expect(screen.getByLabelText("Ashes pro Sekunde (alternativ manuell)")).toHaveValue("6");
+    expect(screen.getByTestId("samsara-rate")).not.toHaveTextContent("–");
+    expect(screen.queryByText("Ashes-Rate messen (empfohlen)")).not.toBeInTheDocument();
   });
 });

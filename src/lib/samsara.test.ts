@@ -1,19 +1,22 @@
 import { describe, expect, it } from "vitest";
 import {
+  ashesPerSecondFromCooldown,
   bestKarmicRoute,
   compareSamsaraPurchase,
   KARMIC_COST_ANCHORS,
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
-  measuredAshesPerSecond,
   SAMSARA_MILESTONES,
 } from "./samsara";
 describe("Samsara World 10 cost models", () => {
-  it("derives production from observed balances without using ATK Speed", () => {
-    expect(measuredAshesPerSecond(17.6e12, 17.67e12, 10)).toBe(7e9);
-    expect(measuredAshesPerSecond(100, 90, 10)).toBeNull();
-    expect(measuredAshesPerSecond(100, 110, 0)).toBeNull();
+  it("derives production from the displayed Ashes and cooldown", () => {
+    expect(ashesPerSecondFromCooldown(24.16e12, 0.09)).toBeCloseTo(
+      268_444_444_444_444.44,
+      -1,
+    );
+    expect(ashesPerSecondFromCooldown(100, 0)).toBeNull();
+    expect(ashesPerSecondFromCooldown(-1, 1)).toBeNull();
   });
   it("reproduces every displayed cost anchor within UI rounding", () => {
     for (const anchor of KARMIC_COST_ANCHORS) {

@@ -6,10 +6,9 @@ export type SamsaraState = {
   selected: KarmicUpgradeId;
   levels: Record<KarmicUpgradeId, number>;
   currentAshes: NU;
-  ashesGain: NU;
+  ashesPerAttack: NU;
+  attackCooldown: string;
   targetAshes: NU;
-  measurementStart: NU;
-  measurementSeconds: number;
   previewCount: number;
   maxRoutePurchases: number;
 };
@@ -17,10 +16,9 @@ export const SAMSARA_DEFAULTS: SamsaraState = {
   selected: "ashesBoost",
   levels: { ashesBoost: 0, moreAshes: 0, punchSpeed: 0 },
   currentAshes: { v: "", u: "B" },
-  ashesGain: { v: "", u: "M" },
+  ashesPerAttack: { v: "", u: "T" },
+  attackCooldown: "",
   targetAshes: { v: "", u: "M" },
-  measurementStart: { v: "", u: "B" },
-  measurementSeconds: 30,
   previewCount: 3,
   maxRoutePurchases: 5,
 };
@@ -51,8 +49,10 @@ export function restoreSamsara(raw: unknown): SamsaraState {
     row["selected"] === "punchSpeed"
   )
     restored.selected = row["selected"];
-  for (const key of ["currentAshes", "ashesGain", "targetAshes", "measurementStart"] as const)
+  for (const key of ["currentAshes", "ashesPerAttack", "targetAshes"] as const)
     if (isNU(row[key])) restored[key] = row[key];
+  if (typeof row["attackCooldown"] === "string" && row["attackCooldown"].length <= 40)
+    restored.attackCooldown = row["attackCooldown"];
   if (row["levels"] && typeof row["levels"] === "object")
     for (const [id, maximum] of [
       ["ashesBoost", 50],
@@ -63,13 +63,6 @@ export function restoreSamsara(raw: unknown): SamsaraState {
       if (typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= maximum)
         restored.levels[id] = value;
     }
-  if (
-    typeof row["measurementSeconds"] === "number" &&
-    Number.isFinite(row["measurementSeconds"]) &&
-    row["measurementSeconds"] >= 1 &&
-    row["measurementSeconds"] <= 3600
-  )
-    restored.measurementSeconds = row["measurementSeconds"];
   if (
     typeof row["previewCount"] === "number" &&
     Number.isInteger(row["previewCount"]) &&

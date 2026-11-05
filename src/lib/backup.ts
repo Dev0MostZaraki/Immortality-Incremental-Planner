@@ -50,7 +50,9 @@ const law = z.object({
 const samsara = z.object({
   selected: z.enum(["ashesBoost", "moreAshes", "punchSpeed"]),
   levels: z.object({ ashesBoost: z.number().int().min(0).max(50), moreAshes: z.number().int().min(0).max(30), punchSpeed: z.number().int().min(0).max(25) }),
-  currentAshes: nu, ashesGain: nu, targetAshes: nu,
+  currentAshes: nu, targetAshes: nu,
+  ashesPerAttack: nu.optional(), attackCooldown: text.optional(),
+  ashesGain: nu.optional(),
   measurementStart: nu.optional(), measurementSeconds: z.number().min(1).max(3600).optional(),
   previewCount: z.number().int().min(1).max(10), maxRoutePurchases: z.number().int().min(0).max(8),
 });
