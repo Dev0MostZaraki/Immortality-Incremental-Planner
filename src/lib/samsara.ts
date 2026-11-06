@@ -165,6 +165,9 @@ export type KarmicPath = {
   other: readonly string[];
   baseMps: string;
   baseRarity: number;
+  maxCopies: number | null;
+  observedAtCopies?: number;
+  observedBonuses?: readonly string[];
 };
 export const KARMIC_PATHS: readonly KarmicPath[] = [
   {
@@ -173,6 +176,7 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     other: ["×100Oc Qi"],
     baseMps: "1 / 1",
     baseRarity: 1,
+    maxCopies: null,
   },
   {
     name: "Cinder",
@@ -180,6 +184,7 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     other: ["×100Qa Qi", "×1.5 Dao Path Speed"],
     baseMps: "1 / 1M",
     baseRarity: 1e6,
+    maxCopies: null,
   },
   {
     name: "Smoulder",
@@ -187,6 +192,7 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     other: ["×10B Qi", "×2 Dao Path Luck"],
     baseMps: "1 / 3.2M",
     baseRarity: 3.2e6,
+    maxCopies: null,
   },
   {
     name: "Pyre",
@@ -194,6 +200,7 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     other: ["×10T Qi", "×5 Luck", "×2 Dao Path Bulk"],
     baseMps: "1 / 490M",
     baseRarity: 490e6,
+    maxCopies: null,
   },
   {
     name: "Wraithflame",
@@ -201,6 +208,7 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     other: ["×10B Qi", "×2.5 Dao Path Luck"],
     baseMps: "1 / 3.8Qn",
     baseRarity: 3.8e18,
+    maxCopies: null,
   },
   {
     name: "Soulbrand",
@@ -208,6 +216,7 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     other: ["×10B Qi", "×2 Soul Threads"],
     baseMps: "1 / 810Qn",
     baseRarity: 810e18,
+    maxCopies: null,
   },
   {
     name: "Pyreheart",
@@ -215,13 +224,17 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
     other: [],
     baseMps: "1 / 6.7No",
     baseRarity: 6.7e30,
+    maxCopies: 100,
+    observedAtCopies: 60,
+    observedBonuses: ["×4.87 Karmic Ashes", "×2.55 Soul Threads", "^1.0023 Qi"],
   },
   {
     name: "Karmic Inferno",
     ashes: null,
-    other: [],
+    other: ["×3 Dao Path Luck", "×5 Soul Threads", "^1.0015 Qi"],
     baseMps: "1 / 38No",
     baseRarity: 38e30,
+    maxCopies: 10,
   },
 ] as const;
 export const KARMIC_PATH_ROLL_COST = 10e3;
@@ -606,6 +619,15 @@ export type MarkFarmRecommendation = {
   minimumMpsAtSweetSpot: number;
 };
 
+export type MarkTargetPlan = {
+  currentCopies: number;
+  targetCopies: number;
+  remainingCopies: number;
+  copiesPerHit: number;
+  hitsNeeded: number;
+  expectedSeconds: number;
+};
+
 export const MARK_FARM_PACES = [
   { id: "unlock", averageHitSeconds: 300 },
   { id: "recommended", averageHitSeconds: 90 },
@@ -671,6 +693,38 @@ export function calculateMarkOutcome({
     chance50Seconds: confidenceTime(0.5),
     chance90Seconds: confidenceTime(0.9),
     chance95Seconds: confidenceTime(0.95),
+  };
+}
+
+/** Accounts for Copy/Clone being awarded in whole batches per successful hit. */
+export function calculateMarkTargetPlan({
+  averageHitSeconds,
+  copy,
+  currentCopies,
+  targetCopies,
+}: {
+  averageHitSeconds: number;
+  copy: number;
+  currentCopies: number;
+  targetCopies: number;
+}): MarkTargetPlan | null {
+  if (
+    ![averageHitSeconds, copy, currentCopies, targetCopies].every(Number.isFinite) ||
+    averageHitSeconds <= 0 ||
+    copy <= 0 ||
+    currentCopies < 0 ||
+    targetCopies < 0
+  )
+    return null;
+  const remainingCopies = Math.max(0, targetCopies - currentCopies),
+    hitsNeeded = Math.ceil(remainingCopies / copy);
+  return {
+    currentCopies,
+    targetCopies,
+    remainingCopies,
+    copiesPerHit: copy,
+    hitsNeeded,
+    expectedSeconds: hitsNeeded * averageHitSeconds,
   };
 }
 

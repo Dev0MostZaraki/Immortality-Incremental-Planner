@@ -435,6 +435,24 @@
   color: #baa094;
   font-size: 0.82rem;
 }
+.mark-target-summary {
+  margin-top: 14px;
+  border: 1px solid rgb(67 202 146 / 24%);
+  border-radius: 9px;
+  padding: 10px 12px;
+  background: rgb(24 94 69 / 12%);
+  color: #9fd9c1;
+  font-size: 0.76rem;
+}
+.mark-farm-advisor .mark-farm-plan {
+  margin-top: 12px;
+  border-left: 3px solid #43ca92;
+  padding: 8px 11px;
+  background: rgb(24 94 69 / 11%);
+  color: #c5eadb;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
 .mark-farm-tier-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

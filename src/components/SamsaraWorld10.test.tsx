@@ -158,6 +158,37 @@ describe("Samsara World 10 module", () => {
     expect(advisor).toHaveTextContent("MPS ist der rote Gesamtwert auf dem Board");
   });
 
+  it("recognizes fast Pyroheart farming and plans whole Clone batches to MAX", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "6" } });
+    fireEvent.change(screen.getByLabelText("Angezeigte Luck"), {
+      target: { value: "24.8" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte Luck Einheit"), {
+      target: { value: "B" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte MPS"), {
+      target: { value: "12.68" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte MPS Einheit"), {
+      target: { value: "Qi" },
+    });
+    fireEvent.change(screen.getByLabelText("Copy / Clone"), { target: { value: "5" } });
+    fireEvent.change(screen.getByLabelText("Aktuelle Copies (optional)"), {
+      target: { value: "25" },
+    });
+
+    expect(screen.getByTestId("mark-farm-advisor")).toHaveTextContent(
+      "Pyreheart ist bereits schnell farmbar",
+    );
+    expect(screen.getByTestId("mark-target-plan")).toHaveTextContent(
+      "Von 25 auf 100 Copies fehlen 75",
+    );
+    expect(screen.getByTestId("mark-target-plan")).toHaveTextContent(
+      "15 erfolgreiche Treffer nötig",
+    );
+  });
+
   it("compares upgrades and creates a purchase route from player inputs", () => {
     mount();
     fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), { target: { value: "0" } });

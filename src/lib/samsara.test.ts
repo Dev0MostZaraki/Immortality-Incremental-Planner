@@ -6,6 +6,7 @@ import {
   bestKarmicResetRoute,
   calculateMarkOutcome,
   calculateMarkFarmRecommendation,
+  calculateMarkTargetPlan,
   calculateSoulThreadYield,
   compareSamsaraPurchase,
   exactMarkProbability,
@@ -164,6 +165,14 @@ describe("Samsara World 10 cost models", () => {
     expect(1 / exactMarkProbability(threadRarities, 2, 253.92e6)!).toBeCloseTo(9.77, 2);
   });
 
+  it("reproduces the observed Pyroheart and Karmic Inferno chances", () => {
+    const rarities = KARMIC_PATHS.map((mark) => mark.baseRarity);
+    expect(1 / exactMarkProbability(rarities, 6, 24.8e9)!).toBeCloseTo(328.03e18, -17);
+    expect(1 / exactMarkProbability(rarities, 7, 24.8e9)!).toBeCloseTo(1.532e21, -19);
+    expect(1 / exactMarkProbability(rarities, 6, 59.86e9)!).toBeCloseTo(135.88e18, -17);
+    expect(1 / exactMarkProbability(rarities, 7, 59.86e9)!).toBeCloseTo(634.82e18, -17);
+  });
+
   it("recommends MPS and Luck targets for a selected farming pace", () => {
     const rarities = KARMIC_PATHS.map((mark) => mark.baseRarity),
       recommendation = calculateMarkFarmRecommendation({
@@ -203,6 +212,33 @@ describe("Samsara World 10 cost models", () => {
     })!;
     expect(outcome.denominator).toBeCloseTo(7.52e9, -7);
     expect(outcome.copiesPerSecond).toBeCloseTo(outcome.hitsPerSecond * 5);
+  });
+
+  it("rounds copy targets up to whole successful hits", () => {
+    const pyroheart = calculateMarkOutcome({
+      rarities: KARMIC_PATHS.map((mark) => mark.baseRarity),
+      markIndex: 6,
+      luck: 24.8e9,
+      marksPerSecond: 12.68e18,
+      copy: 5,
+    })!;
+    const plan = calculateMarkTargetPlan({
+      averageHitSeconds: pyroheart.averageSeconds,
+      copy: 5,
+      currentCopies: 25,
+      targetCopies: 100,
+    })!;
+    expect(pyroheart.averageSeconds).toBeCloseTo(25.87, 2);
+    expect(plan.hitsNeeded).toBe(15);
+    expect(plan.expectedSeconds).toBeCloseTo(388.05, 1);
+    expect(
+      calculateMarkTargetPlan({
+        averageHitSeconds: 10,
+        copy: 5,
+        currentCopies: 98,
+        targetCopies: 100,
+      })?.hitsNeeded,
+    ).toBe(1);
   });
 });
 describe("Samsara purchase comparison and routes", () => {

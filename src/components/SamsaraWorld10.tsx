@@ -11,6 +11,7 @@ import {
   bestKarmicResetRoute,
   calculateMarkFarmRecommendation,
   calculateMarkOutcome,
+  calculateMarkTargetPlan,
   calculateSoulThreadYield,
   compareSamsaraPurchase,
   exactMarkProbability,
@@ -155,10 +156,20 @@ export function SamsaraWorld10() {
           }),
     markCurrentCopies = val(state.markCurrentCopies),
     markTargetCopies = val(state.markTargetCopies),
-    markTargetSeconds =
-      markOutcome && markTargetCopies !== null
-        ? Math.max(0, markTargetCopies - (markCurrentCopies ?? 0)) / markOutcome.copiesPerSecond
+    markMaxCopies =
+      state.markBoard === "karmic" ? (KARMIC_PATHS[state.markIndex]?.maxCopies ?? null) : null,
+    effectiveMarkTargetCopies = markTargetCopies ?? markMaxCopies,
+    markTargetPlan =
+      markOutcome && effectiveMarkTargetCopies !== null
+        ? calculateMarkTargetPlan({
+            averageHitSeconds: markOutcome.averageSeconds,
+            copy: markCopy,
+            currentCopies: markCurrentCopies ?? 0,
+            targetCopies: effectiveMarkTargetCopies,
+          })
         : null,
+    markTargetSeconds = markTargetPlan?.expectedSeconds ?? null,
+    usesAutomaticMaxTarget = markTargetCopies === null && markMaxCopies !== null,
     markDuration = (seconds: number) =>
       seconds <= 0
         ? "0 s"
@@ -180,7 +191,9 @@ export function SamsaraWorld10() {
             }),
           }))
         : [],
+    unlockMarkFarm = markFarmRecommendations.find((pace) => pace.id === "unlock")?.result,
     recommendedMarkFarm = markFarmRecommendations.find((pace) => pace.id === "recommended")?.result,
+    fastMarkFarm = markFarmRecommendations.find((pace) => pace.id === "fast")?.result,
     selectedSoulThreadBonusIds = SOUL_THREAD_BONUSES.filter(
       (bonus) => state.soulThreadBonuses[bonus.id],
     ).map((bonus) => bonus.id),
@@ -781,7 +794,11 @@ export function SamsaraWorld10() {
             onChange={(value) => set("markCurrentCopies", value)}
           />
           <Field
-            label={tr("Copy-Ziel (optional)")}
+            label={
+              markMaxCopies === null
+                ? tr("Copy-Ziel (optional)")
+                : tr("Copy-Ziel (optional · MAX {p0})", { p0: String(markMaxCopies) })
+            }
             id="mark-target-copies"
             value={state.markTargetCopies}
             onChange={(value) => set("markTargetCopies", value)}
@@ -808,7 +825,7 @@ export function SamsaraWorld10() {
 
           {markOutcome ? (
             <>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <Stat
                   label={tr("Treffer pro Sekunde")}
                   value={fmtSuffix(markOutcome.hitsPerSecond, 2)}
@@ -822,10 +839,38 @@ export function SamsaraWorld10() {
                   value={markDuration(markOutcome.averageSeconds)}
                 />
                 <Stat
-                  label={tr("Zeit bis Copy-Ziel")}
+                  label={tr("Treffer bis Ziel")}
+                  value={markTargetPlan === null ? "–" : String(markTargetPlan.hitsNeeded)}
+                />
+                <Stat
+                  label={usesAutomaticMaxTarget ? tr("Ø Zeit bis MAX") : tr("Ø Zeit bis Copy-Ziel")}
                   value={markTargetSeconds === null ? "–" : markDuration(markTargetSeconds)}
                 />
               </div>
+              {markTargetPlan && (
+                <p className="mark-target-summary" data-testid="mark-target-plan">
+                  {usesAutomaticMaxTarget
+                    ? tr(
+                        "MAX-Ziel automatisch erkannt: Von {p0} auf {p1} Copies fehlen {p2}. Mit {p3} Clone sind dafür {p4} erfolgreiche Treffer nötig.",
+                        {
+                          p0: fmtSuffix(markTargetPlan.currentCopies),
+                          p1: fmtSuffix(markTargetPlan.targetCopies),
+                          p2: fmtSuffix(markTargetPlan.remainingCopies),
+                          p3: fmtSuffix(markTargetPlan.copiesPerHit),
+                          p4: String(markTargetPlan.hitsNeeded),
+                        },
+                      )
+                    : tr(
+                        "Von {p0} auf {p1} Copies: {p2} erfolgreiche Treffer mit jeweils {p3} Clone.",
+                        {
+                          p0: fmtSuffix(markTargetPlan.currentCopies),
+                          p1: fmtSuffix(markTargetPlan.targetCopies),
+                          p2: String(markTargetPlan.hitsNeeded),
+                          p3: fmtSuffix(markTargetPlan.copiesPerHit),
+                        },
+                      )}
+                </p>
+              )}
               <div className="mt-4 grid gap-3 border-t pt-4 text-sm sm:grid-cols-3">
                 <Stat label="50 %" value={markDuration(markOutcome.chance50Seconds)} />
                 <Stat label="90 %" value={markDuration(markOutcome.chance90Seconds)} />
@@ -850,25 +895,43 @@ export function SamsaraWorld10() {
               <Gauge className="size-4" /> {tr("Farm-Empfehlung")}
             </div>
             <h4>
-              {recommendedMarkFarm.currentMeetsGoal
-                ? tr("{p0} ist bereits gut farmbar", { p0: selectedMark.name })
-                : recommendedMarkFarm.recommendedMps !== null &&
-                    recommendedMarkFarm.recommendedLuck !== null
-                  ? tr("Ziele auf etwa {p0} MPS oder {p1} Luck", {
-                      p0: fmtSuffix(recommendedMarkFarm.recommendedMps, 2),
-                      p1: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
-                    })
-                  : recommendedMarkFarm.recommendedLuck !== null
-                    ? tr("Passe deine Luck auf etwa {p0} an", {
-                        p0: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
-                      })
-                    : tr("Für dieses Tempo brauchst du mehr MPS und passende Luck")}
+              {fastMarkFarm?.currentMeetsGoal
+                ? tr("{p0} ist bereits schnell farmbar", { p0: selectedMark.name })
+                : recommendedMarkFarm.currentMeetsGoal
+                  ? tr("{p0} ist bereits gut farmbar", { p0: selectedMark.name })
+                  : unlockMarkFarm?.currentMeetsGoal
+                    ? tr("{p0} ist farmbar, aber noch langsam", { p0: selectedMark.name })
+                    : recommendedMarkFarm.recommendedMps !== null &&
+                        recommendedMarkFarm.recommendedLuck !== null
+                      ? tr("Ziele auf etwa {p0} MPS oder {p1} Luck", {
+                          p0: fmtSuffix(recommendedMarkFarm.recommendedMps, 2),
+                          p1: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
+                        })
+                      : recommendedMarkFarm.recommendedLuck !== null
+                        ? tr("Passe deine Luck auf etwa {p0} an", {
+                            p0: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
+                          })
+                        : tr("Für dieses Tempo brauchst du mehr MPS und passende Luck")}
             </h4>
             <p>
-              {tr(
-                "Unsere empfohlene Farmstufe zielt auf durchschnittlich einen erfolgreichen Treffer alle 90 Sekunden.",
-              )}
+              {markOutcome
+                ? tr("Deine Kombination ergibt durchschnittlich einen Treffer alle {p0}.", {
+                    p0: markDuration(markOutcome.averageSeconds),
+                  })
+                : tr(
+                    "Unsere empfohlene Farmstufe zielt auf durchschnittlich einen erfolgreichen Treffer alle 90 Sekunden.",
+                  )}
             </p>
+            {markTargetPlan && (
+              <p className="mark-farm-plan">
+                {tr("Mit {p0} Clone: Ø {p1} bis {p2} Copies ({p3} Treffer).", {
+                  p0: fmtSuffix(markTargetPlan.copiesPerHit),
+                  p1: markDuration(markTargetPlan.expectedSeconds),
+                  p2: fmtSuffix(markTargetPlan.targetCopies),
+                  p3: String(markTargetPlan.hitsNeeded),
+                })}
+              </p>
+            )}
 
             <div className="mark-farm-tier-grid">
               {markFarmRecommendations.map((pace) => {
@@ -926,7 +989,7 @@ export function SamsaraWorld10() {
 
             <p className="mark-farm-note">
               {tr(
-                "MPS ist der rote Gesamtwert auf dem Board und enthält Speed × Bulk bereits. Copy/Clone erhöht die erhaltenen Copies pro Treffer, nicht die Trefferchance. Die Empfehlungen sind Komfortziele und keine Drop-Garantie.",
+                "MPS und Luck wirken gemeinsam. MPS ist der rote Gesamtwert auf dem Board und enthält Speed × Bulk bereits. Copy/Clone erhöht die erhaltenen Copies pro Treffer, nicht die Trefferchance. Die Zeiten sind RNG-Durchschnittswerte und keine Drop-Garantie.",
               )}
             </p>
           </div>
@@ -942,13 +1005,14 @@ export function SamsaraWorld10() {
             )}
           </p>
           <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-sm">
+            <table className="w-full min-w-[44rem] text-sm">
               <thead className="text-left text-xs text-muted-foreground">
                 <tr>
                   <th className="py-2 pr-3">Path</th>
                   <th className="pr-3">Ashes</th>
                   <th className="pr-3">{tr("Weitere Boni")}</th>
                   <th>Base MPS</th>
+                  <th className="pl-3">MAX Copies</th>
                 </tr>
               </thead>
               <tbody>
@@ -958,9 +1022,22 @@ export function SamsaraWorld10() {
                     <td className="pr-3 font-mono">
                       {path.ashes === null ? tr("Unbekannt") : `×${path.ashes}`}
                     </td>
-                    <td className="pr-3">{path.other.join(" · ") || tr("Unbekannt")}</td>
+                    <td className="pr-3">
+                      {path.other.join(" · ") || tr("Unbekannt")}
+                      {path.observedBonuses && (
+                        <small className="mt-1 block text-muted-foreground">
+                          {tr("Bei {p0} Copies beobachtet", {
+                            p0: String(path.observedAtCopies),
+                          })}
+                          : {path.observedBonuses.join(" · ")}
+                        </small>
+                      )}
+                    </td>
                     <td className="font-mono text-xs">
                       {path.baseMps === null ? tr("Unbekannt") : path.baseMps}
+                    </td>
+                    <td className="pl-3 font-mono text-xs">
+                      {path.maxCopies === null ? tr("Unbekannt") : path.maxCopies}
                     </td>
                   </tr>
                 ))}
