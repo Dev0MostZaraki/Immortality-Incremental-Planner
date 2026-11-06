@@ -31,6 +31,7 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByRole("button", { name: /^M14 5,3 Oc$/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^M15 4,1 No$/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^M16 39 No$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^M17 380 Dc$/ })).toBeInTheDocument();
     expect(screen.getByText("More Threads")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Thread Mark" })).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader", { name: "Base MPS" })).toHaveLength(2);
@@ -135,6 +136,16 @@ describe("Samsara World 10 module", () => {
     fireEvent.change(screen.getByLabelText("Copy / Clone"), { target: { value: "5" } });
     expect(screen.getByTestId("mark-chance")).toHaveTextContent("1 / 2,56");
     expect(screen.getByTestId("mark-result")).toHaveTextContent("Copies pro Sekunde");
+  });
+
+  it("uses the verified MAX targets for Red String and Weaver's End", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Board"), { target: { value: "threads" } });
+    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "6" } });
+    expect(screen.getByLabelText("Copy-Ziel (optional · MAX 100)")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "7" } });
+    expect(screen.getByLabelText("Copy-Ziel (optional · MAX 10)")).toBeInTheDocument();
+    expect(screen.getByText(/Bei 5 Copies beobachtet: ×3.83 Soul Threads/)).toBeInTheDocument();
   });
 
   it("recommends practical MPS and Luck targets for Pyroheart farming", () => {

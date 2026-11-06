@@ -66,11 +66,11 @@ describe("Samsara World 10 cost models", () => {
     ]);
     expect(milestone(15).cost).toBe(4.1e30);
     expect(milestone(16).cost).toBe(39e30);
-    expect(SAMSARA_MILESTONES.slice(0, -1).every((entry) => entry.cost !== null)).toBe(true);
-    expect(milestone(17).cost).toBeNull();
+    expect(SAMSARA_MILESTONES.every((entry) => entry.cost !== null)).toBe(true);
+    expect(milestone(17).cost).toBe(380e33);
     expect(milestone(17).bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
   });
-  it("keeps only standard base values and bonuses for Karmic Path and Thread Mark", () => {
+  it("keeps verified base values, MAX thresholds and bonuses for Karmic and Thread Marks", () => {
     expect(KARMIC_PATHS.map((path) => path.baseMps)).toEqual([
       "1 / 1",
       "1 / 1M",
@@ -90,6 +90,11 @@ describe("Samsara World 10 cost models", () => {
       ashes: 5,
       baseMps: "1 / 810Qn",
     });
+    expect(KARMIC_PATHS.find((path) => path.name === "Pyreheart")).toMatchObject({
+      ashes: 6,
+      other: ["×3 Soul Threads", "^1.003 Qi"],
+      maxCopies: 100,
+    });
     expect(THREADS_PATH.rollCost).toBe(170e12);
     expect(THREAD_MARKS).toHaveLength(8);
     expect(THREAD_MARKS.find((mark) => mark.name === "Weft")).toMatchObject({
@@ -99,6 +104,16 @@ describe("Samsara World 10 cost models", () => {
       "×5 Soul Threads",
       "^1.0015 Qi",
     ]);
+    expect(THREAD_MARKS.find((mark) => mark.name === "Red String")).toMatchObject({
+      maxCopies: 100,
+      observedAtCopies: 5,
+      observedBonuses: ["×6.37 Karmic Ashes", "^1.0009 Qi"],
+    });
+    expect(THREAD_MARKS.find((mark) => mark.name === "Weaver's End")).toMatchObject({
+      maxCopies: 10,
+      observedAtCopies: 5,
+      observedBonuses: ["×3.83 Soul Threads", "^1.0011 Qi"],
+    });
   });
   it("reproduces the observed Soul Threads effects and costs", () => {
     expect(soulThreadUpgradeEffect("moreThreads", 18)).toBeCloseTo(112.46, 2);

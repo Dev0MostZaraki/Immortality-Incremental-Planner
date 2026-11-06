@@ -157,7 +157,9 @@ export function SamsaraWorld10() {
     markCurrentCopies = val(state.markCurrentCopies),
     markTargetCopies = val(state.markTargetCopies),
     markMaxCopies =
-      state.markBoard === "karmic" ? (KARMIC_PATHS[state.markIndex]?.maxCopies ?? null) : null,
+      state.markBoard === "karmic"
+        ? (KARMIC_PATHS[state.markIndex]?.maxCopies ?? null)
+        : (THREAD_MARKS[state.markIndex]?.maxCopies ?? null),
     effectiveMarkTargetCopies = markTargetCopies ?? markMaxCopies,
     markTargetPlan =
       markOutcome && effectiveMarkTargetCopies !== null
@@ -675,7 +677,7 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Karmic Milestones</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten M2–M16 und Boni M2–M17 sind belegt. Für M1 ist kein separater Kaufwert belegt.",
+            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten und Boni M2–M17 sind belegt. Für M1 ist kein separater Kaufwert belegt.",
           )}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
@@ -1435,7 +1437,7 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Thread Mark</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Gezeigt werden nur die festen Base-MPS-Werte und Boni aus der Kartenanzeige. Persönliche Copies, Stats, MAX-Status und effektive Chancen sind bewusst weggelassen; die Freischaltung ist noch unbekannt.",
+            "Gezeigt werden die festen Base-MPS-Werte, MAX-Boni und belegte MAX-Schwellen. Persönliche Bestände und effektive Chancen bleiben Eingaben im Rechner; die Freischaltung ist noch unbekannt.",
           )}
         </p>
         <p className="mt-3 text-xs text-muted-foreground">
@@ -1451,12 +1453,13 @@ export function SamsaraWorld10() {
           </a>
         </p>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[42rem] text-sm">
+          <table className="w-full min-w-[50rem] text-sm">
             <thead className="text-left text-xs text-muted-foreground">
               <tr>
                 <th className="py-2 pr-3">Mark</th>
                 <th className="pr-3">Base MPS</th>
-                <th>{tr("Boni")}</th>
+                <th className="pr-3">{tr("Boni bei MAX")}</th>
+                <th>MAX Copies</th>
               </tr>
             </thead>
             <tbody>
@@ -1464,7 +1467,20 @@ export function SamsaraWorld10() {
                 <tr key={mark.name} className="border-t align-top">
                   <td className="py-3 pr-3 font-medium">{mark.name}</td>
                   <td className="pr-3 font-mono text-xs">{mark.baseMps}</td>
-                  <td>{mark.bonuses.join(" · ")}</td>
+                  <td className="pr-3">
+                    {mark.bonuses.join(" · ")}
+                    {mark.observedBonuses && (
+                      <small className="mt-1 block text-muted-foreground">
+                        {tr("Bei {p0} Copies beobachtet", {
+                          p0: String(mark.observedAtCopies),
+                        })}
+                        : {mark.observedBonuses.join(" · ")}
+                      </small>
+                    )}
+                  </td>
+                  <td className="font-mono text-xs">
+                    {mark.maxCopies === null ? tr("Unbekannt") : mark.maxCopies}
+                  </td>
                 </tr>
               ))}
             </tbody>

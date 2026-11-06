@@ -156,7 +156,7 @@ export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
     status: "observed",
   },
   { id: 16, cost: 39e30, bonuses: ["×250 Ashes", "^1.0005 Qi"], status: "observed" },
-  { id: 17, cost: null, bonuses: ["×100 Threads", "^1.0005 Qi"], status: "observed" },
+  { id: 17, cost: 380e33, bonuses: ["×100 Threads", "^1.0005 Qi"], status: "observed" },
 ] as const;
 
 export type KarmicPath = {
@@ -220,8 +220,8 @@ export const KARMIC_PATHS: readonly KarmicPath[] = [
   },
   {
     name: "Pyreheart",
-    ashes: null,
-    other: [],
+    ashes: 6,
+    other: ["×3 Soul Threads", "^1.003 Qi"],
     baseMps: "1 / 6.7No",
     baseRarity: 6.7e30,
     maxCopies: 100,
@@ -543,6 +543,9 @@ export type ThreadMark = {
   baseMps: string;
   baseRarity: number;
   bonuses: readonly string[];
+  maxCopies: number | null;
+  observedAtCopies?: number;
+  observedBonuses?: readonly string[];
 };
 
 export const THREAD_MARKS: readonly ThreadMark[] = [
@@ -551,48 +554,60 @@ export const THREAD_MARKS: readonly ThreadMark[] = [
     baseMps: "1 / 1",
     baseRarity: 1,
     bonuses: ["×1Spd Qi", "×1.5 Soul Threads"],
+    maxCopies: null,
   },
   {
     name: "Weft",
     baseMps: "1 / 470M",
     baseRarity: 470e6,
     bonuses: ["×233.82Ocgaa Qi", "×1.94 Karmic Ashes"],
+    maxCopies: null,
   },
   {
     name: "Loom",
     baseMps: "1 / 1.7B",
     baseRarity: 1.7e9,
     bonuses: ["×1Qa Qi", "×2 Dao Path Speed", "×2 Soul Threads"],
+    maxCopies: null,
   },
   {
     name: "Spindle",
     baseMps: "1 / 5.4B",
     baseRarity: 5.4e9,
     bonuses: ["×1Sp Qi", "×2 Dao Path Bulk", "×2.5 Dao Path Luck"],
+    maxCopies: null,
   },
   {
     name: "Tapestry",
     baseMps: "1 / 17B",
     baseRarity: 17e9,
     bonuses: ["×10 Karmic Ashes", "×2.5 Soul Threads", "^1.004 Qi"],
+    maxCopies: null,
   },
   {
     name: "Fateknot",
     baseMps: "1 / 390B",
     baseRarity: 390e9,
     bonuses: ["×100T Qi", "×10 Luck", "×3 Soul Threads"],
+    maxCopies: null,
   },
   {
     name: "Red String",
     baseMps: "1 / 2.1Qn",
     baseRarity: 2.1e18,
     bonuses: ["×25 Karmic Ashes", "^1.004 Qi"],
+    maxCopies: 100,
+    observedAtCopies: 5,
+    observedBonuses: ["×6.37 Karmic Ashes", "^1.0009 Qi"],
   },
   {
     name: "Weaver's End",
     baseMps: "1 / 2.1Sx",
     baseRarity: 2.1e21,
     bonuses: ["×5 Soul Threads", "^1.0015 Qi"],
+    maxCopies: 10,
+    observedAtCopies: 5,
+    observedBonuses: ["×3.83 Soul Threads", "^1.0011 Qi"],
   },
 ] as const;
 
