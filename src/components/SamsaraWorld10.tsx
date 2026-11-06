@@ -139,7 +139,8 @@ export function SamsaraWorld10() {
   const markList = state.markBoard === "karmic" ? KARMIC_PATHS : THREAD_MARKS,
     selectedMark = markList[state.markIndex] ?? markList[0]!,
     markRarities = markList.map((mark) => mark.baseRarity),
-    markLuck = val(state.markLuck),
+    markLuckInput = val(state.markLuck),
+    markLuck = state.markUseRollableLuck ? markLuckInput : 1,
     markMps = val(state.markMps),
     markCopy = Number(state.markCopy.trim().replace(",", ".")),
     markProbability =
@@ -716,23 +717,53 @@ export function SamsaraWorld10() {
         </div>
       </section>
 
-      <section className="samsara-panel p-4 sm:p-6" aria-labelledby="mark-calculator-title">
+      <section className="samsara-panel p-4 sm:p-6" aria-labelledby="rune-calculator-title">
         <div>
-          <p className="samsara-eyebrow">WORLD 10 · MARKS</p>
-          <h3 id="mark-calculator-title" className="text-xl font-semibold">
-            {tr("Mark Calculator")}
+          <p className="samsara-eyebrow">WORLD 10 · RUNES</p>
+          <h3 id="rune-calculator-title" className="text-xl font-semibold">
+            {tr("Rune Calculator")}
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr(
-              "Verwendet direkt die im Board angezeigten Werte für Luck, MPS und Copy. Niedrigere Marks können durch höhere garantierte Stufen IMPOSSIBLE werden.",
+              "Rune ist hier der Sammelbegriff für Karmic Paths und Thread Marks. Der Rechner verwendet die im Board angezeigten Werte für Luck, MPS und Copy.",
             )}
           </p>
         </div>
 
+        <div className="rune-option-grid mt-4">
+          <RuneOptionSwitch
+            label="Use Rollable Luck"
+            help={
+              state.markUseRollableLuck
+                ? tr("Deine angezeigte Luck wird angewendet.")
+                : tr("Aus bedeutet ×1 Luck, genau wie im Spiel.")
+            }
+            checked={state.markUseRollableLuck}
+            tone="luck"
+            onChange={(checked) => set("markUseRollableLuck", checked)}
+          />
+          <RuneOptionSwitch
+            label="Use Mark Speed"
+            help={
+              state.markUseMarkSpeed
+                ? tr("Der Board-MPS-Wert enthält Mark Speed.")
+                : tr("Trage den roten Board-MPS-Wert nach dem Ausschalten ein.")
+            }
+            checked={state.markUseMarkSpeed}
+            tone="speed"
+            onChange={(checked) => set("markUseMarkSpeed", checked)}
+          />
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {tr(
+            "Mark Speed wird nicht doppelt berechnet: Der rote MPS-Gesamtwert auf dem Board enthält Speed × Bulk und den Optionszustand bereits.",
+          )}
+        </p>
+
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div>
             <label htmlFor="mark-board" className="mb-1 block text-xs font-medium">
-              {tr("Board")}
+              {tr("Rune-Typ")}
             </label>
             <select
               id="mark-board"
@@ -748,7 +779,7 @@ export function SamsaraWorld10() {
           </div>
           <div>
             <label htmlFor="mark-selection" className="mb-1 block text-xs font-medium">
-              Mark
+              Rune
             </label>
             <select
               id="mark-selection"
@@ -766,12 +797,19 @@ export function SamsaraWorld10() {
         </div>
 
         <div className="mt-3 grid gap-3 md:grid-cols-3">
-          <Field
-            label={tr("Angezeigte Luck")}
-            id="mark-luck"
-            value={state.markLuck}
-            onChange={(value) => set("markLuck", value)}
-          />
+          {state.markUseRollableLuck ? (
+            <Field
+              label={tr("Angezeigte Luck")}
+              id="mark-luck"
+              value={state.markLuck}
+              onChange={(value) => set("markLuck", value)}
+            />
+          ) : (
+            <div>
+              <span className="mb-1 block text-xs font-medium">{tr("Angewendete Luck")}</span>
+              <div className="field flex h-[46px] items-center px-3 font-mono text-base">×1</div>
+            </div>
+          )}
           <Field
             label={tr("Angezeigte MPS")}
             id="mark-mps"
@@ -815,7 +853,7 @@ export function SamsaraWorld10() {
         <div className="result-panel mt-5 p-4" data-testid="mark-result">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <span className="block text-xs text-muted-foreground">{tr("Ausgewählte Mark")}</span>
+              <span className="block text-xs text-muted-foreground">{tr("Ausgewählte Rune")}</span>
               <strong className="text-lg">{selectedMark.name}</strong>
             </div>
             <div className="text-right">
@@ -908,17 +946,21 @@ export function SamsaraWorld10() {
                   ? tr("{p0} ist bereits gut farmbar", { p0: selectedMark.name })
                   : unlockMarkFarm?.currentMeetsGoal
                     ? tr("{p0} ist farmbar, aber noch langsam", { p0: selectedMark.name })
-                    : recommendedMarkFarm.recommendedMps !== null &&
-                        recommendedMarkFarm.recommendedLuck !== null
-                      ? tr("Ziele auf etwa {p0} MPS oder {p1} Luck", {
+                    : !state.markUseRollableLuck && recommendedMarkFarm.recommendedMps !== null
+                      ? tr("Aktiviere Rollable Luck oder ziele auf etwa {p0} MPS", {
                           p0: fmtSuffix(recommendedMarkFarm.recommendedMps, 2),
-                          p1: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
                         })
-                      : recommendedMarkFarm.recommendedLuck !== null
-                        ? tr("Passe deine Luck auf etwa {p0} an", {
-                            p0: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
+                      : recommendedMarkFarm.recommendedMps !== null &&
+                          recommendedMarkFarm.recommendedLuck !== null
+                        ? tr("Ziele auf etwa {p0} MPS oder {p1} Luck", {
+                            p0: fmtSuffix(recommendedMarkFarm.recommendedMps, 2),
+                            p1: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
                           })
-                        : tr("Für dieses Tempo brauchst du mehr MPS und passende Luck")}
+                        : recommendedMarkFarm.recommendedLuck !== null
+                          ? tr("Passe deine Luck auf etwa {p0} an", {
+                              p0: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
+                            })
+                          : tr("Für dieses Tempo brauchst du mehr MPS und passende Luck")}
             </h4>
             <p>
               {markOutcome
@@ -976,7 +1018,11 @@ export function SamsaraWorld10() {
                         </dd>
                       </div>
                       <div>
-                        <dt>{tr("Luck bei deiner MPS")}</dt>
+                        <dt>
+                          {state.markUseRollableLuck
+                            ? tr("Luck bei deiner MPS")
+                            : tr("Luck-Ziel · Option einschalten")}
+                        </dt>
                         <dd>
                           {result.recommendedLuck === null
                             ? tr("Mit Luck allein nicht erreichbar")
@@ -1454,7 +1500,7 @@ export function SamsaraWorld10() {
             target="_blank"
             rel="noreferrer"
           >
-            Mark Calculator
+            Rune Calculator
           </a>
         </p>
         <div className="mt-4 overflow-x-auto">
@@ -1500,6 +1546,37 @@ export function SamsaraWorld10() {
         </p>
       )}
     </main>
+  );
+}
+
+function RuneOptionSwitch({
+  label,
+  help,
+  checked,
+  tone,
+  onChange,
+}: {
+  label: string;
+  help: string;
+  checked: boolean;
+  tone: "luck" | "speed";
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className={`rune-option-switch is-${tone} ${checked ? "is-on" : "is-off"}`}
+    >
+      <span>
+        <strong>{label}</strong>
+        <small>{help}</small>
+      </span>
+      <span className="rune-option-state">{checked ? "On" : "Off"}</span>
+    </button>
   );
 }
 

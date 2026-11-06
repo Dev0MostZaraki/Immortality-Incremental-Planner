@@ -24,6 +24,8 @@ export type SamsaraState = {
   maxRoutePurchases: number;
   markBoard: MarkBoardId;
   markIndex: number;
+  markUseRollableLuck: boolean;
+  markUseMarkSpeed: boolean;
   markLuck: NU;
   markMps: NU;
   markCopy: string;
@@ -61,6 +63,8 @@ export const SAMSARA_DEFAULTS: SamsaraState = {
   maxRoutePurchases: 5,
   markBoard: "karmic",
   markIndex: 3,
+  markUseRollableLuck: true,
+  markUseMarkSpeed: true,
   markLuck: { v: "", u: "M" },
   markMps: { v: "", u: "Qa" },
   markCopy: "1",
@@ -169,6 +173,10 @@ export function restoreSamsara(raw: unknown): SamsaraState {
     restored.maxRoutePurchases = row["maxRoutePurchases"];
   if (row["markBoard"] === "karmic" || row["markBoard"] === "threads")
     restored.markBoard = row["markBoard"];
+  if (typeof row["markUseRollableLuck"] === "boolean")
+    restored.markUseRollableLuck = row["markUseRollableLuck"];
+  if (typeof row["markUseMarkSpeed"] === "boolean")
+    restored.markUseMarkSpeed = row["markUseMarkSpeed"];
   if (
     typeof row["markIndex"] === "number" &&
     Number.isInteger(row["markIndex"]) &&

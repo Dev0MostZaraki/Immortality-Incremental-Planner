@@ -424,6 +424,71 @@
     radial-gradient(circle at 100% 0, rgb(239 106 69 / 18%), transparent 32%),
     linear-gradient(135deg, #1b1210, #101112 72%);
 }
+.rune-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.rune-option-switch {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid #4f4038;
+  border-radius: 11px;
+  padding: 12px 13px;
+  background: linear-gradient(135deg, rgb(10 11 12 / 92%), rgb(20 16 14 / 84%));
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+.rune-option-switch:hover {
+  transform: translateY(-1px);
+}
+.rune-option-switch:focus-visible {
+  outline: 2px solid #f08a5d;
+  outline-offset: 2px;
+}
+.rune-option-switch.is-luck {
+  border-color: rgb(73 194 112 / 60%);
+}
+.rune-option-switch.is-speed {
+  border-color: rgb(226 139 42 / 62%);
+}
+.rune-option-switch > span:first-child {
+  min-width: 0;
+}
+.rune-option-switch strong,
+.rune-option-switch small {
+  display: block;
+}
+.rune-option-switch strong {
+  color: #fff5ef;
+  font-size: 0.88rem;
+}
+.rune-option-switch small {
+  margin-top: 4px;
+  color: #9eb0c6;
+  font-size: 0.68rem;
+}
+.rune-option-state {
+  display: grid;
+  min-width: 62px;
+  min-height: 34px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  color: #ff5b5b;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.rune-option-switch.is-on .rune-option-state {
+  color: #48d38b;
+}
 .mark-farm-advisor > h4 {
   margin-top: 9px;
   color: #fff1e8;
@@ -522,6 +587,7 @@
   font-size: 0.72rem;
 }
 @media (max-width: 820px) {
+  .rune-option-grid,
   .mark-farm-tier-grid {
     grid-template-columns: 1fr;
   }

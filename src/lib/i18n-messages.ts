@@ -807,6 +807,22 @@ export const messages = {
   "Die Level sind persönliche, lokal gespeicherte Eingaben. Das Kostenmodell reproduziert alle bekannten Screenshot-Werte innerhalb der Anzeigerundung.":
     "Levels are personal inputs stored locally. The cost model reproduces every known screenshot value within display rounding.",
   "Mark Calculator": "Mark Calculator",
+  "Rune Calculator": "Rune Calculator",
+  "Rune ist hier der Sammelbegriff für Karmic Paths und Thread Marks. Der Rechner verwendet die im Board angezeigten Werte für Luck, MPS und Copy.":
+    "Rune is the umbrella term here for Karmic Paths and Thread Marks. The calculator uses the Luck, MPS and Copy values shown on the board.",
+  "Deine angezeigte Luck wird angewendet.": "Your displayed Luck is applied.",
+  "Aus bedeutet ×1 Luck, genau wie im Spiel.": "Off means ×1 Luck, just like in the game.",
+  "Der Board-MPS-Wert enthält Mark Speed.": "The board MPS value includes Mark Speed.",
+  "Trage den roten Board-MPS-Wert nach dem Ausschalten ein.":
+    "Enter the red board MPS value after switching it off.",
+  "Mark Speed wird nicht doppelt berechnet: Der rote MPS-Gesamtwert auf dem Board enthält Speed × Bulk und den Optionszustand bereits.":
+    "Mark Speed is not applied twice: the red total MPS value on the board already includes Speed × Bulk and the option state.",
+  "Rune-Typ": "Rune type",
+  "Angewendete Luck": "Applied Luck",
+  "Ausgewählte Rune": "Selected rune",
+  "Aktiviere Rollable Luck oder ziele auf etwa {p0} MPS":
+    "Enable Rollable Luck or aim for about {p0} MPS",
+  "Luck-Ziel · Option einschalten": "Luck target · enable option",
   "Farm-Empfehlung": "Farming recommendation",
   "{p0} ist bereits gut farmbar": "{p0} is already comfortable to farm",
   "Ziele auf etwa {p0} MPS oder {p1} Luck": "Aim for about {p0} MPS or {p1} Luck",

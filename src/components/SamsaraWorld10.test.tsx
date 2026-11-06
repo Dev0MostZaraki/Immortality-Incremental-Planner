@@ -120,8 +120,8 @@ describe("Samsara World 10 module", () => {
 
   it("calculates tiered Thread Mark chances from the displayed board values", () => {
     mount();
-    fireEvent.change(screen.getByLabelText("Board"), { target: { value: "threads" } });
-    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Rune-Typ"), { target: { value: "threads" } });
+    fireEvent.change(screen.getByLabelText("Rune"), { target: { value: "1" } });
     fireEvent.change(screen.getByLabelText("Angezeigte Luck"), {
       target: { value: "253.92" },
     });
@@ -139,19 +139,40 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByTestId("mark-result")).toHaveTextContent("Copies pro Sekunde");
   });
 
+  it("uses Rune terminology and mirrors the two in-game option switches", () => {
+    mount();
+    expect(screen.getByRole("heading", { name: "Rune Calculator" })).toBeInTheDocument();
+    const luckSwitch = screen.getByRole("switch", { name: "Use Rollable Luck" });
+    const speedSwitch = screen.getByRole("switch", { name: "Use Mark Speed" });
+    expect(luckSwitch).toHaveAttribute("aria-checked", "true");
+    expect(speedSwitch).toHaveAttribute("aria-checked", "true");
+
+    fireEvent.click(luckSwitch);
+    fireEvent.change(screen.getByLabelText("Rune"), { target: { value: "7" } });
+    expect(luckSwitch).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByText("Angewendete Luck")).toBeInTheDocument();
+    expect(screen.getByTestId("mark-chance")).toHaveTextContent("1 / 38 No");
+
+    fireEvent.click(speedSwitch);
+    expect(speedSwitch).toHaveAttribute("aria-checked", "false");
+    expect(
+      screen.getByText("Trage den roten Board-MPS-Wert nach dem Ausschalten ein."),
+    ).toBeInTheDocument();
+  });
+
   it("uses the verified MAX targets for Red String and Weaver's End", () => {
     mount();
-    fireEvent.change(screen.getByLabelText("Board"), { target: { value: "threads" } });
-    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "6" } });
+    fireEvent.change(screen.getByLabelText("Rune-Typ"), { target: { value: "threads" } });
+    fireEvent.change(screen.getByLabelText("Rune"), { target: { value: "6" } });
     expect(screen.getByLabelText("Copy-Ziel (optional · MAX 100)")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "7" } });
+    fireEvent.change(screen.getByLabelText("Rune"), { target: { value: "7" } });
     expect(screen.getByLabelText("Copy-Ziel (optional · MAX 10)")).toBeInTheDocument();
     expect(screen.getByText(/Bei 5 Copies beobachtet: ×3.83 Soul Threads/)).toBeInTheDocument();
   });
 
   it("recommends practical MPS and Luck targets for Pyroheart farming", () => {
     mount();
-    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "6" } });
+    fireEvent.change(screen.getByLabelText("Rune"), { target: { value: "6" } });
     fireEvent.change(screen.getByLabelText("Angezeigte Luck"), {
       target: { value: "2.04" },
     });
@@ -172,7 +193,7 @@ describe("Samsara World 10 module", () => {
 
   it("recognizes fast Pyroheart farming and plans whole Clone batches to MAX", () => {
     mount();
-    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "6" } });
+    fireEvent.change(screen.getByLabelText("Rune"), { target: { value: "6" } });
     fireEvent.change(screen.getByLabelText("Angezeigte Luck"), {
       target: { value: "24.8" },
     });
