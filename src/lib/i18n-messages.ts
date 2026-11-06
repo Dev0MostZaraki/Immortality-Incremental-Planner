@@ -807,6 +807,27 @@ export const messages = {
   "Die Level sind persönliche, lokal gespeicherte Eingaben. Das Kostenmodell reproduziert alle bekannten Screenshot-Werte innerhalb der Anzeigerundung.":
     "Levels are personal inputs stored locally. The cost model reproduces every known screenshot value within display rounding.",
   "Mark Calculator": "Mark Calculator",
+  "Farm-Empfehlung": "Farming recommendation",
+  "{p0} ist bereits gut farmbar": "{p0} is already comfortable to farm",
+  "Ziele auf etwa {p0} MPS oder {p1} Luck": "Aim for about {p0} MPS or {p1} Luck",
+  "Passe deine Luck auf etwa {p0} an": "Adjust your Luck to about {p0}",
+  "Für dieses Tempo brauchst du mehr MPS und passende Luck":
+    "This pace needs more MPS and suitable Luck",
+  "Unsere empfohlene Farmstufe zielt auf durchschnittlich einen erfolgreichen Treffer alle 90 Sekunden.":
+    "Our recommended farming tier targets one successful hit every 90 seconds on average.",
+  "Nur bekommen": "Just obtain it",
+  "Gut farmbar": "Comfortable farming",
+  "Schnell farmen": "Fast farming",
+  Empfohlen: "Recommended",
+  "Ø ein Treffer alle {p0}": "Average one hit every {p0}",
+  "MPS bei deiner Luck": "MPS at your Luck",
+  "Luck bei deiner MPS": "Luck at your MPS",
+  "Luck zuerst anpassen": "Adjust Luck first",
+  "Mit Luck allein nicht erreichbar": "Not reachable with Luck alone",
+  "Mit deinen Werten erreicht": "Reached with your values",
+  "Noch nicht erreicht": "Not reached yet",
+  "MPS ist der rote Gesamtwert auf dem Board und enthält Speed × Bulk bereits. Copy/Clone erhöht die erhaltenen Copies pro Treffer, nicht die Trefferchance. Die Empfehlungen sind Komfortziele und keine Drop-Garantie.":
+    "MPS is the red total shown on the board and already includes Speed × Bulk. Copy/Clone increases copies awarded per hit, not the hit chance. Recommendations are comfort targets, not drop guarantees.",
   "Verwendet direkt die im Board angezeigten Werte für Luck, MPS und Copy. Niedrigere Marks können durch höhere garantierte Stufen IMPOSSIBLE werden.":
     "Uses the Luck, MPS and Copy values shown directly on the board. Lower marks can become IMPOSSIBLE when a higher tier is guaranteed.",
   Board: "Board",

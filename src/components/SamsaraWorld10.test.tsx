@@ -137,6 +137,27 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByTestId("mark-result")).toHaveTextContent("Copies pro Sekunde");
   });
 
+  it("recommends practical MPS and Luck targets for Pyroheart farming", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Mark"), { target: { value: "6" } });
+    fireEvent.change(screen.getByLabelText("Angezeigte Luck"), {
+      target: { value: "2.04" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte Luck Einheit"), {
+      target: { value: "B" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte MPS"), {
+      target: { value: "3.27" },
+    });
+    fireEvent.change(screen.getByLabelText("Angezeigte MPS Einheit"), {
+      target: { value: "Qi" },
+    });
+    const advisor = screen.getByTestId("mark-farm-advisor");
+    expect(advisor).toHaveTextContent("Ziele auf etwa 44,3 Qi MPS oder 27,64 B Luck");
+    expect(advisor).toHaveTextContent("Gut farmbar");
+    expect(advisor).toHaveTextContent("MPS ist der rote Gesamtwert auf dem Board");
+  });
+
   it("compares upgrades and creates a purchase route from player inputs", () => {
     mount();
     fireEvent.change(screen.getByLabelText("Aktuelle Karmic Ashes"), { target: { value: "0" } });

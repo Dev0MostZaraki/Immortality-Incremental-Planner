@@ -9,6 +9,7 @@ import {
   ashesPerSecondFromCooldown,
   bestKarmicRoute,
   bestKarmicResetRoute,
+  calculateMarkFarmRecommendation,
   calculateMarkOutcome,
   calculateSoulThreadYield,
   compareSamsaraPurchase,
@@ -19,6 +20,7 @@ import {
   karmicUpgradeCost,
   karmicUpgradeEffect,
   karmicUpgradeTotalCost,
+  MARK_FARM_PACES,
   SAMSARA_MILESTONES,
   SOUL_THREAD_BONUSES,
   SOUL_THREAD_RESET,
@@ -165,7 +167,21 @@ export function SamsaraWorld10() {
           : seconds < 1
             ? `${fmtSuffix(seconds * 1000, 2)} ms`
             : naturalDuration(seconds);
-  const selectedSoulThreadBonusIds = SOUL_THREAD_BONUSES.filter(
+  const markFarmRecommendations =
+      markLuck !== null && markMps !== null
+        ? MARK_FARM_PACES.map((pace) => ({
+            ...pace,
+            result: calculateMarkFarmRecommendation({
+              rarities: markRarities,
+              markIndex: state.markIndex,
+              luck: markLuck,
+              marksPerSecond: markMps,
+              averageHitSeconds: pace.averageHitSeconds,
+            }),
+          }))
+        : [],
+    recommendedMarkFarm = markFarmRecommendations.find((pace) => pace.id === "recommended")?.result,
+    selectedSoulThreadBonusIds = SOUL_THREAD_BONUSES.filter(
       (bonus) => state.soulThreadBonuses[bonus.id],
     ).map((bonus) => bonus.id),
     soulThreadRunAshes = val(state.soulThreadRunAshes),
@@ -827,6 +843,94 @@ export function SamsaraWorld10() {
             <Hint>{tr("Luck und MPS aus der rechten Board-Anzeige eintragen.")}</Hint>
           )}
         </div>
+
+        {recommendedMarkFarm && (
+          <div className="mark-farm-advisor mt-4" data-testid="mark-farm-advisor">
+            <div className="samsara-recommendation-label">
+              <Gauge className="size-4" /> {tr("Farm-Empfehlung")}
+            </div>
+            <h4>
+              {recommendedMarkFarm.currentMeetsGoal
+                ? tr("{p0} ist bereits gut farmbar", { p0: selectedMark.name })
+                : recommendedMarkFarm.recommendedMps !== null &&
+                    recommendedMarkFarm.recommendedLuck !== null
+                  ? tr("Ziele auf etwa {p0} MPS oder {p1} Luck", {
+                      p0: fmtSuffix(recommendedMarkFarm.recommendedMps, 2),
+                      p1: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
+                    })
+                  : recommendedMarkFarm.recommendedLuck !== null
+                    ? tr("Passe deine Luck auf etwa {p0} an", {
+                        p0: fmtSuffix(recommendedMarkFarm.recommendedLuck, 2),
+                      })
+                    : tr("Für dieses Tempo brauchst du mehr MPS und passende Luck")}
+            </h4>
+            <p>
+              {tr(
+                "Unsere empfohlene Farmstufe zielt auf durchschnittlich einen erfolgreichen Treffer alle 90 Sekunden.",
+              )}
+            </p>
+
+            <div className="mark-farm-tier-grid">
+              {markFarmRecommendations.map((pace) => {
+                const result = pace.result;
+                if (!result) return null;
+                const label =
+                  pace.id === "unlock"
+                    ? tr("Nur bekommen")
+                    : pace.id === "recommended"
+                      ? tr("Gut farmbar")
+                      : tr("Schnell farmen");
+                return (
+                  <article
+                    key={pace.id}
+                    className={`mark-farm-tier ${pace.id === "recommended" ? "is-recommended" : ""}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <strong>{label}</strong>
+                      {pace.id === "recommended" && (
+                        <span className="mark-farm-badge">{tr("Empfohlen")}</span>
+                      )}
+                    </div>
+                    <p>
+                      {tr("Ø ein Treffer alle {p0}", {
+                        p0: markDuration(pace.averageHitSeconds),
+                      })}
+                    </p>
+                    <dl>
+                      <div>
+                        <dt>{tr("MPS bei deiner Luck")}</dt>
+                        <dd>
+                          {result.recommendedMps === null
+                            ? tr("Luck zuerst anpassen")
+                            : `${fmtSuffix(result.recommendedMps, 2)} MPS`}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>{tr("Luck bei deiner MPS")}</dt>
+                        <dd>
+                          {result.recommendedLuck === null
+                            ? tr("Mit Luck allein nicht erreichbar")
+                            : fmtSuffix(result.recommendedLuck, 2)}
+                        </dd>
+                      </div>
+                    </dl>
+                    <span className={`mark-farm-status ${result.currentMeetsGoal ? "is-met" : ""}`}>
+                      {result.currentMeetsGoal
+                        ? `✓ ${tr("Mit deinen Werten erreicht")}`
+                        : tr("Noch nicht erreicht")}
+                    </span>
+                  </article>
+                );
+              })}
+            </div>
+
+            <p className="mark-farm-note">
+              {tr(
+                "MPS ist der rote Gesamtwert auf dem Board und enthält Speed × Bulk bereits. Copy/Clone erhöht die erhaltenen Copies pro Treffer, nicht die Trefferchance. Die Empfehlungen sind Komfortziele und keine Drop-Garantie.",
+              )}
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-5">

@@ -595,6 +595,23 @@ export type MarkOutcome = {
   chance95Seconds: number;
 };
 
+export type MarkFarmRecommendation = {
+  averageHitSeconds: number;
+  currentAverageSeconds: number | null;
+  currentMeetsGoal: boolean;
+  recommendedMps: number | null;
+  recommendedLuck: number | null;
+  luckSweetSpot: number;
+  maxProbability: number;
+  minimumMpsAtSweetSpot: number;
+};
+
+export const MARK_FARM_PACES = [
+  { id: "unlock", averageHitSeconds: 300 },
+  { id: "recommended", averageHitSeconds: 90 },
+  { id: "fast", averageHitSeconds: 30 },
+] as const;
+
 export function exactMarkProbability(
   rarities: readonly number[],
   markIndex: number,
@@ -654,6 +671,56 @@ export function calculateMarkOutcome({
     chance50Seconds: confidenceTime(0.5),
     chance90Seconds: confidenceTime(0.9),
     chance95Seconds: confidenceTime(0.95),
+  };
+}
+
+/**
+ * Converts an opinionated farming pace into two independent upgrade targets.
+ * recommendedMps keeps the entered Luck; recommendedLuck keeps the entered MPS.
+ * Luck is solved on the rising side of the selected tier so the next tier never
+ * becomes guaranteed and suppresses the selected mark.
+ */
+export function calculateMarkFarmRecommendation({
+  rarities,
+  markIndex,
+  luck,
+  marksPerSecond,
+  averageHitSeconds,
+}: {
+  rarities: readonly number[];
+  markIndex: number;
+  luck: number;
+  marksPerSecond: number;
+  averageHitSeconds: number;
+}): MarkFarmRecommendation | null {
+  const probability = exactMarkProbability(rarities, markIndex, luck);
+  if (
+    probability === null ||
+    !Number.isFinite(marksPerSecond) ||
+    marksPerSecond <= 0 ||
+    !Number.isFinite(averageHitSeconds) ||
+    averageHitSeconds <= 0
+  )
+    return null;
+
+  const rarity = rarities[markIndex]!,
+    nextRarity = rarities[markIndex + 1] ?? null,
+    risingSlope = nextRarity === null ? 1 / rarity : 1 / rarity - 1 / nextRarity,
+    maxProbability = nextRarity === null ? 1 : 1 - rarity / nextRarity,
+    targetProbability = 1 / (marksPerSecond * averageHitSeconds),
+    recommendedLuck = targetProbability <= maxProbability ? targetProbability / risingSlope : null,
+    recommendedMps = probability > 0 ? 1 / (probability * averageHitSeconds) : null,
+    currentAverageSeconds = probability > 0 ? 1 / (probability * marksPerSecond) : null;
+
+  return {
+    averageHitSeconds,
+    currentAverageSeconds,
+    currentMeetsGoal: currentAverageSeconds !== null && currentAverageSeconds <= averageHitSeconds,
+    recommendedMps,
+    recommendedLuck,
+    luckSweetSpot: rarity,
+    maxProbability,
+    minimumMpsAtSweetSpot: 1 / (maxProbability * averageHitSeconds),
   };
 }
 

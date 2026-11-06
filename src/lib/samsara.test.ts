@@ -5,9 +5,11 @@ import {
   bestKarmicRoute,
   bestKarmicResetRoute,
   calculateMarkOutcome,
+  calculateMarkFarmRecommendation,
   calculateSoulThreadYield,
   compareSamsaraPurchase,
   exactMarkProbability,
+  MARK_FARM_PACES,
   KARMIC_COST_ANCHORS,
   karmicUpgradeCost,
   karmicUpgradeEffect,
@@ -160,6 +162,36 @@ describe("Samsara World 10 cost models", () => {
     expect(1 / exactMarkProbability(threadRarities, 0, 253.92e6)!).toBeCloseTo(2.18, 2);
     expect(1 / exactMarkProbability(threadRarities, 1, 253.92e6)!).toBeCloseTo(2.56, 2);
     expect(1 / exactMarkProbability(threadRarities, 2, 253.92e6)!).toBeCloseTo(9.77, 2);
+  });
+
+  it("recommends MPS and Luck targets for a selected farming pace", () => {
+    const rarities = KARMIC_PATHS.map((mark) => mark.baseRarity),
+      recommendation = calculateMarkFarmRecommendation({
+        rarities,
+        markIndex: 6,
+        luck: 2.04e9,
+        marksPerSecond: 3.27e18,
+        averageHitSeconds: MARK_FARM_PACES[1].averageHitSeconds,
+      });
+    expect(recommendation).not.toBeNull();
+    expect(recommendation?.currentAverageSeconds).toBeCloseTo(1219.37, 1);
+    expect(recommendation?.recommendedMps).toBeCloseTo(44.3e18, -16);
+    expect(recommendation?.recommendedLuck).toBeCloseTo(27.64e9, -7);
+    expect(recommendation?.currentMeetsGoal).toBe(false);
+  });
+
+  it("keeps Luck recommendations below the selected tier sweet spot", () => {
+    const rarities = KARMIC_PATHS.map((mark) => mark.baseRarity),
+      recommendation = calculateMarkFarmRecommendation({
+        rarities,
+        markIndex: 0,
+        luck: 1e6,
+        marksPerSecond: 1,
+        averageHitSeconds: 1,
+      });
+    expect(recommendation?.recommendedMps).toBeNull();
+    expect(recommendation?.recommendedLuck).toBeNull();
+    expect(recommendation?.luckSweetSpot).toBe(1);
   });
   it("applies Copy to awarded marks without changing the hit chance", () => {
     const outcome = calculateMarkOutcome({
