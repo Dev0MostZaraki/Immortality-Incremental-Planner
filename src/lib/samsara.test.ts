@@ -69,6 +69,8 @@ describe("Samsara World 10 cost models", () => {
     expect(SAMSARA_MILESTONES.every((entry) => entry.cost !== null)).toBe(true);
     expect(milestone(17).cost).toBe(380e33);
     expect(milestone(17).bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
+    expect(milestone(17).final).toBe(true);
+    expect(milestone(17).status).toBe("verified");
   });
   it("keeps verified base values, MAX thresholds and bonuses for Karmic and Thread Marks", () => {
     expect(KARMIC_PATHS.map((path) => path.baseMps)).toEqual([

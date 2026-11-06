@@ -104,6 +104,7 @@ export type SamsaraMilestone = {
   cost: number | null;
   bonuses: readonly string[];
   status: EvidenceStatus;
+  final?: boolean;
 };
 export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
   { id: 2, cost: 4e3, bonuses: ["×2 Ashes", "×10QnDe Qi"], status: "verified" },
@@ -156,7 +157,13 @@ export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
     status: "observed",
   },
   { id: 16, cost: 39e30, bonuses: ["×250 Ashes", "^1.0005 Qi"], status: "observed" },
-  { id: 17, cost: 380e33, bonuses: ["×100 Threads", "^1.0005 Qi"], status: "observed" },
+  {
+    id: 17,
+    cost: 380e33,
+    bonuses: ["×100 Threads", "^1.0005 Qi"],
+    status: "verified",
+    final: true,
+  },
 ] as const;
 
 export type KarmicPath = {

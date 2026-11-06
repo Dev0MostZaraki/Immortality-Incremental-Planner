@@ -677,7 +677,7 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Karmic Milestones</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten und Boni M2–M17 sind belegt. Für M1 ist kein separater Kaufwert belegt.",
+            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten und Boni M2–M17 sind belegt; M17 ist der finale Milestone (MAX). Für M1 ist kein separater Kaufwert belegt.",
           )}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
@@ -703,6 +703,11 @@ export function SamsaraWorld10() {
                   </td>
                   <td>
                     {milestone.bonuses.length > 0 ? milestone.bonuses.join(" · ") : tr("Unbekannt")}
+                    {milestone.final && (
+                      <span className="ml-2 inline-flex rounded-full border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
+                        {tr("Final · MAX")}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
