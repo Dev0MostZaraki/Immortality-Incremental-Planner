@@ -132,10 +132,10 @@ export function SamsaraRarities() {
 
       <div className="rarity-status-strip mt-5">
         <span>
-          <CheckCircle2 aria-hidden="true" /> {tr("Dokumentiert")}: Forge 1–4
+          <CheckCircle2 aria-hidden="true" /> {tr("Dokumentiert")}: Forge 1–5
         </span>
         <span>
-          <AlertTriangle aria-hidden="true" /> {tr("Forschungsbedarf")}: Forge 5–10, Luck-Formel,
+          <AlertTriangle aria-hidden="true" /> {tr("Forschungsbedarf")}: Forge 6–10, Luck-Formel,
           Kostenkurven
         </span>
       </div>
@@ -336,7 +336,9 @@ export function SamsaraRarities() {
         <summary>
           <span>
             <strong>{tr("Deepstone Path & bekannte Rarities")}</strong>
-            <small>{tr("Nur direkt beobachtete Werte; sechs Path-Einträge bleiben offen.")}</small>
+            <small>
+              {tr("Nur direkt beobachtete Werte; bei drei Path-Einträgen fehlen Basis und Boni.")}
+            </small>
           </span>
         </summary>
         <div className="border-t p-4">

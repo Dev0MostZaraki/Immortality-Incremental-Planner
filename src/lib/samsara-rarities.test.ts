@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   FORGE_4_DEEPSTONE_COST,
   PART_2_MILESTONE_ASHES_COST,
+  DEEPSTONE_PATHS,
+  DEEPSTONE_UPGRADE_SNAPSHOTS,
+  RARITY_FORGES,
   compareForge4Routes,
 } from "./samsara-rarities";
 
@@ -18,6 +21,41 @@ describe("World 10 Part 2 forge routes", () => {
     expect(result.milestoneFarmSeconds).toBe(0);
     expect(result.milestoneRouteSeconds).toBe(20);
     expect(result.recommendation).toBe("milestone");
+  });
+
+  it("records the confirmed Forge 5 data without inventing later forges", () => {
+    expect(RARITY_FORGES[4]).toMatchObject({
+      id: 5,
+      cost: "75 Td Karmic Ashes",
+      status: "confirmed",
+    });
+    expect(RARITY_FORGES[4].bonuses).toContain("×3 Rarity Luck");
+    expect(RARITY_FORGES[5]).toMatchObject({ id: 6, cost: "Unknown", status: "unknown" });
+  });
+
+  it("keeps base Path rarity separate from personal observed values", () => {
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Bedrock")).toMatchObject({
+      baseDisplay: "1 / 100 Qa",
+      observedChance: "1 / 71.69 K",
+      observedCopies: "757.57 K",
+      maxText: "MAX",
+    });
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Vein")?.maxText).toBe("MAX");
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")).toMatchObject({
+      baseDisplay: "1 / 190 Sx",
+      observedCopies: "5",
+      maxText: "5 K copies to max",
+    });
+  });
+
+  it("includes the new high-level Deepstone upgrade measurements", () => {
+    expect(DEEPSTONE_UPGRADE_SNAPSHOTS[0].rows).toContainEqual([
+      18,
+      "×1.48 K",
+      "×2.22 K",
+      "2.19 T",
+    ]);
+    expect(DEEPSTONE_UPGRADE_SNAPSHOTS[2].rows).toContainEqual([13, "×3.45", "×3.8", "1 T"]);
   });
 
   it("does not multiply an already boosted measured rate again", () => {

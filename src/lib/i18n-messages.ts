@@ -927,8 +927,8 @@ export const messages = {
   "Beobachtetes Effektverhältnis: ungefähr ×1,1 pro Level. Exakte Formel unbekannt.":
     "Observed effect ratio: approximately ×1.1 per level. Exact formula unknown.",
   "Deepstone Path & bekannte Rarities": "Deepstone Path & known rarities",
-  "Nur direkt beobachtete Werte; sechs Path-Einträge bleiben offen.":
-    "Direct observations only; six Path entries remain open.",
+  "Nur direkt beobachtete Werte; bei drei Path-Einträgen fehlen Basis und Boni.":
+    "Direct observations only; base rarity and bonuses are missing for three Path entries.",
   Basisanzeige: "Base display",
   "Beobachtete Copies": "Observed copies",
   "Bekannte Rarity-Checkpoints": "Known rarity checkpoints",
@@ -938,8 +938,8 @@ export const messages = {
     "Part 2 inputs could not be stored locally.",
   "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Basisliste M2–M17 ist belegt; M17 war vor Forge 3 das Maximum. Für M1 ist kein separater Kaufwert belegt.":
     "Milestones persist after a Soul Threads reset; buying one resets nothing. The base list M2–M17 is documented; M17 was the maximum before Forge 3. No separate purchase value is documented for M1.",
-  "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Beobachtet wurde ein nächster Kauf für 75 Td Ashes mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi; Nummer und Kaufstatus sind noch nicht bestätigt.":
-    "Part 2: Forge 3 unlocks additional milestones. A next purchase for 75 Td Ashes with ×2 Rarity Luck, ×3 Deepstones and ×1 T Qi was observed; its number and purchase status are not confirmed yet.",
+  "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Bestätigt aktiv sind der 75-Td-Bonus mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi sowie danach ×1,5 Rarity Speed, ×2 Path Luck und ×100 Sx Qi. Der nächste angezeigte Kauf kostet 59 Qad Ashes; Nummer und Bonus dieses Kaufs sind noch unbekannt.":
+    "Part 2: Forge 3 unlocks additional milestones. Confirmed active are the 75 Td bonus with ×2 Rarity Luck, ×3 Deepstones and ×1 T Qi, followed by ×1.5 Rarity Speed, ×2 Path Luck and ×100 Sx Qi. The next displayed purchase costs 59 Qad Ashes; its number and bonus are still unknown.",
   "Vor Forge 3 · MAX": "Before Forge 3 · MAX",
 } as const;
 export type TranslationKey = keyof typeof messages;

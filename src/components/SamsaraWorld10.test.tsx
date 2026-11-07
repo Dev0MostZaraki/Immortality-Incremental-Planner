@@ -33,9 +33,7 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByRole("button", { name: /^M16 39 No$/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^M17 380 Dc$/ })).toBeInTheDocument();
     expect(screen.getByText("Vor Forge 3 · MAX")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Beobachtet wurde ein nächster Kauf für 75 Td Ashes/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Bestätigt aktiv sind der 75-Td-Bonus/)).toBeInTheDocument();
     expect(screen.getByText("More Threads")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Thread Mark" })).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader", { name: "Base MPS" })).toHaveLength(2);
