@@ -416,6 +416,186 @@
   font-size: 0.72rem;
   font-weight: 800;
 }
+.rarity-panel {
+  position: relative;
+  overflow: hidden;
+  border-color: #46513b;
+  background:
+    radial-gradient(circle at 92% 5%, rgb(119 171 95 / 12%), transparent 26%),
+    radial-gradient(circle at 7% 0, rgb(91 137 167 / 10%), transparent 24%),
+    linear-gradient(145deg, #141612, #0e1111 72%);
+}
+.rarity-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(113 186 153 / 38%);
+  border-radius: 12px;
+  color: #83dcc5;
+  background: linear-gradient(145deg, rgb(81 167 144 / 18%), rgb(53 105 140 / 10%));
+  box-shadow: 0 0 30px -15px rgb(76 196 165 / 80%);
+}
+.rarity-icon svg {
+  width: 23px;
+  height: 23px;
+}
+.rarity-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.rarity-status-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgb(90 112 88 / 42%);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #b6c5af;
+  background: rgb(9 12 10 / 55%);
+  font-size: 0.68rem;
+}
+.rarity-status-strip svg {
+  width: 13px;
+  height: 13px;
+}
+.rarity-status-strip span:first-child svg {
+  color: #43ca92;
+}
+.rarity-status-strip span:last-child svg {
+  color: #e7a35e;
+}
+.rarity-milestone-switch {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgb(137 104 66 / 55%);
+  border-radius: 11px;
+  padding: 12px 14px;
+  text-align: left;
+  background: linear-gradient(135deg, rgb(21 16 11 / 82%), rgb(9 11 11 / 92%));
+}
+.rarity-milestone-switch:focus-visible {
+  outline: 2px solid #d89b5d;
+  outline-offset: 2px;
+}
+.rarity-milestone-switch strong,
+.rarity-milestone-switch small {
+  display: block;
+}
+.rarity-milestone-switch strong {
+  color: #f4e8d8;
+  font-size: 0.82rem;
+}
+.rarity-milestone-switch small {
+  margin-top: 3px;
+  color: #a89784;
+  font-size: 0.68rem;
+}
+.rarity-milestone-switch > span:last-child {
+  min-width: 56px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: #df7468;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+.rarity-milestone-switch.is-on > span:last-child {
+  color: #43ca92;
+}
+.samsara-recommendation[data-state="milestone"] {
+  border-color: rgb(112 183 126 / 65%);
+  background:
+    radial-gradient(circle at 100% 0, rgb(95 185 129 / 18%), transparent 34%),
+    linear-gradient(135deg, #121b15, #101112 70%);
+}
+.samsara-recommendation[data-state="ready"] {
+  border-color: rgb(67 202 146 / 70%);
+}
+.rarity-time-saving {
+  margin-top: 14px !important;
+  border-left: 3px solid #43ca92;
+  padding: 8px 11px;
+  color: #bcebd8 !important;
+  background: rgb(34 109 80 / 15%);
+  font-weight: 750;
+}
+.rarity-caveats {
+  display: grid;
+  gap: 7px;
+}
+.rarity-caveats p {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #9daea1;
+  font-size: 0.72rem;
+}
+.rarity-caveats svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+.rarity-caveats p:first-child svg {
+  color: #43ca92;
+}
+.rarity-caveats p:not(:first-child) svg {
+  color: #e5a45f;
+}
+.rarity-data-status {
+  display: inline-flex;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: #8c969f;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.rarity-data-status.is-confirmed {
+  color: #43ca92;
+}
+.rarity-data-status.is-partial {
+  color: #e5a45f;
+}
+.rarity-upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.rarity-data-card {
+  min-width: 0;
+  border: 1px solid rgb(74 94 76 / 52%);
+  border-radius: 11px;
+  padding: 14px;
+  background: rgb(6 9 8 / 58%);
+}
+.rarity-data-card h4 {
+  color: #e8f0e5;
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+.rarity-data-card > p {
+  margin-top: 2px;
+  color: #7f9a88;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+.rarity-data-card > small {
+  display: block;
+  margin-top: 11px;
+  color: #9aa79b;
+  font-size: 0.67rem;
+  line-height: 1.45;
+}
 .mark-farm-advisor {
   border: 1px solid rgb(169 90 62 / 58%);
   border-radius: 14px;
@@ -588,7 +768,8 @@
 }
 @media (max-width: 820px) {
   .rune-option-grid,
-  .mark-farm-tier-grid {
+  .mark-farm-tier-grid,
+  .rarity-upgrade-grid {
     grid-template-columns: 1fr;
   }
 }

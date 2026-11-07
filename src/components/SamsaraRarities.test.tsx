@@ -1,0 +1,63 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
+import { LanguageProvider } from "./LanguageProvider";
+import { SamsaraRarities } from "./SamsaraRarities";
+
+const mount = () =>
+  render(
+    <LanguageProvider>
+      <SamsaraRarities />
+    </LanguageProvider>,
+  );
+
+describe("Samsara Rarities and Forge planner", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("shows confirmed data separately from unknown mechanics", () => {
+    mount();
+    expect(screen.getByRole("heading", { name: "Rarity & Forge Planner" })).toBeInTheDocument();
+    expect(screen.getAllByText("60 B Deepstones").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Unbekannt").length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/Der zusätzliche ×2-Rarity-Luck-Bonus wird nicht eingerechnet/),
+    ).toBeInTheDocument();
+  });
+
+  it("recommends the milestone when its sequential route is faster", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Aktuelle Deepstones"), { target: { value: "0" } });
+    fireEvent.change(screen.getByLabelText("Deepstones pro Sekunde"), {
+      target: { value: "1" },
+    });
+    fireEvent.change(screen.getByLabelText("Deepstones pro Sekunde Einheit"), {
+      target: { value: "B" },
+    });
+    fireEvent.change(screen.getByLabelText("Karmic Ashes für Part-2-Milestone"), {
+      target: { value: "100" },
+    });
+    fireEvent.change(screen.getByLabelText("Karmic Ashes für Part-2-Milestone Einheit"), {
+      target: { value: "Td" },
+    });
+    const recommendation = screen.getByTestId("forge-route-recommendation");
+    expect(recommendation).toHaveTextContent("Erst den 75-Td-Milestone holen");
+    expect(recommendation).toHaveTextContent("1 Minute");
+    expect(recommendation).toHaveTextContent("20 Sekunden");
+  });
+
+  it("does not apply the milestone twice after it was purchased", () => {
+    mount();
+    fireEvent.change(screen.getByLabelText("Aktuelle Deepstones"), {
+      target: { value: "30" },
+    });
+    fireEvent.change(screen.getByLabelText("Deepstones pro Sekunde"), {
+      target: { value: "3" },
+    });
+    fireEvent.change(screen.getByLabelText("Deepstones pro Sekunde Einheit"), {
+      target: { value: "B" },
+    });
+    fireEvent.click(screen.getByRole("switch", { name: "75-Td-Milestone bereits gekauft" }));
+    expect(screen.getByTestId("forge-route-recommendation")).toHaveTextContent(
+      "Deine eingetragene Netto-Rate enthält den Milestone-Bonus bereits.",
+    );
+  });
+});

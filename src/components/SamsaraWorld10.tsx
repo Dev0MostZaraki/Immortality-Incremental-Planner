@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowRight, CheckCircle2, Flame, Gauge, RotateCcw } from
 import { Button } from "./ui/button";
 import { UnitField, val, type NU } from "./planner-fields";
 import { useI18n } from "./LanguageProvider";
+import { SamsaraRarities } from "./SamsaraRarities";
 import { SUFFIXES } from "@/lib/endurance";
 import {
   ashesRequiredForSoulThreads,
@@ -678,12 +679,18 @@ export function SamsaraWorld10() {
         <h3 className="text-lg font-semibold">Karmic Milestones</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           {tr(
-            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Kosten und Boni M2–M17 sind belegt; M17 ist der finale Milestone (MAX). Für M1 ist kein separater Kaufwert belegt.",
+            "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Basisliste M2–M17 ist belegt; M17 war vor Forge 3 das Maximum. Für M1 ist kein separater Kaufwert belegt.",
           )}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
           {tr(
             "Auf dem Spielbrett stehen die bereits aktiven Boni. Der Button darunter zeigt den Kaufpreis des nächsten Milestones.",
+          )}
+        </p>
+        <p className="mt-2 rounded-md border border-dashed border-amber-500/25 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+          <AlertTriangle className="mr-1 inline size-4 text-amber-400" />
+          {tr(
+            "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Beobachtet wurde ein nächster Kauf für 75 Td Ashes mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi; Nummer und Kaufstatus sind noch nicht bestätigt.",
           )}
         </p>
         <div className="mt-4 overflow-x-auto">
@@ -706,7 +713,7 @@ export function SamsaraWorld10() {
                     {milestone.bonuses.length > 0 ? milestone.bonuses.join(" · ") : tr("Unbekannt")}
                     {milestone.final && (
                       <span className="ml-2 inline-flex rounded-full border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
-                        {tr("Final · MAX")}
+                        {tr("Vor Forge 3 · MAX")}
                       </span>
                     )}
                   </td>
@@ -716,6 +723,8 @@ export function SamsaraWorld10() {
           </table>
         </div>
       </section>
+
+      <SamsaraRarities />
 
       <section className="samsara-panel p-4 sm:p-6" aria-labelledby="rune-calculator-title">
         <div>

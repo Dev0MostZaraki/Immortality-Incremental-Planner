@@ -871,5 +871,75 @@ export const messages = {
     "The displayed Ashes per attack already include unlocked milestone and Path bonuses; they are not multiplied again.",
   "Soul-Threads-Resets bleiben getrennt von dieser Ashes-Route, weil sie den laufenden Run und die Karmic-Upgrades zurücksetzen. Punch-Speed-Produktion bleibt wegen der gerundeten Cooldown-Anzeige eine Näherung.":
     "Soul Threads resets remain separate from this Ashes route because they reset the current run and Karmic upgrades. Punch Speed production remains an approximation because the displayed cooldown is rounded.",
+  "Rarity & Forge Planner": "Rarity & Forge Planner",
+  "Vergleicht die echte Spielzeit bis Forge 4. Rarity-Rolls und anderes Farming werden bewusst nicht als parallel behandelt.":
+    "Compares the real playtime to Forge 4. Rarity rolls and other farming are deliberately not treated as parallel activities.",
+  "Part-2-Eingaben zurücksetzen": "Reset Part 2 inputs",
+  Dokumentiert: "Documented",
+  Forschungsbedarf: "Research needed",
+  "Aktuelle Deepstones": "Current Deepstones",
+  "Deepstones pro Sekunde": "Deepstones per second",
+  "Karmic Ashes für Part-2-Milestone": "Karmic Ashes for the Part 2 milestone",
+  "Karmic Ashes pro Sekunde": "Karmic Ashes per second",
+  "75-Td-Milestone bereits gekauft": "75 Td milestone already purchased",
+  Ja: "Yes",
+  Nein: "No",
+  "Forge 4 ist bereit": "Forge 4 is ready",
+  "Du hast die benötigten 60 B Deepstones erreicht.":
+    "You have reached the required 60 B Deepstones.",
+  "Erst den 75-Td-Milestone holen": "Get the 75 Td milestone first",
+  "Mit deinen gemessenen Raten ist der Weg über den ×3-Deepstone-Bonus schneller.":
+    "With your measured rates, the route through the ×3 Deepstones bonus is faster.",
+  "Direkt auf Forge 4 farmen": "Farm directly for Forge 4",
+  "Direkt 60 B Deepstones farmen": "Farm 60 B Deepstones directly",
+  "Deine eingetragene Netto-Rate enthält den Milestone-Bonus bereits.":
+    "Your entered net rate already includes the milestone bonus.",
+  "Der Umweg über 75 Td Ashes spart mit diesen Raten keine Zeit.":
+    "The detour through 75 Td Ashes does not save time at these rates.",
+  "Netto-Raten ergänzen": "Enter net rates",
+  "Trage deine tatsächlichen Deepstones pro Sekunde und – falls nötig – Karmic Ashes pro Sekunde ein.":
+    "Enter your actual Deepstones per second and, if needed, Karmic Ashes per second.",
+  "Noch benötigte Deepstones": "Deepstones still needed",
+  "Direkter Weg": "Direct route",
+  "Zeit bis 75 Td Ashes": "Time to 75 Td Ashes",
+  "Gesamtzeit über Milestone": "Total time via milestone",
+  "Geschätzte Zeitersparnis: {p0}": "Estimated time saved: {p0}",
+  "Der angezeigte ×3-Deepstone-Bonus wird genau einmal auf deine gemessene Netto-Rate angewendet.":
+    "The displayed ×3 Deepstones bonus is applied exactly once to your measured net rate.",
+  "Der zusätzliche ×2-Rarity-Luck-Bonus wird nicht eingerechnet, weil sein Einfluss auf Deepstones pro Sekunde unbekannt ist.":
+    "The additional ×2 Rarity Luck bonus is not included because its effect on Deepstones per second is unknown.",
+  "Nutze eine echte Netto-Messung. Eingeblendete Belohnungen pro Roll sind nicht automatisch dein Kontozuwachs pro Sekunde.":
+    "Use a real net measurement. Floating rewards per roll are not automatically your account gain per second.",
+  "Forge-Roadmap 1–10": "Forge roadmap 1–10",
+  "Bestätigte Kosten und Boni bleiben von unbekannten Stufen getrennt.":
+    "Confirmed costs and bonuses remain separate from unknown tiers.",
+  Datenstatus: "Data status",
+  Bestätigt: "Confirmed",
+  Teilweise: "Partial",
+  "Gemessene Deepstone-Upgrades": "Measured Deepstone upgrades",
+  "Screenshot-Werte statt erfundener Kostenformeln.":
+    "Screenshot values instead of invented cost formulas.",
+  Nächster: "Next",
+  "Beobachtetes Effektverhältnis: ungefähr ×1,5 pro Level. Exakte Kostenformel unbekannt.":
+    "Observed effect ratio: approximately ×1.5 per level. Exact cost formula unknown.",
+  "Beobachtetes Effektverhältnis in höheren Leveln: ungefähr ×1,3. Exakte Formel unbekannt.":
+    "Observed higher-level effect ratio: approximately ×1.3. Exact formula unknown.",
+  "Beobachtetes Effektverhältnis: ungefähr ×1,1 pro Level. Exakte Formel unbekannt.":
+    "Observed effect ratio: approximately ×1.1 per level. Exact formula unknown.",
+  "Deepstone Path & bekannte Rarities": "Deepstone Path & known rarities",
+  "Nur direkt beobachtete Werte; sechs Path-Einträge bleiben offen.":
+    "Direct observations only; six Path entries remain open.",
+  Basisanzeige: "Base display",
+  "Beobachtete Copies": "Observed copies",
+  "Bekannte Rarity-Checkpoints": "Known rarity checkpoints",
+  "Forge-4-Ziel": "Forge 4 target",
+  "Milestone-Ziel": "Milestone target",
+  "Part-2-Eingaben konnten nicht lokal gespeichert werden.":
+    "Part 2 inputs could not be stored locally.",
+  "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Basisliste M2–M17 ist belegt; M17 war vor Forge 3 das Maximum. Für M1 ist kein separater Kaufwert belegt.":
+    "Milestones persist after a Soul Threads reset; buying one resets nothing. The base list M2–M17 is documented; M17 was the maximum before Forge 3. No separate purchase value is documented for M1.",
+  "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Beobachtet wurde ein nächster Kauf für 75 Td Ashes mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi; Nummer und Kaufstatus sind noch nicht bestätigt.":
+    "Part 2: Forge 3 unlocks additional milestones. A next purchase for 75 Td Ashes with ×2 Rarity Luck, ×3 Deepstones and ×1 T Qi was observed; its number and purchase status are not confirmed yet.",
+  "Vor Forge 3 · MAX": "Before Forge 3 · MAX",
 } as const;
 export type TranslationKey = keyof typeof messages;
