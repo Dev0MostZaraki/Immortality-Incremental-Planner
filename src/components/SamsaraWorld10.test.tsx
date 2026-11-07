@@ -34,6 +34,8 @@ describe("Samsara World 10 module", () => {
     expect(screen.getByRole("button", { name: /^M17 380 Dc$/ })).toBeInTheDocument();
     expect(screen.getByText("Vor Forge 3 · MAX")).toBeInTheDocument();
     expect(screen.getByText(/Bestätigt aktiv sind der 75-Td-Bonus/)).toBeInTheDocument();
+    expect(screen.getByText(/59-Qad-Kauf gewährt ×3 Rarity Luck/)).toBeInTheDocument();
+    expect(screen.getByText(/nächste angezeigte Kauf kostet 2,9 Qid Ashes/)).toBeInTheDocument();
     expect(screen.getByText("More Threads")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Thread Mark" })).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader", { name: "Base MPS" })).toHaveLength(2);

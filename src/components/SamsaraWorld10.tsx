@@ -690,7 +690,7 @@ export function SamsaraWorld10() {
         <p className="mt-2 rounded-md border border-dashed border-amber-500/25 bg-amber-500/5 p-3 text-xs text-muted-foreground">
           <AlertTriangle className="mr-1 inline size-4 text-amber-400" />
           {tr(
-            "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Bestätigt aktiv sind der 75-Td-Bonus mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi sowie danach ×1,5 Rarity Speed, ×2 Path Luck und ×100 Sx Qi. Der nächste angezeigte Kauf kostet 59 Qad Ashes; Nummer und Bonus dieses Kaufs sind noch unbekannt.",
+            "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Bestätigt aktiv sind der 75-Td-Bonus mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi sowie danach ×1,5 Rarity Speed, ×2 Path Luck und ×100 Sx Qi. Der anschließende 59-Qad-Kauf gewährt ×3 Rarity Luck, ×10 Ashes und ^1.0006 Qi. Der nächste angezeigte Kauf kostet 2,9 Qid Ashes; Nummer und Bonus dieses Kaufs sind noch unbekannt.",
           )}
         </p>
         <div className="mt-4 overflow-x-auto">
