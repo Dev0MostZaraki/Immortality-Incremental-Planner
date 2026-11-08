@@ -690,7 +690,7 @@ export function SamsaraWorld10() {
         <p className="mt-2 rounded-md border border-dashed border-amber-500/25 bg-amber-500/5 p-3 text-xs text-muted-foreground">
           <AlertTriangle className="mr-1 inline size-4 text-amber-400" />
           {tr(
-            "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Bestätigt aktiv sind der 75-Td-Bonus mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi sowie danach ×1,5 Rarity Speed, ×2 Path Luck und ×100 Sx Qi. Der anschließende 59-Qad-Kauf gewährt ×3 Rarity Luck, ×10 Ashes und ^1.0006 Qi. Der nächste angezeigte Kauf kostet 2,9 Qid Ashes; Nummer und Bonus dieses Kaufs sind noch unbekannt.",
+            "Part 2: Forge 3 schaltet zusätzliche Milestones bis M22 frei. Bestätigt sind der 75-Td-Bonus mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi sowie danach ×1,5 Rarity Speed, ×2 Path Luck und ×100 Sx Qi. Der 59-Qad-Kauf gewährt ×3 Rarity Luck, ×10 Ashes und ^1.0006 Qi. Das Video bestätigt M22 als finalen 2,9-Qid-Kauf mit ×2 Rarity Speed, ×3 Path Luck und ^1.001 Qi. Nicht eingeblendete Zwischenpreise bleiben unbekannt.",
           )}
         </p>
         <div className="mt-4 overflow-x-auto">
@@ -713,7 +713,12 @@ export function SamsaraWorld10() {
                     {milestone.bonuses.length > 0 ? milestone.bonuses.join(" · ") : tr("Unbekannt")}
                     {milestone.final && (
                       <span className="ml-2 inline-flex rounded-full border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
-                        {tr("Vor Forge 3 · MAX")}
+                        {tr("Früheres Ende vor Forge 3")}
+                      </span>
+                    )}
+                    {milestone.currentFinal && (
+                      <span className="ml-2 inline-flex rounded-full border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
+                        {tr("Finaler Milestone · Video bestätigt")}
                       </span>
                     )}
                   </td>
@@ -1145,7 +1150,7 @@ export function SamsaraWorld10() {
                 onChange={(event) => set("soulThreadNextMilestone", Number(event.target.value))}
                 className="field w-full px-3 py-2.5 outline-none"
               >
-                {SAMSARA_MILESTONES.map((milestone) => (
+                {SAMSARA_MILESTONES.filter((milestone) => milestone.id <= 17).map((milestone) => (
                   <option key={milestone.id} value={milestone.id}>
                     M{milestone.id} ·{" "}
                     {milestone.cost === null ? tr("Unbekannt") : fmtSuffix(milestone.cost)}

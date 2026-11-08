@@ -49,7 +49,7 @@ describe("Samsara World 10 cost models", () => {
   it("includes all observed milestone costs", () => {
     const milestone = (id: number) => SAMSARA_MILESTONES.find((entry) => entry.id === id)!;
     expect(SAMSARA_MILESTONES.map((entry) => entry.id)).toEqual([
-      2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+      2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 22,
     ]);
     expect(milestone(9).cost).toBe(220e15);
     expect(milestone(10).cost).toBe(2.4e21);
@@ -71,6 +71,12 @@ describe("Samsara World 10 cost models", () => {
     expect(milestone(17).bonuses).toEqual(["×100 Threads", "^1.0005 Qi"]);
     expect(milestone(17).final).toBe(true);
     expect(milestone(17).status).toBe("verified");
+    expect(milestone(22)).toMatchObject({
+      cost: 2.9e48,
+      bonuses: ["×2 Rarity Speed", "×3 Path Luck", "^1.001 Qi"],
+      status: "verified",
+      currentFinal: true,
+    });
   });
   it("keeps verified base values, MAX thresholds and bonuses for Karmic and Thread Marks", () => {
     expect(KARMIC_PATHS.map((path) => path.baseMps)).toEqual([

@@ -960,8 +960,9 @@ export const messages = {
     "Part 2 inputs could not be stored locally.",
   "Milestones bleiben nach dem Soul-Threads-Reset erhalten; ein Kauf setzt nichts zurück. Die Basisliste M2–M17 ist belegt; M17 war vor Forge 3 das Maximum. Für M1 ist kein separater Kaufwert belegt.":
     "Milestones persist after a Soul Threads reset; buying one resets nothing. The base list M2–M17 is documented; M17 was the maximum before Forge 3. No separate purchase value is documented for M1.",
-  "Part 2: Forge 3 schaltet zusätzliche Milestones frei. Bestätigt aktiv sind der 75-Td-Bonus mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi sowie danach ×1,5 Rarity Speed, ×2 Path Luck und ×100 Sx Qi. Der anschließende 59-Qad-Kauf gewährt ×3 Rarity Luck, ×10 Ashes und ^1.0006 Qi. Der nächste angezeigte Kauf kostet 2,9 Qid Ashes; Nummer und Bonus dieses Kaufs sind noch unbekannt.":
-    "Part 2: Forge 3 unlocks additional milestones. Confirmed active are the 75 Td bonus with ×2 Rarity Luck, ×3 Deepstones and ×1 T Qi, followed by ×1.5 Rarity Speed, ×2 Path Luck and ×100 Sx Qi. The subsequent 59 Qad purchase grants ×3 Rarity Luck, ×10 Ashes and ^1.0006 Qi. The next displayed purchase costs 2.9 Qid Ashes; its number and bonus are still unknown.",
-  "Vor Forge 3 · MAX": "Before Forge 3 · MAX",
+  "Part 2: Forge 3 schaltet zusätzliche Milestones bis M22 frei. Bestätigt sind der 75-Td-Bonus mit ×2 Rarity Luck, ×3 Deepstones und ×1 T Qi sowie danach ×1,5 Rarity Speed, ×2 Path Luck und ×100 Sx Qi. Der 59-Qad-Kauf gewährt ×3 Rarity Luck, ×10 Ashes und ^1.0006 Qi. Das Video bestätigt M22 als finalen 2,9-Qid-Kauf mit ×2 Rarity Speed, ×3 Path Luck und ^1.001 Qi. Nicht eingeblendete Zwischenpreise bleiben unbekannt.":
+    "Part 2: Forge 3 unlocks additional milestones through M22. Confirmed are the 75 Td bonus with ×2 Rarity Luck, ×3 Deepstones and ×1 T Qi, followed by ×1.5 Rarity Speed, ×2 Path Luck and ×100 Sx Qi. The 59 Qad purchase grants ×3 Rarity Luck, ×10 Ashes and ^1.0006 Qi. The video confirms M22 as the final 2.9 Qid purchase with ×2 Rarity Speed, ×3 Path Luck and ^1.001 Qi. Intermediate prices that were not shown remain unknown.",
+  "Finaler Milestone · Video bestätigt": "Final milestone · video confirmed",
+  "Früheres Ende vor Forge 3": "Previous endpoint before Forge 3",
 } as const;
 export type TranslationKey = keyof typeof messages;

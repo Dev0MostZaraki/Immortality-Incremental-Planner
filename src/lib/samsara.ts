@@ -105,6 +105,7 @@ export type SamsaraMilestone = {
   bonuses: readonly string[];
   status: EvidenceStatus;
   final?: boolean;
+  currentFinal?: boolean;
 };
 export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
   { id: 2, cost: 4e3, bonuses: ["×2 Ashes", "×10QnDe Qi"], status: "verified" },
@@ -163,6 +164,13 @@ export const SAMSARA_MILESTONES: readonly SamsaraMilestone[] = [
     bonuses: ["×100 Threads", "^1.0005 Qi"],
     status: "verified",
     final: true,
+  },
+  {
+    id: 22,
+    cost: 2.9e48,
+    bonuses: ["×2 Rarity Speed", "×3 Path Luck", "^1.001 Qi"],
+    status: "verified",
+    currentFinal: true,
   },
 ] as const;
 
