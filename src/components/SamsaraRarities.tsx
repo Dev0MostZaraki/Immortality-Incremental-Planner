@@ -157,11 +157,11 @@ export function SamsaraRarities() {
       <div className="rarity-status-strip mt-4">
         <span>
           <CheckCircle2 aria-hidden="true" /> {tr("Dokumentiert")}:{" "}
-          {tr("Forge-Boni 1–8 · bekannte Kosten 1–5 & 8")}
+          {tr("Forge-Boni 1–9 · bekannte Kosten 1–5 & 8–9")}
         </span>
         <span>
           <AlertTriangle aria-hidden="true" /> {tr("Forschungsbedarf")}:{" "}
-          {tr("Forge-6/7-Kosten · Forge 9–10 · Luck-Formel · Kostenkurven")}
+          {tr("Forge-6/7-Kosten · Forge 10 · Luck-Formel · Kostenkurven")}
         </span>
       </div>
 

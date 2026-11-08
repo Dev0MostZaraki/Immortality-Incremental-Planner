@@ -23,7 +23,7 @@ describe("World 10 Part 2 forge routes", () => {
     expect(result.recommendation).toBe("milestone");
   });
 
-  it("records Forge 5–8 while keeping unseen costs and later tiers unknown", () => {
+  it("records Forge 5–9 while keeping unseen costs and Forge 10 unknown", () => {
     expect(RARITY_FORGES[4]).toMatchObject({
       id: 5,
       cost: "75 Td Karmic Ashes",
@@ -48,7 +48,12 @@ describe("World 10 Part 2 forge routes", () => {
       bonuses: ["×100 Karmic Ashes", "×2 Path Bulk", "^1.0006 Qi"],
       status: "confirmed",
     });
-    expect(RARITY_FORGES[8]).toMatchObject({ id: 9, cost: "Unknown", status: "unknown" });
+    expect(RARITY_FORGES[8]).toMatchObject({
+      id: 9,
+      cost: "5 Td Soul Threads",
+      bonuses: ["×5 Rarity Luck", "×2 Rarity Speed", "×10 Soul Threads", "×10 Tg Qi"],
+      status: "confirmed",
+    });
     expect(RARITY_FORGES[9]).toMatchObject({ id: 10, cost: "Unknown", status: "unknown" });
   });
 
@@ -67,6 +72,11 @@ describe("World 10 Part 2 forge routes", () => {
       baseDisplay: "1 / 5.5 Sp",
       copiesToFull: "1 K",
       bonuses: ["×1 Oc Qi", "×5 Deepstones", "×3 Rarity Luck"],
+    });
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Worldroot")).toMatchObject({
+      baseDisplay: "1 / 800 Oc",
+      copiesToFull: "100",
+      bonuses: ["×2 Dao Path Speed", "^1.006 Qi", "×5 Rarity Luck"],
     });
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Shard")?.copiesToFull).toBe("Unknown");
   });

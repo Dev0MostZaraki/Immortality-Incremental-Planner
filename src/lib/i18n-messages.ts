@@ -885,9 +885,9 @@ export const messages = {
     "Forge, upgrade, and Path data stays collapsed.",
   Dokumentiert: "Documented",
   Forschungsbedarf: "Research needed",
-  "Forge-Boni 1–8 · bekannte Kosten 1–5 & 8": "Forge bonuses 1–8 · known costs 1–5 & 8",
-  "Forge-6/7-Kosten · Forge 9–10 · Luck-Formel · Kostenkurven":
-    "Forge 6/7 costs · Forge 9–10 · Luck formula · cost curves",
+  "Forge-Boni 1–9 · bekannte Kosten 1–5 & 8–9": "Forge bonuses 1–9 · known costs 1–5 & 8–9",
+  "Forge-6/7-Kosten · Forge 10 · Luck-Formel · Kostenkurven":
+    "Forge 6/7 costs · Forge 10 · Luck formula · cost curves",
   "Deinen Stand eintragen": "Enter your progress",
   "Übernimm Bestand und Netto-Zuwachs direkt aus dem Spiel.":
     "Copy your balance and net gain directly from the game.",

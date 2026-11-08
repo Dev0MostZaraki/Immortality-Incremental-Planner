@@ -144,12 +144,18 @@ export const RARITY_FORGES = [
     bonuses: ["×100 Karmic Ashes", "×2 Path Bulk", "^1.0006 Qi"],
     status: "confirmed",
   },
-  ...Array.from({ length: 2 }, (_, index) => ({
-    id: index + 9,
+  {
+    id: 9,
+    cost: "5 Td Soul Threads",
+    bonuses: ["×5 Rarity Luck", "×2 Rarity Speed", "×10 Soul Threads", "×10 Tg Qi"],
+    status: "confirmed",
+  },
+  {
+    id: 10,
     cost: "Unknown",
     bonuses: ["Unknown"],
     status: "unknown",
-  })),
+  },
 ] as const;
 
 export const DEEPSTONE_UPGRADE_SNAPSHOTS = [
@@ -241,12 +247,18 @@ export const DEEPSTONE_PATHS = [
     copiesToFull: "1 K",
     bonuses: ["×1 Oc Qi", "×5 Deepstones", "×3 Rarity Luck"],
   },
-  ...["Worldroot", "Heartstone"].map((name) => ({
-    name,
+  {
+    name: "Worldroot",
+    baseDisplay: "1 / 800 Oc",
+    copiesToFull: "100",
+    bonuses: ["×2 Dao Path Speed", "^1.006 Qi", "×5 Rarity Luck"],
+  },
+  {
+    name: "Heartstone",
     baseDisplay: "Unknown",
     copiesToFull: "Unknown",
     bonuses: ["Unknown"],
-  })),
+  },
 ] as const;
 
 export const KNOWN_RARITY_CHECKPOINTS = [
