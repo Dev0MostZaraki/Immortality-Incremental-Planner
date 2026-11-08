@@ -21,6 +21,24 @@ describe("Samsara Rarities and Forge planner", () => {
     expect(
       screen.getByText(/Der zusätzliche ×2-Rarity-Luck-Bonus wird nicht eingerechnet/),
     ).toBeInTheDocument();
+    expect(screen.getByText("Deinen Stand eintragen")).toBeInTheDocument();
+    expect(screen.getByText("Deine Empfehlung")).toBeInTheDocument();
+    expect(screen.getByText("Nur bei Bedarf nachschlagen")).toBeInTheDocument();
+  });
+
+  it("shows player-facing Path goals without observed or standalone MAX fields", () => {
+    mount();
+    fireEvent.click(screen.getByText("Deepstone-Path-Ziele"));
+    expect(screen.getAllByText("Basis-Chance").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Copies bis volle Stufe").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Boni bei voller Stufe").length).toBeGreaterThan(0);
+    expect(screen.getByText("500 K")).toBeInTheDocument();
+    expect(screen.getByText("50 K")).toBeInTheDocument();
+    expect(screen.getByText("5 K")).toBeInTheDocument();
+    expect(screen.getByText("1 K")).toBeInTheDocument();
+    expect(screen.queryByText("Beobachtete Chance")).not.toBeInTheDocument();
+    expect(screen.queryByText("Beobachtete Copies")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^MAX$/)).not.toBeInTheDocument();
   });
 
   it("recommends the milestone when its sequential route is faster", () => {

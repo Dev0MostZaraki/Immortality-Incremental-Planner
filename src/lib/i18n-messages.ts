@@ -745,7 +745,6 @@ export const messages = {
   "Freischaltung bei Milestone 3 · 10K Ashes pro Roll · Fortschritt bleibt beim Reset erhalten.":
     "Unlocked at milestone 3 · 10K Ashes per roll · progress persists through resets.",
   "Weitere Boni": "Other bonuses",
-  "Beobachtete Chance": "Observed chance",
   "Persönliche Copies und effektive Chancen werden nicht angezeigt. Base MPS ist der feste Wert aus der Kartenanzeige; fehlende Werte bleiben unbekannt.":
     "Personal copies and effective chances are not shown. Base MPS is the fixed value from the card display; missing values remain unknown.",
   "Roll-Kosten": "Roll cost",
@@ -872,11 +871,23 @@ export const messages = {
   "Soul-Threads-Resets bleiben getrennt von dieser Ashes-Route, weil sie den laufenden Run und die Karmic-Upgrades zurücksetzen. Punch-Speed-Produktion bleibt wegen der gerundeten Cooldown-Anzeige eine Näherung.":
     "Soul Threads resets remain separate from this Ashes route because they reset the current run and Karmic upgrades. Punch Speed production remains an approximation because the displayed cooldown is rounded.",
   "Rarity & Forge Planner": "Rarity & Forge Planner",
-  "Vergleicht die echte Spielzeit bis Forge 4. Rarity-Rolls und anderes Farming werden bewusst nicht als parallel behandelt.":
-    "Compares the real playtime to Forge 4. Rarity rolls and other farming are deliberately not treated as parallel activities.",
+  "Trage deinen aktuellen Stand ein, lies die Empfehlung und öffne Detaildaten nur dann, wenn du sie wirklich brauchst.":
+    "Enter your current progress, read the recommendation, and open detailed data only when you actually need it.",
   "Part-2-Eingaben zurücksetzen": "Reset Part 2 inputs",
+  "So benutzt du den Planner": "How to use the planner",
+  "Stand eingeben": "Enter progress",
+  "Bestand und echte Netto-Raten aus dem Spiel.": "Your balance and real net rates from the game.",
+  "Empfehlung lesen": "Read recommendation",
+  "Eine klare Route statt mehrerer konkurrierender Tabellen.":
+    "One clear route instead of several competing tables.",
+  "Details nachschlagen": "Look up details",
+  "Forge-, Upgrade- und Path-Daten bleiben eingeklappt.":
+    "Forge, upgrade, and Path data stays collapsed.",
   Dokumentiert: "Documented",
   Forschungsbedarf: "Research needed",
+  "Deinen Stand eintragen": "Enter your progress",
+  "Übernimm Bestand und Netto-Zuwachs direkt aus dem Spiel.":
+    "Copy your balance and net gain directly from the game.",
   "Aktuelle Deepstones": "Current Deepstones",
   "Deepstones pro Sekunde": "Deepstones per second",
   "Karmic Ashes für Part-2-Milestone": "Karmic Ashes for the Part 2 milestone",
@@ -884,6 +895,9 @@ export const messages = {
   "75-Td-Milestone bereits gekauft": "75 Td milestone already purchased",
   Ja: "Yes",
   Nein: "No",
+  "Deine Empfehlung": "Your recommendation",
+  "Der Rechner zeigt nur die schnellere Route zu deinem nächsten Ziel.":
+    "The calculator shows only the faster route to your next goal.",
   "Forge 4 ist bereit": "Forge 4 is ready",
   "Du hast die benötigten 60 B Deepstones erreicht.":
     "You have reached the required 60 B Deepstones.",
@@ -910,30 +924,32 @@ export const messages = {
     "The additional ×2 Rarity Luck bonus is not included because its effect on Deepstones per second is unknown.",
   "Nutze eine echte Netto-Messung. Eingeblendete Belohnungen pro Roll sind nicht automatisch dein Kontozuwachs pro Sekunde.":
     "Use a real net measurement. Floating rewards per roll are not automatically your account gain per second.",
-  "Forge-Roadmap 1–10": "Forge roadmap 1–10",
+  "Nur bei Bedarf nachschlagen": "Look up only when needed",
+  "Forge-, Upgrade- und Path-Daten sind getrennt und standardmäßig eingeklappt.":
+    "Forge, upgrade, and Path data is separated and collapsed by default.",
+  "Forge-Reihenfolge 1–10": "Forge order 1–10",
   "Bestätigte Kosten und Boni bleiben von unbekannten Stufen getrennt.":
     "Confirmed costs and bonuses remain separate from unknown tiers.",
   Datenstatus: "Data status",
   Bestätigt: "Confirmed",
   Teilweise: "Partial",
-  "Gemessene Deepstone-Upgrades": "Measured Deepstone upgrades",
+  "Upgrade-Nachschlagewerte": "Upgrade reference values",
   "Screenshot-Werte statt erfundener Kostenformeln.":
     "Screenshot values instead of invented cost formulas.",
   Nächster: "Next",
-  "Beobachtetes Effektverhältnis: ungefähr ×1,5 pro Level. Exakte Kostenformel unbekannt.":
-    "Observed effect ratio: approximately ×1.5 per level. Exact cost formula unknown.",
-  "Beobachtetes Effektverhältnis in höheren Leveln: ungefähr ×1,3. Exakte Formel unbekannt.":
-    "Observed higher-level effect ratio: approximately ×1.3. Exact formula unknown.",
-  "Beobachtetes Effektverhältnis: ungefähr ×1,1 pro Level. Exakte Formel unbekannt.":
-    "Observed effect ratio: approximately ×1.1 per level. Exact formula unknown.",
-  "Deepstone Path & bekannte Rarities": "Deepstone Path & known rarities",
-  "Nur direkt beobachtete Werte; bei zwei Path-Einträgen fehlen Basis und Boni.":
-    "Direct observations only; base rarity and bonuses are missing for two Path entries.",
-  "Zuvor bei {p0} Copies ({p1}) beobachtet": "Previously observed at {p0} copies ({p1})",
-  "Ein MAX-Screenshot kann mehr sichtbare Copies als die zuvor angezeigte Schwelle enthalten. Die belegte Karten-Schwelle bleibt deshalb separat erhalten.":
-    "A MAX screenshot can show more visible copies than the previously displayed threshold. The documented card threshold is therefore retained separately.",
-  Basisanzeige: "Base display",
-  "Beobachtete Copies": "Observed copies",
+  "Stufen 0–{p0}": "Levels 0–{p0}",
+  "Bekannte Levelwerte deuten auf ungefähr ×1,5 pro Level. Exakte Kostenformel unbekannt.":
+    "Known level values suggest approximately ×1.5 per level. The exact cost formula is unknown.",
+  "Bekannte höhere Levelwerte deuten auf ungefähr ×1,3 pro Level. Exakte Formel unbekannt.":
+    "Known higher-level values suggest approximately ×1.3 per level. The exact formula is unknown.",
+  "Bekannte Levelwerte deuten auf ungefähr ×1,1 pro Level. Exakte Formel unbekannt.":
+    "Known level values suggest approximately ×1.1 per level. The exact formula is unknown.",
+  "Deepstone-Path-Ziele": "Deepstone Path goals",
+  "Basis-Chance, benötigte Copies und Boni bei voller Stufe – ohne persönliche Messwerte.":
+    "Base chance, required copies, and full-tier bonuses — without personal measurements.",
+  "Basis-Chance": "Base chance",
+  "Copies bis volle Stufe": "Copies to full tier",
+  "Boni bei voller Stufe": "Bonuses at full tier",
   "Bekannte Rarity-Checkpoints": "Known rarity checkpoints",
   "Forge-4-Ziel": "Forge 4 target",
   "Milestone-Ziel": "Milestone target",

@@ -33,37 +33,23 @@ describe("World 10 Part 2 forge routes", () => {
     expect(RARITY_FORGES[5]).toMatchObject({ id: 6, cost: "Unknown", status: "unknown" });
   });
 
-  it("keeps base Path rarity separate from personal observed values", () => {
+  it("keeps the Path reference focused on base chance, required copies, and full bonuses", () => {
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Bedrock")).toMatchObject({
       baseDisplay: "1 / 100 Qa",
-      observedChance: "1 / 71.69 K",
-      observedCopies: "757.57 K",
-      maxText: "MAX",
+      copiesToFull: "500 K",
     });
-    expect(DEEPSTONE_PATHS.find((path) => path.name === "Vein")?.maxText).toBe("MAX");
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Vein")?.copiesToFull).toBe("50 K");
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")).toMatchObject({
       baseDisplay: "1 / 190 Sx",
-      observedChance: "1 / 165.34 B",
-      observedCopies: "45.62 K",
+      copiesToFull: "5 K",
       bonuses: ["×10 T Qi", "×2 Dao Path Bulk", "×10 Karmic Ashes"],
-      maxText: "MAX · 5 K copies to max",
     });
-    expect(DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")?.previousObservations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ copies: "5" }),
-        expect.objectContaining({ copies: "1.04 K" }),
-      ]),
-    );
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Abyssal Ore")).toMatchObject({
       baseDisplay: "1 / 5.5 Sp",
-      observedChance: "1 / 4.62 T",
-      observedCopies: "1.64 K",
+      copiesToFull: "1 K",
       bonuses: ["×1 Oc Qi", "×5 Deepstones", "×3 Rarity Luck"],
-      maxText: "MAX · 1 K copies to max",
     });
-    expect(
-      DEEPSTONE_PATHS.find((path) => path.name === "Abyssal Ore")?.previousObservations,
-    ).toEqual(expect.arrayContaining([expect.objectContaining({ copies: "40" })]));
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Shard")?.copiesToFull).toBe("Unknown");
   });
 
   it("includes the new high-level Deepstone upgrade measurements", () => {

@@ -113,7 +113,7 @@ export function SamsaraRarities() {
             </h3>
             <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
               {tr(
-                "Vergleicht die echte Spielzeit bis Forge 4. Rarity-Rolls und anderes Farming werden bewusst nicht als parallel behandelt.",
+                "Trage deinen aktuellen Stand ein, lies die Empfehlung und öffne Detaildaten nur dann, wenn du sie wirklich brauchst.",
               )}
             </p>
           </div>
@@ -130,7 +130,31 @@ export function SamsaraRarities() {
         </Button>
       </div>
 
-      <div className="rarity-status-strip mt-5">
+      <div className="rarity-usage-flow mt-5" aria-label={tr("So benutzt du den Planner")}>
+        <article>
+          <span>1</span>
+          <div>
+            <strong>{tr("Stand eingeben")}</strong>
+            <small>{tr("Bestand und echte Netto-Raten aus dem Spiel.")}</small>
+          </div>
+        </article>
+        <article>
+          <span>2</span>
+          <div>
+            <strong>{tr("Empfehlung lesen")}</strong>
+            <small>{tr("Eine klare Route statt mehrerer konkurrierender Tabellen.")}</small>
+          </div>
+        </article>
+        <article>
+          <span>3</span>
+          <div>
+            <strong>{tr("Details nachschlagen")}</strong>
+            <small>{tr("Forge-, Upgrade- und Path-Daten bleiben eingeklappt.")}</small>
+          </div>
+        </article>
+      </div>
+
+      <div className="rarity-status-strip mt-4">
         <span>
           <CheckCircle2 aria-hidden="true" /> {tr("Dokumentiert")}: Forge 1–5
         </span>
@@ -138,6 +162,14 @@ export function SamsaraRarities() {
           <AlertTriangle aria-hidden="true" /> {tr("Forschungsbedarf")}: Forge 6–10, Luck-Formel,
           Kostenkurven
         </span>
+      </div>
+
+      <div className="rarity-section-heading mt-6">
+        <span>1</span>
+        <div>
+          <h4>{tr("Deinen Stand eintragen")}</h4>
+          <p>{tr("Übernimm Bestand und Netto-Zuwachs direkt aus dem Spiel.")}</p>
+        </div>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -184,8 +216,16 @@ export function SamsaraRarities() {
         <span>{state.milestonePurchased ? tr("Ja") : tr("Nein")}</span>
       </button>
 
+      <div className="rarity-section-heading mt-6">
+        <span>2</span>
+        <div>
+          <h4>{tr("Deine Empfehlung")}</h4>
+          <p>{tr("Der Rechner zeigt nur die schnellere Route zu deinem nächsten Ziel.")}</p>
+        </div>
+      </div>
+
       <div
-        className="samsara-recommendation mt-5"
+        className="samsara-recommendation mt-4"
         data-state={comparison.recommendation}
         data-testid="forge-route-recommendation"
       >
@@ -243,10 +283,20 @@ export function SamsaraRarities() {
         </p>
       </div>
 
-      <details className="samsara-details mt-5">
+      <div className="rarity-section-heading mt-6">
+        <span>3</span>
+        <div>
+          <h4>{tr("Nur bei Bedarf nachschlagen")}</h4>
+          <p>
+            {tr("Forge-, Upgrade- und Path-Daten sind getrennt und standardmäßig eingeklappt.")}
+          </p>
+        </div>
+      </div>
+
+      <details className="samsara-details mt-4">
         <summary>
           <span>
-            <strong>{tr("Forge-Roadmap 1–10")}</strong>
+            <strong>{tr("Forge-Reihenfolge 1–10")}</strong>
             <small>
               {tr("Bestätigte Kosten und Boni bleiben von unbekannten Stufen getrennt.")}
             </small>
@@ -293,7 +343,7 @@ export function SamsaraRarities() {
       <details className="samsara-details mt-3">
         <summary>
           <span>
-            <strong>{tr("Gemessene Deepstone-Upgrades")}</strong>
+            <strong>{tr("Upgrade-Nachschlagewerte")}</strong>
             <small>{tr("Screenshot-Werte statt erfundener Kostenformeln.")}</small>
           </span>
         </summary>
@@ -301,7 +351,7 @@ export function SamsaraRarities() {
           {DEEPSTONE_UPGRADE_SNAPSHOTS.map((upgrade) => (
             <article key={upgrade.name} className="rarity-data-card">
               <h4>{upgrade.name}</h4>
-              <p>MAX {upgrade.cap}</p>
+              <p>{tr("Stufen 0–{p0}", { p0: String(upgrade.cap) })}</p>
               <div className="overflow-x-auto">
                 <table className="mt-3 w-full min-w-[26rem] text-xs">
                   <thead className="text-left text-muted-foreground">
@@ -335,71 +385,43 @@ export function SamsaraRarities() {
       <details className="samsara-details mt-3">
         <summary>
           <span>
-            <strong>{tr("Deepstone Path & bekannte Rarities")}</strong>
+            <strong>{tr("Deepstone-Path-Ziele")}</strong>
             <small>
-              {tr("Nur direkt beobachtete Werte; bei zwei Path-Einträgen fehlen Basis und Boni.")}
+              {tr(
+                "Basis-Chance, benötigte Copies und Boni bei voller Stufe – ohne persönliche Messwerte.",
+              )}
             </small>
           </span>
         </summary>
         <div className="border-t p-4">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[50rem] text-sm">
-              <thead className="text-left text-xs text-muted-foreground">
-                <tr>
-                  <th className="pb-2 pr-3">Path</th>
-                  <th className="pr-3">{tr("Basisanzeige")}</th>
-                  <th className="pr-3">{tr("Beobachtete Chance")}</th>
-                  <th className="pr-3">{tr("Beobachtete Copies")}</th>
-                  <th className="pr-3">{tr("Boni")}</th>
-                  <th>MAX</th>
-                </tr>
-              </thead>
-              <tbody>
-                {DEEPSTONE_PATHS.map((path) => (
-                  <tr key={path.name} className="border-t align-top">
-                    <td className="py-3 pr-3 font-medium">{path.name}</td>
-                    <td className="pr-3 font-mono text-xs">
-                      {path.baseDisplay === "Unknown" ? tr("Unbekannt") : path.baseDisplay}
-                    </td>
-                    <td className="pr-3 font-mono text-xs">
-                      {path.observedChance === "Unknown" ? tr("Unbekannt") : path.observedChance}
-                    </td>
-                    <td className="pr-3 font-mono text-xs">
-                      {path.observedCopies === "Unknown" ? tr("Unbekannt") : path.observedCopies}
-                    </td>
-                    <td className="pr-3">
-                      {path.bonuses
-                        .map((bonus) => (bonus === "Unknown" ? tr("Unbekannt") : bonus))
-                        .join(" · ")}
-                      {path.previousObservations.map((observation) => (
-                        <small
-                          key={`${path.name}-${observation.copies}`}
-                          className="mt-1 block text-muted-foreground"
-                        >
-                          {tr("Zuvor bei {p0} Copies ({p1}) beobachtet", {
-                            p0: observation.copies,
-                            p1: observation.chance,
-                          })}
-                          : {observation.bonuses.join(" · ")}
-                        </small>
-                      ))}
-                    </td>
-                    <td className="text-xs">
-                      {path.maxText === "Unknown" ? tr("Unbekannt") : path.maxText}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="rarity-path-grid">
+            {DEEPSTONE_PATHS.map((path) => (
+              <article key={path.name} className="rarity-path-card">
+                <h4>{path.name}</h4>
+                <dl>
+                  <div>
+                    <dt>{tr("Basis-Chance")}</dt>
+                    <dd>{path.baseDisplay === "Unknown" ? tr("Unbekannt") : path.baseDisplay}</dd>
+                  </div>
+                  <div>
+                    <dt>{tr("Copies bis volle Stufe")}</dt>
+                    <dd>{path.copiesToFull === "Unknown" ? tr("Unbekannt") : path.copiesToFull}</dd>
+                  </div>
+                </dl>
+                <div className="rarity-path-bonuses">
+                  <span>{tr("Boni bei voller Stufe")}</span>
+                  <p>
+                    {path.bonuses
+                      .map((bonus) => (bonus === "Unknown" ? tr("Unbekannt") : bonus))
+                      .join(" · ")}
+                  </p>
+                </div>
+              </article>
+            ))}
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
             {tr("Bekannte Rarity-Checkpoints")}:{" "}
             {KNOWN_RARITY_CHECKPOINTS.map(([id, name]) => `#${id} ${name}`).join(" · ")}
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {tr(
-              "Ein MAX-Screenshot kann mehr sichtbare Copies als die zuvor angezeigte Schwelle enthalten. Die belegte Karten-Schwelle bleibt deshalb separat erhalten.",
-            )}
           </p>
         </div>
       </details>

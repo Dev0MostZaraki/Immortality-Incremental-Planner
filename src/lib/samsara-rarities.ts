@@ -139,7 +139,7 @@ export const DEEPSTONE_UPGRADE_SNAPSHOTS = [
     name: "Deepstone Boost",
     cap: 50,
     hypothesis:
-      "Beobachtetes Effektverhältnis: ungefähr ×1,5 pro Level. Exakte Kostenformel unbekannt.",
+      "Bekannte Levelwerte deuten auf ungefähr ×1,5 pro Level. Exakte Kostenformel unbekannt.",
     rows: [
       [5, "×7.59", "×11.39", "2.13 K"],
       [9, "×38.44", "×57.67", "42.35 K"],
@@ -155,7 +155,7 @@ export const DEEPSTONE_UPGRADE_SNAPSHOTS = [
     name: "Rarity Luck",
     cap: 50,
     hypothesis:
-      "Beobachtetes Effektverhältnis in höheren Leveln: ungefähr ×1,3. Exakte Formel unbekannt.",
+      "Bekannte höhere Levelwerte deuten auf ungefähr ×1,3 pro Level. Exakte Formel unbekannt.",
     rows: [
       [4, "×2.86", "×3.71", "3.04 K"],
       [7, "×6.27", "×8.16", "226.39 K"],
@@ -171,7 +171,7 @@ export const DEEPSTONE_UPGRADE_SNAPSHOTS = [
   {
     name: "Rarity Speed",
     cap: 20,
-    hypothesis: "Beobachtetes Effektverhältnis: ungefähr ×1,1 pro Level. Exakte Formel unbekannt.",
+    hypothesis: "Bekannte Levelwerte deuten auf ungefähr ×1,1 pro Level. Exakte Formel unbekannt.",
     rows: [
       [3, "×1.33", "×1.46", "2.85 K"],
       [6, "×1.77", "×1.95", "383.94 K"],
@@ -190,85 +190,44 @@ export const DEEPSTONE_PATHS = [
   {
     name: "Shard",
     baseDisplay: "1 / 1",
-    observedChance: "1 / 1.02",
-    observedCopies: "120.37 B",
+    copiesToFull: "Unknown",
     bonuses: ["×100 K Qi", "×2 Deepstones"],
-    maxText: "MAX",
-    previousObservations: [],
   },
   {
     name: "Geode",
     baseDisplay: "1 / 10 T",
-    observedChance: "1 / 67.28",
-    observedCopies: "807.27 M",
+    copiesToFull: "Unknown",
     bonuses: ["×10 Qa Qi", "×2 Rarity Luck"],
-    maxText: "MAX",
-    previousObservations: [],
   },
   {
     name: "Bedrock",
     baseDisplay: "1 / 100 Qa",
-    observedChance: "1 / 71.69 K",
-    observedCopies: "757.57 K",
+    copiesToFull: "500 K",
     bonuses: ["×10 Ocd Qi", "×2 Soul Threads", "×3 Deepstones"],
-    maxText: "MAX",
-    previousObservations: [],
   },
   {
     name: "Vein",
     baseDisplay: "1 / 160 Qa",
-    observedChance: "1 / 1.08 M",
-    observedCopies: "50.5 K",
+    copiesToFull: "50 K",
     bonuses: ["×1 Dd Qi", "×2 Dao Path Luck", "×1.5 Rarity Speed"],
-    maxText: "MAX",
-    previousObservations: [],
   },
   {
     name: "Magmacore",
     baseDisplay: "1 / 190 Sx",
-    observedChance: "1 / 165.34 B",
-    observedCopies: "45.62 K",
+    copiesToFull: "5 K",
     bonuses: ["×10 T Qi", "×2 Dao Path Bulk", "×10 Karmic Ashes"],
-    maxText: "MAX · 5 K copies to max",
-    previousObservations: [
-      {
-        copies: "5",
-        chance: "1 / 1.32 T",
-        bonuses: ["×316.23 B Qi", "×1.03 Dao Path Bulk", "×1.28 Karmic Ashes"],
-      },
-      {
-        copies: "1.04 K",
-        chance: "1 / 1.32 T",
-        bonuses: ["×4.57 T Qi", "×1.46 Dao Path Bulk", "×5.11 Karmic Ashes"],
-      },
-    ],
   },
   {
     name: "Abyssal Ore",
     baseDisplay: "1 / 5.5 Sp",
-    observedChance: "1 / 4.62 T",
-    observedCopies: "1.64 K",
+    copiesToFull: "1 K",
     bonuses: ["×1 Oc Qi", "×5 Deepstones", "×3 Rarity Luck"],
-    maxText: "MAX · 1 K copies to max",
-    previousObservations: [
-      {
-        copies: "40",
-        chance: "1 / 36.97 T",
-        bonuses: ["×200 Sp Qi", "×1.8 Deepstones", "×1.4 Rarity Luck"],
-      },
-    ],
   },
-  ...[
-    ["Worldroot", "1 / 5.38 Qi"],
-    ["Heartstone", "1 / 32.93 Sx"],
-  ].map(([name, observedChance]) => ({
+  ...["Worldroot", "Heartstone"].map((name) => ({
     name,
     baseDisplay: "Unknown",
-    observedChance,
-    observedCopies: "0",
+    copiesToFull: "Unknown",
     bonuses: ["Unknown"],
-    maxText: "Unknown",
-    previousObservations: [],
   })),
 ] as const;
 

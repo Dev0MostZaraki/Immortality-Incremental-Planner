@@ -441,6 +441,65 @@
   width: 23px;
   height: 23px;
 }
+.rarity-usage-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.rarity-usage-flow article {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid rgb(90 112 88 / 42%);
+  border-radius: 11px;
+  padding: 11px 12px;
+  background: rgb(7 10 8 / 56%);
+}
+.rarity-usage-flow article > span,
+.rarity-section-heading > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(96 186 151 / 52%);
+  border-radius: 999px;
+  color: #8ee0c7;
+  background: rgb(48 122 97 / 18%);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+.rarity-usage-flow strong,
+.rarity-usage-flow small {
+  display: block;
+}
+.rarity-usage-flow strong {
+  color: #e3eee6;
+  font-size: 0.76rem;
+}
+.rarity-usage-flow small {
+  margin-top: 2px;
+  color: #8fa092;
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+.rarity-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.rarity-section-heading h4 {
+  color: #edf5eb;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.rarity-section-heading p {
+  margin-top: 1px;
+  color: #8fa092;
+  font-size: 0.69rem;
+}
 .rarity-status-strip {
   display: flex;
   flex-wrap: wrap;
@@ -594,6 +653,59 @@
   margin-top: 11px;
   color: #9aa79b;
   font-size: 0.67rem;
+  line-height: 1.45;
+}
+.rarity-path-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.rarity-path-card {
+  min-width: 0;
+  border: 1px solid rgb(74 94 76 / 52%);
+  border-radius: 11px;
+  padding: 14px;
+  background: linear-gradient(145deg, rgb(7 10 8 / 82%), rgb(13 17 14 / 60%));
+}
+.rarity-path-card h4 {
+  color: #edf4eb;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.rarity-path-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 11px;
+}
+.rarity-path-card dl > div {
+  border: 1px solid rgb(76 101 82 / 36%);
+  border-radius: 8px;
+  padding: 8px 9px;
+  background: rgb(3 5 4 / 35%);
+}
+.rarity-path-card dt,
+.rarity-path-bonuses span {
+  color: #809487;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+.rarity-path-card dd {
+  margin-top: 3px;
+  color: #dce8df;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+.rarity-path-bonuses {
+  margin-top: 9px;
+  border-top: 1px solid rgb(76 101 82 / 36%);
+  padding-top: 9px;
+}
+.rarity-path-bonuses p {
+  margin-top: 3px;
+  color: #bcd2c3;
+  font-size: 0.72rem;
   line-height: 1.45;
 }
 .mark-farm-advisor {
@@ -769,7 +881,9 @@
 @media (max-width: 820px) {
   .rune-option-grid,
   .mark-farm-tier-grid,
-  .rarity-upgrade-grid {
+  .rarity-upgrade-grid,
+  .rarity-path-grid,
+  .rarity-usage-flow {
     grid-template-columns: 1fr;
   }
 }
