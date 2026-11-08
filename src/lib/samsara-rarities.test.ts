@@ -43,8 +43,19 @@ describe("World 10 Part 2 forge routes", () => {
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Vein")?.maxText).toBe("MAX");
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")).toMatchObject({
       baseDisplay: "1 / 190 Sx",
-      observedCopies: "5",
+      observedCopies: "1.04 K",
+      bonuses: ["×4.57 T Qi", "×1.46 Dao Path Bulk", "×5.11 Karmic Ashes"],
       maxText: "5 K copies to max",
+    });
+    expect(
+      DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")?.previousObservation,
+    ).toMatchObject({ copies: "5" });
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Abyssal Ore")).toMatchObject({
+      baseDisplay: "1 / 5.5 Sp",
+      observedChance: "1 / 36.97 T",
+      observedCopies: "40",
+      bonuses: ["×200 Sp Qi", "×1.8 Deepstones", "×1.4 Rarity Luck"],
+      maxText: "1 K copies to max",
     });
   });
 
@@ -56,6 +67,19 @@ describe("World 10 Part 2 forge routes", () => {
       "2.19 T",
     ]);
     expect(DEEPSTONE_UPGRADE_SNAPSHOTS[2].rows).toContainEqual([13, "×3.45", "×3.8", "1 T"]);
+    expect(DEEPSTONE_UPGRADE_SNAPSHOTS[0].rows).toContainEqual([
+      24,
+      "×16.83 K",
+      "×25.25 K",
+      "878.58 Qa",
+    ]);
+    expect(DEEPSTONE_UPGRADE_SNAPSHOTS[1].rows).toContainEqual([
+      22,
+      "×321.18",
+      "×417.54",
+      "4.81 Qi",
+    ]);
+    expect(DEEPSTONE_UPGRADE_SNAPSHOTS[2].rows).toContainEqual([19, "×6.12", "×6.73", "13.01 Qi"]);
   });
 
   it("does not multiply an already boosted measured rate again", () => {

@@ -927,8 +927,9 @@ export const messages = {
   "Beobachtetes Effektverhältnis: ungefähr ×1,1 pro Level. Exakte Formel unbekannt.":
     "Observed effect ratio: approximately ×1.1 per level. Exact formula unknown.",
   "Deepstone Path & bekannte Rarities": "Deepstone Path & known rarities",
-  "Nur direkt beobachtete Werte; bei drei Path-Einträgen fehlen Basis und Boni.":
-    "Direct observations only; base rarity and bonuses are missing for three Path entries.",
+  "Nur direkt beobachtete Werte; bei zwei Path-Einträgen fehlen Basis und Boni.":
+    "Direct observations only; base rarity and bonuses are missing for two Path entries.",
+  "Zuvor bei {p0} Copies beobachtet": "Previously observed at {p0} copies",
   Basisanzeige: "Base display",
   "Beobachtete Copies": "Observed copies",
   "Bekannte Rarity-Checkpoints": "Known rarity checkpoints",

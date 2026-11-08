@@ -337,7 +337,7 @@ export function SamsaraRarities() {
           <span>
             <strong>{tr("Deepstone Path & bekannte Rarities")}</strong>
             <small>
-              {tr("Nur direkt beobachtete Werte; bei drei Path-Einträgen fehlen Basis und Boni.")}
+              {tr("Nur direkt beobachtete Werte; bei zwei Path-Einträgen fehlen Basis und Boni.")}
             </small>
           </span>
         </summary>
@@ -371,6 +371,14 @@ export function SamsaraRarities() {
                       {path.bonuses
                         .map((bonus) => (bonus === "Unknown" ? tr("Unbekannt") : bonus))
                         .join(" · ")}
+                      {path.previousObservation && (
+                        <small className="mt-1 block text-muted-foreground">
+                          {tr("Zuvor bei {p0} Copies beobachtet", {
+                            p0: path.previousObservation.copies,
+                          })}
+                          : {path.previousObservation.bonuses.join(" · ")}
+                        </small>
+                      )}
                     </td>
                     <td className="text-xs">
                       {path.maxText === "Unknown" ? tr("Unbekannt") : path.maxText}
