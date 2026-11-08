@@ -78,6 +78,11 @@ describe("World 10 Part 2 forge routes", () => {
       copiesToFull: "100",
       bonuses: ["×2 Dao Path Speed", "^1.006 Qi", "×5 Rarity Luck"],
     });
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Heartstone")).toMatchObject({
+      baseDisplay: "1 / 4.9 Dc",
+      copiesToFull: "25",
+      bonuses: ["^1.0027 Qi", "×10 Deepstones", "×2 Rarity Speed"],
+    });
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Shard")?.copiesToFull).toBe("Unknown");
   });
 

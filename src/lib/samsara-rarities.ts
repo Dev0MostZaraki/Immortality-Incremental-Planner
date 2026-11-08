@@ -255,9 +255,9 @@ export const DEEPSTONE_PATHS = [
   },
   {
     name: "Heartstone",
-    baseDisplay: "Unknown",
-    copiesToFull: "Unknown",
-    bonuses: ["Unknown"],
+    baseDisplay: "1 / 4.9 Dc",
+    copiesToFull: "25",
+    bonuses: ["^1.0027 Qi", "×10 Deepstones", "×2 Rarity Speed"],
   },
 ] as const;
 

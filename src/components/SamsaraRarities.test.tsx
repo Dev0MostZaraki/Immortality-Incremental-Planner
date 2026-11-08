@@ -60,6 +60,8 @@ describe("Samsara Rarities and Forge planner", () => {
     expect(screen.getByText("1 K")).toBeInTheDocument();
     expect(screen.getByText("1 / 800 Oc")).toBeInTheDocument();
     expect(screen.getByText("×2 Dao Path Speed · ^1.006 Qi · ×5 Rarity Luck")).toBeInTheDocument();
+    expect(screen.getByText("1 / 4.9 Dc")).toBeInTheDocument();
+    expect(screen.getByText("^1.0027 Qi · ×10 Deepstones · ×2 Rarity Speed")).toBeInTheDocument();
     expect(screen.queryByText("Beobachtete Chance")).not.toBeInTheDocument();
     expect(screen.queryByText("Beobachtete Copies")).not.toBeInTheDocument();
     expect(screen.queryByText(/^MAX$/)).not.toBeInTheDocument();
