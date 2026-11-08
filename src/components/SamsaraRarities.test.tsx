@@ -24,6 +24,24 @@ describe("Samsara Rarities and Forge planner", () => {
     expect(screen.getByText("Deinen Stand eintragen")).toBeInTheDocument();
     expect(screen.getByText("Deine Empfehlung")).toBeInTheDocument();
     expect(screen.getByText("Nur bei Bedarf nachschlagen")).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) =>
+        Boolean(
+          element?.tagName === "SPAN" &&
+          element.textContent?.includes("Forge-Boni 1–8 · bekannte Kosten 1–5 & 8"),
+        ),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the newly confirmed Forge 6–8 data without inventing missing costs", () => {
+    mount();
+    fireEvent.click(screen.getByText("Forge-Reihenfolge 1–10"));
+    expect(screen.getByText("×10 Soul Threads · ×2 Path Speed · ^1.0022 Qi")).toBeInTheDocument();
+    expect(screen.getByText("×5 Rarity Luck · ×10 Deepstones · ×1 Qitg Qi")).toBeInTheDocument();
+    expect(screen.getByText("62 Qid Karmic Ashes")).toBeInTheDocument();
+    expect(screen.getByText("×100 Karmic Ashes · ×2 Path Bulk · ^1.0006 Qi")).toBeInTheDocument();
+    expect(screen.getAllByText("Teilweise")).toHaveLength(2);
   });
 
   it("shows player-facing Path goals without observed or standalone MAX fields", () => {

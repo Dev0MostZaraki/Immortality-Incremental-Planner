@@ -126,8 +126,26 @@ export const RARITY_FORGES = [
     bonuses: ["Increase Ashes cap", "×3 Rarity Luck", "×1.5 Rarity Speed", "×10 Sx Qi"],
     status: "confirmed",
   },
-  ...Array.from({ length: 5 }, (_, index) => ({
-    id: index + 6,
+  {
+    id: 6,
+    cost: "Unknown",
+    bonuses: ["×10 Soul Threads", "×2 Path Speed", "^1.0022 Qi"],
+    status: "partial",
+  },
+  {
+    id: 7,
+    cost: "Unknown",
+    bonuses: ["×5 Rarity Luck", "×10 Deepstones", "×1 Qitg Qi"],
+    status: "partial",
+  },
+  {
+    id: 8,
+    cost: "62 Qid Karmic Ashes",
+    bonuses: ["×100 Karmic Ashes", "×2 Path Bulk", "^1.0006 Qi"],
+    status: "confirmed",
+  },
+  ...Array.from({ length: 2 }, (_, index) => ({
+    id: index + 9,
     cost: "Unknown",
     bonuses: ["Unknown"],
     status: "unknown",

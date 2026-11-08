@@ -23,14 +23,33 @@ describe("World 10 Part 2 forge routes", () => {
     expect(result.recommendation).toBe("milestone");
   });
 
-  it("records the confirmed Forge 5 data without inventing later forges", () => {
+  it("records Forge 5–8 while keeping unseen costs and later tiers unknown", () => {
     expect(RARITY_FORGES[4]).toMatchObject({
       id: 5,
       cost: "75 Td Karmic Ashes",
       status: "confirmed",
     });
     expect(RARITY_FORGES[4].bonuses).toContain("×3 Rarity Luck");
-    expect(RARITY_FORGES[5]).toMatchObject({ id: 6, cost: "Unknown", status: "unknown" });
+    expect(RARITY_FORGES[5]).toMatchObject({
+      id: 6,
+      cost: "Unknown",
+      bonuses: ["×10 Soul Threads", "×2 Path Speed", "^1.0022 Qi"],
+      status: "partial",
+    });
+    expect(RARITY_FORGES[6]).toMatchObject({
+      id: 7,
+      cost: "Unknown",
+      bonuses: ["×5 Rarity Luck", "×10 Deepstones", "×1 Qitg Qi"],
+      status: "partial",
+    });
+    expect(RARITY_FORGES[7]).toMatchObject({
+      id: 8,
+      cost: "62 Qid Karmic Ashes",
+      bonuses: ["×100 Karmic Ashes", "×2 Path Bulk", "^1.0006 Qi"],
+      status: "confirmed",
+    });
+    expect(RARITY_FORGES[8]).toMatchObject({ id: 9, cost: "Unknown", status: "unknown" });
+    expect(RARITY_FORGES[9]).toMatchObject({ id: 10, cost: "Unknown", status: "unknown" });
   });
 
   it("keeps the Path reference focused on base chance, required copies, and full bonuses", () => {
