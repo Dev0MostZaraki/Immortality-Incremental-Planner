@@ -929,7 +929,9 @@ export const messages = {
   "Deepstone Path & bekannte Rarities": "Deepstone Path & known rarities",
   "Nur direkt beobachtete Werte; bei zwei Path-Einträgen fehlen Basis und Boni.":
     "Direct observations only; base rarity and bonuses are missing for two Path entries.",
-  "Zuvor bei {p0} Copies beobachtet": "Previously observed at {p0} copies",
+  "Zuvor bei {p0} Copies ({p1}) beobachtet": "Previously observed at {p0} copies ({p1})",
+  "Ein MAX-Screenshot kann mehr sichtbare Copies als die zuvor angezeigte Schwelle enthalten. Die belegte Karten-Schwelle bleibt deshalb separat erhalten.":
+    "A MAX screenshot can show more visible copies than the previously displayed threshold. The documented card threshold is therefore retained separately.",
   Basisanzeige: "Base display",
   "Beobachtete Copies": "Observed copies",
   "Bekannte Rarity-Checkpoints": "Known rarity checkpoints",

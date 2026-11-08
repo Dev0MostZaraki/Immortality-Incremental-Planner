@@ -371,14 +371,18 @@ export function SamsaraRarities() {
                       {path.bonuses
                         .map((bonus) => (bonus === "Unknown" ? tr("Unbekannt") : bonus))
                         .join(" · ")}
-                      {path.previousObservation && (
-                        <small className="mt-1 block text-muted-foreground">
-                          {tr("Zuvor bei {p0} Copies beobachtet", {
-                            p0: path.previousObservation.copies,
+                      {path.previousObservations.map((observation) => (
+                        <small
+                          key={`${path.name}-${observation.copies}`}
+                          className="mt-1 block text-muted-foreground"
+                        >
+                          {tr("Zuvor bei {p0} Copies ({p1}) beobachtet", {
+                            p0: observation.copies,
+                            p1: observation.chance,
                           })}
-                          : {path.previousObservation.bonuses.join(" · ")}
+                          : {observation.bonuses.join(" · ")}
                         </small>
-                      )}
+                      ))}
                     </td>
                     <td className="text-xs">
                       {path.maxText === "Unknown" ? tr("Unbekannt") : path.maxText}
@@ -391,6 +395,11 @@ export function SamsaraRarities() {
           <p className="mt-4 text-xs text-muted-foreground">
             {tr("Bekannte Rarity-Checkpoints")}:{" "}
             {KNOWN_RARITY_CHECKPOINTS.map(([id, name]) => `#${id} ${name}`).join(" · ")}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {tr(
+              "Ein MAX-Screenshot kann mehr sichtbare Copies als die zuvor angezeigte Schwelle enthalten. Die belegte Karten-Schwelle bleibt deshalb separat erhalten.",
+            )}
           </p>
         </div>
       </details>

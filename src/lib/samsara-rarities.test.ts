@@ -43,20 +43,27 @@ describe("World 10 Part 2 forge routes", () => {
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Vein")?.maxText).toBe("MAX");
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")).toMatchObject({
       baseDisplay: "1 / 190 Sx",
-      observedCopies: "1.04 K",
-      bonuses: ["×4.57 T Qi", "×1.46 Dao Path Bulk", "×5.11 Karmic Ashes"],
-      maxText: "5 K copies to max",
+      observedChance: "1 / 165.34 B",
+      observedCopies: "45.62 K",
+      bonuses: ["×10 T Qi", "×2 Dao Path Bulk", "×10 Karmic Ashes"],
+      maxText: "MAX · 5 K copies to max",
     });
-    expect(
-      DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")?.previousObservation,
-    ).toMatchObject({ copies: "5" });
+    expect(DEEPSTONE_PATHS.find((path) => path.name === "Magmacore")?.previousObservations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ copies: "5" }),
+        expect.objectContaining({ copies: "1.04 K" }),
+      ]),
+    );
     expect(DEEPSTONE_PATHS.find((path) => path.name === "Abyssal Ore")).toMatchObject({
       baseDisplay: "1 / 5.5 Sp",
-      observedChance: "1 / 36.97 T",
-      observedCopies: "40",
-      bonuses: ["×200 Sp Qi", "×1.8 Deepstones", "×1.4 Rarity Luck"],
-      maxText: "1 K copies to max",
+      observedChance: "1 / 4.62 T",
+      observedCopies: "1.64 K",
+      bonuses: ["×1 Oc Qi", "×5 Deepstones", "×3 Rarity Luck"],
+      maxText: "MAX · 1 K copies to max",
     });
+    expect(
+      DEEPSTONE_PATHS.find((path) => path.name === "Abyssal Ore")?.previousObservations,
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ copies: "40" })]));
   });
 
   it("includes the new high-level Deepstone upgrade measurements", () => {
